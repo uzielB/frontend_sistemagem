@@ -1,1 +1,130 @@
-<p>navbar works!</p>
+<nav class="navbar" [class.navbar-authenticated]="isAuthenticated()">
+  <div class="navbar-container">
+    
+    <!-- LOGO -->
+    <div class="navbar-brand">
+  <a [routerLink]="isAuthenticated() ? 
+      (userRole() === 'ADMIN' || userRole() === 'SUPER_ADMIN' ? '/admin/dashboard' : 
+       userRole() === 'ALUMNO' ? '/alumno/dashboard' : 
+       '/docente/dashboard') : '/'" 
+     class="logo-link">
+    <!-- Ajusta la ruta según dónde esté tu logo -->
+    <img 
+      src="/logo-gem.png" 
+      alt="GEM - Grupo Educativo de México" 
+      class="logo-image">
+  </a>
+  
+  <!-- Badge de rol (solo usuarios autenticados) -->
+  <span class="role-badge" *ngIf="isAuthenticated()">
+    {{ getRoleLabel() }}
+  </span>
+</div>
+
+    <!-- MENÚ DESKTOP -->
+    <ul class="nav-links desktop-menu">
+      <li *ngFor="let item of navItems" [class.nav-button]="item.isButton">
+        
+        <!-- Item con ruta -->
+        <a *ngIf="item.route && !item.isButton" 
+           [routerLink]="item.route" 
+           routerLinkActive="active"
+           class="nav-link">
+          <i class="icon" *ngIf="item.icon">{{ item.icon }}</i>
+          {{ item.label }}
+        </a>
+        
+        <!-- Item con acción (no botón) -->
+        <a *ngIf="item.action && !item.isButton" 
+           (click)="onNavItemClick(item)" 
+           class="nav-link">
+          <i class="icon" *ngIf="item.icon">{{ item.icon }}</i>
+          {{ item.label }}
+        </a>
+        
+        <!-- Item tipo botón -->
+        <button *ngIf="item.isButton" 
+                (click)="onNavItemClick(item)"
+                class="nav-button-style"
+                [class.logout-button]="item.icon === 'logout'">
+          <i class="icon" *ngIf="item.icon">{{ item.icon }}</i>
+          {{ item.label }}
+        </button>
+      </li>
+    </ul>
+
+    <!-- PERFIL DE USUARIO (solo autenticados) -->
+    <div class="user-profile" *ngIf="isAuthenticated()">
+      <div class="user-avatar">
+        <span class="user-initials">{{ getUserInitials() }}</span>
+      </div>
+      <div class="user-info desktop-only">
+        <span class="user-name">{{ getUserFullName() }}</span>
+        <span class="user-role">{{ getRoleLabel() }}</span>
+      </div>
+    </div>
+
+    <!-- BOTÓN DE MENÚ MÓVIL -->
+    <button class="mobile-menu-button" 
+            (click)="toggleMobileMenu()" 
+            [class.active]="isMobileMenuOpen">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+  </div>
+
+  <!-- MENÚ MÓVIL -->
+  <div class="mobile-menu" [class.open]="isMobileMenuOpen">
+    
+    <!-- Info de usuario en móvil (solo autenticados) -->
+    <div class="mobile-user-info" *ngIf="isAuthenticated()">
+      <div class="user-avatar-large">
+        <span class="user-initials">{{ getUserInitials() }}</span>
+      </div>
+      <div class="user-details">
+        <p class="user-name">{{ getUserFullName() }}</p>
+        <p class="user-role">{{ getRoleLabel() }}</p>
+      </div>
+    </div>
+
+    <!-- Items del menú móvil -->
+    <ul class="mobile-nav-links">
+      <li *ngFor="let item of navItems">
+        
+        <!-- Item con ruta -->
+        <a *ngIf="item.route && !item.isButton" 
+           [routerLink]="item.route" 
+           (click)="closeMobileMenu()"
+           routerLinkActive="active"
+           class="mobile-nav-link">
+          <i class="icon" *ngIf="item.icon">{{ item.icon }}</i>
+          <span>{{ item.label }}</span>
+        </a>
+        
+        <!-- Item con acción (no botón) -->
+        <a *ngIf="item.action && !item.isButton" 
+           (click)="onNavItemClick(item)" 
+           class="mobile-nav-link">
+          <i class="icon" *ngIf="item.icon">{{ item.icon }}</i>
+          <span>{{ item.label }}</span>
+        </a>
+        
+        <!-- Item tipo botón -->
+        <button *ngIf="item.isButton" 
+                (click)="onNavItemClick(item)"
+                class="mobile-nav-button"
+                [class.logout-button]="item.icon === 'logout'">
+          <i class="icon" *ngIf="item.icon">{{ item.icon }}</i>
+          <span>{{ item.label }}</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Overlay para cerrar menú móvil -->
+  <div class="mobile-menu-overlay" 
+       *ngIf="isMobileMenuOpen" 
+       (click)="closeMobileMenu()">
+  </div>
+</nav>

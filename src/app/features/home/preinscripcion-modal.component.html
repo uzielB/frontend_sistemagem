@@ -1,0 +1,167 @@
+<div class="modal-header">
+  <h2 mat-dialog-title>Preinscripción</h2>
+  <button mat-icon-button class="close-button" (click)="cerrarModal()">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="modal-content">
+  <form [formGroup]="preinscripcionForm" (ngSubmit)="onSubmit()">
+    
+    <!-- DATOS PERSONALES -->
+    <div class="form-section">
+      <h3 class="section-title">Datos Personales</h3>
+      
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre(s)</mat-label>
+          <input matInput formControlName="nombres" placeholder="Ingresa tu(s) nombre(s)">
+          <mat-error *ngIf="preinscripcionForm.get('nombres')?.invalid">
+            {{ getErrorMessage('nombres') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row two-columns">
+        <mat-form-field appearance="outline">
+          <mat-label>Apellido Paterno</mat-label>
+          <input matInput formControlName="apellidoPaterno" placeholder="Apellido paterno">
+          <mat-error *ngIf="preinscripcionForm.get('apellidoPaterno')?.invalid">
+            {{ getErrorMessage('apellidoPaterno') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Apellido Materno</mat-label>
+          <input matInput formControlName="apellidoMaterno" placeholder="Apellido materno">
+          <mat-error *ngIf="preinscripcionForm.get('apellidoMaterno')?.invalid">
+            {{ getErrorMessage('apellidoMaterno') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row two-columns">
+        <mat-form-field appearance="outline">
+          <mat-label>Fecha de Nacimiento</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="fechaNacimiento" placeholder="DD/MM/AAAA">
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          <mat-error *ngIf="preinscripcionForm.get('fechaNacimiento')?.invalid">
+            {{ getErrorMessage('fechaNacimiento') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>CURP</mat-label>
+          <input matInput formControlName="curp" placeholder="18 caracteres" maxlength="18" style="text-transform: uppercase;">
+          <mat-error *ngIf="preinscripcionForm.get('curp')?.invalid">
+            {{ getErrorMessage('curp') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- CONTACTO -->
+    <div class="form-section">
+      <h3 class="section-title">Contacto</h3>
+      
+      <div class="form-row two-columns">
+        <mat-form-field appearance="outline">
+          <mat-label>Teléfono Celular</mat-label>
+          <input matInput formControlName="telefono" placeholder="10 dígitos" maxlength="10" type="tel">
+          <mat-error *ngIf="preinscripcionForm.get('telefono')?.invalid">
+            {{ getErrorMessage('telefono') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Correo Electrónico</mat-label>
+          <input matInput formControlName="email" placeholder="correo@ejemplo.com" type="email">
+          <mat-error *ngIf="preinscripcionForm.get('email')?.invalid">
+            {{ getErrorMessage('email') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- INTERÉS ACADÉMICO -->
+    <div class="form-section">
+      <h3 class="section-title">Interés Académico</h3>
+      
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Carrera de Interés</mat-label>
+          <mat-select formControlName="carreraInteres" placeholder="Selecciona una carrera">
+            <mat-option *ngFor="let carrera of carreras" [value]="carrera">
+              {{ carrera }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="preinscripcionForm.get('carreraInteres')?.invalid">
+            {{ getErrorMessage('carreraInteres') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row two-columns">
+        <mat-form-field appearance="outline">
+          <mat-label>Modalidad</mat-label>
+          <mat-select formControlName="modalidad" placeholder="Selecciona modalidad">
+            <mat-option *ngFor="let mod of modalidades" [value]="mod">
+              {{ mod }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="preinscripcionForm.get('modalidad')?.invalid">
+            {{ getErrorMessage('modalidad') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Campus Preferido</mat-label>
+          <mat-select formControlName="campusPreferido" placeholder="Selecciona campus">
+            <mat-option *ngFor="let camp of campus" [value]="camp">
+              {{ camp }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="preinscripcionForm.get('campusPreferido')?.invalid">
+            {{ getErrorMessage('campusPreferido') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- PROCEDENCIA -->
+    <div class="form-section">
+      <h3 class="section-title">Procedencia</h3>
+      
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Escuela de Procedencia</mat-label>
+          <input matInput formControlName="escuelaProcedencia" placeholder="Nombre del bachillerato">
+          <mat-error *ngIf="preinscripcionForm.get('escuelaProcedencia')?.invalid">
+            {{ getErrorMessage('escuelaProcedencia') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Promedio General</mat-label>
+          <input matInput formControlName="promedioGeneral" placeholder="6.0 - 10.0" type="number" step="0.1" min="6" max="10">
+          <mat-error *ngIf="preinscripcionForm.get('promedioGeneral')?.invalid">
+            {{ getErrorMessage('promedioGeneral') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </div>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions class="modal-actions">
+  <button mat-button class="btn-cancelar" (click)="cerrarModal()">
+    Cancelar
+  </button>
+  <button mat-raised-button class="btn-enviar" (click)="onSubmit()" [disabled]="preinscripcionForm.invalid">
+    Enviar Preinscripción
+  </button>
+</mat-dialog-actions>

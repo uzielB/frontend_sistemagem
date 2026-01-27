@@ -1,0 +1,137 @@
+<!-- USAR LA NAVBAR COMPARTIDA -->
+<app-navbar></app-navbar>
+
+<!-- HERO SECTION -->
+<section class="hero">
+  <div class="hero-content">
+    <h1 class="hero-title">GRUPO EDUCATIVO DE MÉXICO</h1>
+    <button class="btn-preinscripcion" (click)="abrirModalPreinscripcion()">
+      Preinscríbete
+    </button>
+  </div>
+</section>
+
+<!-- OFERTA EDUCATIVA -->
+<section id="oferta-educativa" class="oferta-educativa">
+  <div class="section-container">
+    <h2 class="section-title">Oferta Educativa</h2>
+    <p class="section-description">
+      En GEM el centro de toda nuestra actividad universitaria es el alumno quien será el profesional 
+      que se incorpore al ámbito productivo de su grupo social.
+    </p>
+    <p class="section-subtitle">Nuestras carreras:</p>
+
+    <div class="carreras-grid">
+      <div class="carrera-card" *ngFor="let carrera of carreras">
+        <!-- ICON PLACEHOLDER: Aquí va el icono -->
+        <div class="carrera-icono">
+          <i class="icon-placeholder">{{ carrera.icono }}</i>
+          <!-- Reemplaza con: <i class="bi bi-{{carrera.icono}}"></i> para Bootstrap Icons -->
+          <!-- O con: <i class="fas fa-{{carrera.icono}}"></i> para FontAwesome -->
+        </div>
+        <h3 class="carrera-titulo">{{ carrera.titulo }}</h3>
+        <p class="carrera-descripcion">{{ carrera.descripcion }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NOSOTROS -->
+<section id="nosotros" class="nosotros">
+  <div class="section-container">
+    <div class="nosotros-content">
+      <div class="nosotros-left">
+        <h2 class="nosotros-title">Nosotros</h2>
+        <p class="nosotros-slogan">Educar para trascender</p>
+        
+        <!-- LOGO GEM -->
+        <div class="gem-logo">
+          <div class="gem-logo-text">GEM</div>
+          <p class="gem-subtitle">GRUPO EDUCATIVO DE MÉXICO</p>
+        </div>
+      </div>
+
+      <div class="nosotros-right">
+        <div class="mision-vision">
+          <div class="mision">
+            <h3>Misión</h3>
+            <p>
+              Ofrecer educación relevante, pertinente e incluyente en todos los niveles y modalidades, 
+              al amparo de un modelo educativo vanguardista y la excelencia educativa, que desarrolle en 
+              los individuos las competencias y la movilización de saberes que les permitan trascender y 
+              transformar su entorno.
+            </p>
+          </div>
+
+          <div class="vision">
+            <h3>Visión</h3>
+            <p>
+              Ser en los próximos seis años una institución educativa de alto nivel y excelencia académica, 
+              en los diferentes niveles educativos, formando profesionales competitivos e integrales, que 
+              respondan a las necesidades del entorno de nuestros individuos, llevando un modelo educativo 
+              vanguardista a cada región de nuestro país.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- UBICACIÓN CON MAPA -->
+<section class="ubicacion">
+  <div class="mapa-container">
+    <!-- OPCIÓN 1: Google Maps Embed (recomendado para producción) -->
+    <!-- Descomenta esto cuando tengas la API Key de Google Maps -->
+    <!--
+    <iframe 
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3814.5!2d-96.7167!3d17.0667!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTfCsDA0JzAwLjAiTiA5NsKwNDMnMDAuMCJX!5e0!3m2!1ses!2smx!4v1234567890"
+      width="100%" 
+      height="500" 
+      style="border:0;" 
+      allowfullscreen="" 
+      loading="lazy" 
+      referrerpolicy="no-referrer-when-downgrade">
+    </iframe>
+    -->
+
+    <!-- OPCIÓN 2: Imagen PNG del mapa (temporal) -->
+    <div class="mapa-placeholder">
+      <p>[ MAPA DE GOOGLE MAPS - Ubicación de GEM Oaxaca ]</p>
+      <p class="mapa-note">Calle Brasil #320, Col. América Sur, Oaxaca de Juárez, Oax.</p>
+      <!-- Reemplaza con: <img src="assets/images/mapa-gem.png" alt="Ubicación GEM"> -->
+    </div>
+  </div>
+</section>
+
+<!-- CONTACTO -->
+<section id="contacto" class="contacto">
+  <div class="section-container">
+    <div class="contacto-content">
+      <h2 class="contacto-title">Contáctanos</h2>
+      
+      <div class="contacto-grid">
+        <div class="contacto-info">
+          <p class="contacto-item" *ngFor="let telefono of contacto.telefonos">
+            {{ telefono }}
+          </p>
+          <p class="contacto-item">{{ contacto.email }}</p>
+          <p class="contacto-item">{{ contacto.institucion }}</p>
+        </div>
+
+        <div class="contacto-direccion">
+          <p class="contacto-item">{{ contacto.direccion.calle }}</p>
+          <p class="contacto-item">{{ contacto.direccion.colonia }}</p>
+          <p class="contacto-item">{{ contacto.direccion.ciudad }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-container">
+    <p>&copy; 2025 Grupo Educativo de México. Todos los derechos reservados.</p>
+  </div>
+</footer>

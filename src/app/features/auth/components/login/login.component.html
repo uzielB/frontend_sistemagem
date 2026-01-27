@@ -1,1 +1,122 @@
-<p>login works!</p>
+<div class="login-container">
+  <mat-card class="login-card">
+    <mat-card-header>
+      <div class="login-header">
+        <div class="logo-container">
+          <div class="logo-text">GEM</div>
+        </div>
+        <h1>Iniciar Sesión</h1>
+        <p class="subtitle">Grupo Educativo de México</p>
+        
+        <!-- Badge de modo DEMO -->
+        <div class="demo-badge" *ngIf="isDemoMode">
+          <mat-icon>science</mat-icon>
+          <span>MODO DEMO</span>
+        </div>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        
+        <!-- CURP -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>CURP</mat-label>
+          <input 
+            matInput 
+            formControlName="curp" 
+            type="text"
+            placeholder="AAAA######HAAAAA##"
+            maxlength="18"
+            (input)="onCurpInput($event)"
+            autocomplete="username">
+          <mat-icon matPrefix>badge</mat-icon>
+          <mat-hint>18 caracteres</mat-hint>
+          <mat-error *ngIf="loginForm.get('curp')?.invalid && loginForm.get('curp')?.touched">
+            {{ getCurpErrorMessage() }}
+          </mat-error>
+        </mat-form-field>
+
+        <!-- CONTRASEÑA -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Contraseña</mat-label>
+          <input 
+            matInput 
+            formControlName="contrasena" 
+            [type]="hidePassword ? 'password' : 'text'"
+            placeholder="••••••••"
+            autocomplete="current-password">
+          <mat-icon matPrefix>lock</mat-icon>
+          <button 
+            mat-icon-button 
+            matSuffix 
+            type="button"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="'Mostrar contraseña'"
+            [attr.aria-pressed]="!hidePassword">
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-hint>Mínimo 6 caracteres</mat-hint>
+          <mat-error *ngIf="loginForm.get('contrasena')?.invalid && loginForm.get('contrasena')?.touched">
+            {{ getPasswordErrorMessage() }}
+          </mat-error>
+        </mat-form-field>
+
+        <!-- MENSAJE DE ERROR -->
+        <div class="error-message" *ngIf="errorMessage">
+          <mat-icon>error</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <!-- BOTÓN DE LOGIN -->
+        <button 
+          mat-raised-button 
+          type="submit" 
+          class="login-button"
+          [disabled]="loginForm.invalid || isLoading">
+          <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+          <span *ngIf="!isLoading">Iniciar Sesión</span>
+          <span *ngIf="isLoading">Verificando...</span>
+        </button>
+
+        <!-- LINK DE RECUPERACIÓN -->
+        <div class="forgot-password">
+          <a href="#" (click)="$event.preventDefault()">¿Olvidaste tu contraseña?</a>
+        </div>
+      </form>
+
+      <!-- INSTRUCCIONES DEMO -->
+      <div class="demo-note" *ngIf="isDemoMode">
+        <p class="demo-title"><mat-icon>info</mat-icon> <strong>MODO DEMOSTRACIÓN</strong></p>
+        <p>Usa cualquiera de estas CURPs de prueba:</p>
+        <ul class="demo-credentials">
+          <li>
+            <strong>Super Admin:</strong> SUPE800101HDFXXX01
+            <span class="password-hint">Contraseña: super1234</span>
+          </li>
+          <li>
+            <strong>Administrador:</strong> ADMI850101HDFXXX02
+            <span class="password-hint">Contraseña: admin1234</span>
+          </li>
+          <li>
+            <strong>Docente:</strong> DOCE900101HDFXXX03
+            <span class="password-hint">Contraseña: docente1234</span>
+          </li>
+          <li>
+            <strong>Alumno:</strong> ALUM050101HDFXXX04
+            <span class="password-hint">Contraseña: alumno1234</span>
+          </li>
+        </ul>
+        <p class="demo-footer">O usa cualquier CURP válida (18 caracteres) con contraseña de 6+ caracteres</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- BOTÓN PARA VOLVER AL HOME -->
+  <div class="back-to-home">
+    <a routerLink="/" class="back-link">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Volver al inicio</span>
+    </a>
+  </div>
+</div>
