@@ -9,11 +9,13 @@
 :host {
   --color-primary: #E84545;
   --color-primary-dark: #C73535;
+  --color-primary-light: #FF6B6B;
   --color-text-dark: #1a1a1a;
   --color-text-gray: #666666;
   --color-text-light: #999999;
   --color-bg-light: #fafafa;
   --color-white: #ffffff;
+  --color-success: #10B981;
   
   --font-display: 'Cormorant Garamond', serif;
   --font-body: 'Outfit', sans-serif;
@@ -21,6 +23,7 @@
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.08);
   --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --shadow-active: 0 12px 40px rgba(232, 69, 69, 0.15);
 }
 
 /* ===========================
@@ -31,8 +34,6 @@
   padding: 0;
   box-sizing: border-box;
 }
-
-/* NOTA: Los estilos de navbar fueron removidos porque ahora se usa la navbar compartida */
 
 /* ===========================
    HERO SECTION
@@ -45,7 +46,7 @@
   background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
   position: relative;
   overflow: hidden;
-  padding-top: 80px; /* Espacio para la navbar fija */
+  padding-top: 80px;
 }
 
 .hero::before {
@@ -106,22 +107,12 @@
   cursor: pointer;
   transition: var(--transition-smooth);
   box-shadow: 0 8px 25px rgba(232, 69, 69, 0.3);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
 }
 
 .btn-preinscripcion:hover {
   background: var(--color-primary-dark);
   box-shadow: 0 12px 35px rgba(232, 69, 69, 0.4);
   transform: translateY(-2px);
-}
-
-.btn-preinscripcion:active {
-  transform: translateY(0);
 }
 
 /* ===========================
@@ -159,25 +150,28 @@
 }
 
 /* ===========================
-   OFERTA EDUCATIVA
+   OFERTA EDUCATIVA - ACORDEÓN
    =========================== */
 .oferta-educativa {
   background: var(--color-white);
 }
 
 .carreras-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
   margin-top: 4rem;
 }
 
-.carrera-card {
-  padding: 2.5rem;
+/* ===========================
+   CARRERA ACORDEÓN
+   =========================== */
+.carrera-accordion {
   background: var(--color-white);
-  border-radius: 12px;
+  border: 2px solid #f0f0f0;
+  border-radius: 16px;
+  overflow: hidden;
   transition: var(--transition-smooth);
-  border: 1px solid #f0f0f0;
   opacity: 0;
   animation: fadeIn 0.6s ease-out forwards;
 }
@@ -186,59 +180,301 @@
   to { opacity: 1; }
 }
 
-.carrera-card:nth-child(1) { animation-delay: 0.1s; }
-.carrera-card:nth-child(2) { animation-delay: 0.2s; }
-.carrera-card:nth-child(3) { animation-delay: 0.3s; }
-.carrera-card:nth-child(4) { animation-delay: 0.4s; }
-.carrera-card:nth-child(5) { animation-delay: 0.5s; }
-.carrera-card:nth-child(6) { animation-delay: 0.6s; }
-.carrera-card:nth-child(7) { animation-delay: 0.7s; }
+.carrera-accordion:nth-child(1) { animation-delay: 0.1s; }
+.carrera-accordion:nth-child(2) { animation-delay: 0.2s; }
+.carrera-accordion:nth-child(3) { animation-delay: 0.3s; }
+.carrera-accordion:nth-child(4) { animation-delay: 0.4s; }
+.carrera-accordion:nth-child(5) { animation-delay: 0.5s; }
+.carrera-accordion:nth-child(6) { animation-delay: 0.6s; }
+.carrera-accordion:nth-child(7) { animation-delay: 0.7s; }
 
-.carrera-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-hover);
+.carrera-accordion.expanded {
   border-color: var(--color-primary);
+  box-shadow: var(--shadow-active);
+}
+
+/* ===========================
+   HEADER DE LA CARRERA (Clickeable)
+   =========================== */
+.carrera-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  background: var(--color-white);
+}
+
+.carrera-header:hover {
+  background: #fafafa;
+}
+
+.carrera-accordion.expanded .carrera-header {
+  background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+  border-bottom: 1px solid #ffe5e5;
+}
+
+.carrera-header-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  flex: 1;
 }
 
 .carrera-icono {
   font-size: 2.5rem;
   color: var(--color-primary);
-  margin-bottom: 1.5rem;
+  flex-shrink: 0;
 }
 
 .icon-placeholder {
-  display: inline-block;
-  width: 50px;
-  height: 50px;
-  background: rgba(232, 69, 69, 0.1);
-  border-radius: 50%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 60px;
+  height: 60px;
+  background: rgba(232, 69, 69, 0.1);
+  border-radius: 50%;
   font-size: 0.8rem;
   color: var(--color-primary);
   font-style: normal;
 }
 
-.carrera-titulo {
-  font-family: var(--font-display);
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: var(--color-text-dark);
-  margin-bottom: 1rem;
-  line-height: 1.4;
+.carrera-info {
+  flex: 1;
 }
 
-.carrera-descripcion {
+.carrera-titulo {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  margin-bottom: 0.8rem;
+  line-height: 1.3;
+}
+
+.carrera-descripcion-corta {
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--color-text-gray);
-  line-height: 1.7;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.expand-icon {
+  flex-shrink: 0;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(232, 69, 69, 0.1);
+  transition: var(--transition-smooth);
+}
+
+.carrera-header:hover .expand-icon {
+  background: var(--color-primary);
+  color: white;
+  transform: scale(1.1);
 }
 
 /* ===========================
-   NOSOTROS
+   CONTENIDO EXPANDIBLE
    =========================== */
+.carrera-content {
+  overflow: hidden;
+}
+
+.carrera-content-inner {
+  padding: 2rem;
+  background: #fafafa;
+}
+
+/* ===========================
+   SECCIONES DEL CONTENIDO
+   =========================== */
+.carrera-seccion {
+  margin-bottom: 3rem;
+}
+
+.carrera-seccion:last-child {
+  margin-bottom: 0;
+}
+
+.carrera-seccion h4 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 1.5rem;
+  position: relative;
+  padding-bottom: 0.8rem;
+}
+
+.carrera-seccion h4::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: var(--color-primary);
+}
+
+.texto-contenido {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  color: var(--color-text-gray);
+  line-height: 1.8;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid var(--color-primary);
+}
+
+/* ===========================
+   LISTA ¿QUÉ APRENDERÁS?
+   =========================== */
+.lista-aprendizaje {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.lista-aprendizaje li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--color-text-dark);
+  line-height: 1.5;
+  transition: var(--transition-smooth);
+}
+
+.lista-aprendizaje li:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.check-icon {
+  color: var(--color-success);
+  flex-shrink: 0;
+  font-size: 1.3rem !important;
+}
+
+/* ===========================
+   PLAN DE ESTUDIOS
+   =========================== */
+.plan-estudios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.semestre-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: var(--transition-smooth);
+}
+
+.semestre-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.semestre-header {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  padding: 1.2rem;
+  text-align: center;
+}
+
+.semestre-numero {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  display: block;
+  line-height: 1;
+}
+
+.semestre-label {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.materias-list {
+  list-style: none;
+  padding: 1.5rem;
+  margin: 0;
+}
+
+.materias-list li {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--color-text-dark);
+  padding: 0.7rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  line-height: 1.4;
+}
+
+.materias-list li:last-child {
+  border-bottom: none;
+}
+
+/* ===========================
+   BOTÓN CTA EN ACORDEÓN
+   =========================== */
+.carrera-cta {
+  text-align: center;
+  padding-top: 2rem;
+}
+
+.btn-preinscripcion-carrera {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  background: var(--color-primary);
+  border: none;
+  padding: 1.2rem 3rem;
+  border-radius: 50px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  transition: var(--transition-smooth);
+  box-shadow: 0 6px 20px rgba(232, 69, 69, 0.3);
+}
+
+.btn-preinscripcion-carrera:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(232, 69, 69, 0.4);
+}
+
+.btn-preinscripcion-carrera mat-icon {
+  font-size: 1.4rem;
+}
+
+/* ===========================
+   RESTO DE SECCIONES (Sin cambios)
+   =========================== */
+
+/* NOSOTROS */
 .nosotros {
   background: var(--color-bg-light);
   padding: 6rem 0;
@@ -313,9 +549,7 @@
   line-height: 1.8;
 }
 
-/* ===========================
-   UBICACIÓN - MAPA
-   =========================== */
+/* UBICACIÓN */
 .ubicacion {
   padding: 0;
   background: var(--color-white);
@@ -352,9 +586,7 @@
   color: var(--color-text-light);
 }
 
-/* ===========================
-   CONTACTO
-   =========================== */
+/* CONTACTO */
 .contacto {
   background: var(--color-white);
   padding: 5rem 0;
@@ -389,9 +621,7 @@
   line-height: 1.6;
 }
 
-/* ===========================
-   FOOTER
-   =========================== */
+/* FOOTER */
 .footer {
   background: var(--color-text-dark);
   color: var(--color-white);
@@ -427,6 +657,10 @@
   .gem-logo-text {
     font-size: 6rem;
   }
+  
+  .plan-estudios-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
@@ -443,9 +677,21 @@
     font-size: 1.1rem;
   }
   
-  .carreras-grid {
+  .carrera-header-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .carrera-titulo {
+    font-size: 1.5rem;
+  }
+  
+  .lista-aprendizaje {
     grid-template-columns: 1fr;
-    gap: 2rem;
+  }
+  
+  .plan-estudios-grid {
+    grid-template-columns: 1fr;
   }
   
   .nosotros-title {
@@ -478,5 +724,17 @@
   .btn-preinscripcion {
     padding: 1rem 3rem;
     font-size: 1rem;
+  }
+  
+  .carrera-header {
+    padding: 1.5rem;
+  }
+  
+  .carrera-content-inner {
+    padding: 1.5rem;
+  }
+  
+  .btn-preinscripcion-carrera {
+    width: 100%;
   }
 }
