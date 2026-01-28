@@ -11,7 +11,7 @@
   </div>
 </section>
 
-<!-- OFERTA EDUCATIVA -->
+<!-- OFERTA EDUCATIVA CON ACORDEÓN -->
 <section id="oferta-educativa" class="oferta-educativa">
   <div class="section-container">
     <h2 class="section-title">Oferta Educativa</h2>
@@ -21,16 +21,87 @@
     </p>
     <p class="section-subtitle">Nuestras carreras:</p>
 
+    <!-- GRID DE CARRERAS CON ACORDEÓN -->
     <div class="carreras-grid">
-      <div class="carrera-card" *ngFor="let carrera of carreras">
-        <!-- ICON PLACEHOLDER: Aquí va el icono -->
-        <div class="carrera-icono">
-          <i class="icon-placeholder">{{ carrera.icono }}</i>
-          <!-- Reemplaza con: <i class="bi bi-{{carrera.icono}}"></i> para Bootstrap Icons -->
-          <!-- O con: <i class="fas fa-{{carrera.icono}}"></i> para FontAwesome -->
+      <div 
+        *ngFor="let carrera of carreras" 
+        class="carrera-accordion"
+        [id]="'carrera-' + carrera.id"
+        [class.expanded]="carrera.expanded">
+        
+        <!-- HEADER DE LA CARRERA (Clickeable) -->
+        <div class="carrera-header" (click)="toggleCarrera(carrera)">
+          <div class="carrera-header-content">
+            <!-- Icono -->
+            <div class="carrera-icono">
+              <i class="icon-placeholder">{{ carrera.icono }}</i>
+            </div>
+            
+            <!-- Título y descripción corta -->
+            <div class="carrera-info">
+              <h3 class="carrera-titulo">{{ carrera.titulo }}</h3>
+              <p class="carrera-descripcion-corta">{{ carrera.descripcion }}</p>
+            </div>
+          </div>
+          
+          <!-- Botón de expandir/colapsar -->
+          <div class="expand-icon">
+            <mat-icon>{{ carrera.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </div>
         </div>
-        <h3 class="carrera-titulo">{{ carrera.titulo }}</h3>
-        <p class="carrera-descripcion">{{ carrera.descripcion }}</p>
+
+        <!-- CONTENIDO EXPANDIBLE DEL ACORDEÓN -->
+        <div 
+          class="carrera-content" 
+          [@expandCollapse]="carrera.expanded ? 'expanded' : 'collapsed'">
+          
+          <div class="carrera-content-inner">
+            
+            <!-- Descripción completa -->
+            <div class="carrera-seccion">
+              <h4>Acerca de la Carrera</h4>
+              <p class="texto-contenido">{{ carrera.descripcionCompleta }}</p>
+            </div>
+
+            <!-- ¿Qué aprenderás? -->
+            <div class="carrera-seccion">
+              <h4>¿Qué aprenderás?</h4>
+              <ul class="lista-aprendizaje">
+                <li *ngFor="let item of carrera.queAprenderas">
+                  <mat-icon class="check-icon">check_circle</mat-icon>
+                  <span>{{ item }}</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Plan de Estudios -->
+            <div class="carrera-seccion">
+              <h4>Plan de Estudios</h4>
+              <div class="plan-estudios-grid">
+                <div 
+                  *ngFor="let semestre of carrera.planEstudios" 
+                  class="semestre-card">
+                  <div class="semestre-header">
+                    <span class="semestre-numero">{{ semestre.numero }}º</span>
+                    <span class="semestre-label">Semestre</span>
+                  </div>
+                  <ul class="materias-list">
+                    <li *ngFor="let materia of semestre.materias">{{ materia }}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botón de preinscripción en el acordeón -->
+            <div class="carrera-cta">
+              <button class="btn-preinscripcion-carrera" (click)="abrirModalPreinscripcion(); $event.stopPropagation()">
+                <mat-icon>how_to_reg</mat-icon>
+                Preinscríbete a {{ carrera.titulo }}
+              </button>
+            </div>
+
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -81,25 +152,9 @@
 <!-- UBICACIÓN CON MAPA -->
 <section class="ubicacion">
   <div class="mapa-container">
-    <!-- OPCIÓN 1: Google Maps Embed (recomendado para producción) -->
-    <!-- Descomenta esto cuando tengas la API Key de Google Maps -->
-    <!--
-    <iframe 
-      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3814.5!2d-96.7167!3d17.0667!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTfCsDA0JzAwLjAiTiA5NsKwNDMnMDAuMCJX!5e0!3m2!1ses!2smx!4v1234567890"
-      width="100%" 
-      height="500" 
-      style="border:0;" 
-      allowfullscreen="" 
-      loading="lazy" 
-      referrerpolicy="no-referrer-when-downgrade">
-    </iframe>
-    -->
-
-    <!-- OPCIÓN 2: Imagen PNG del mapa (temporal) -->
     <div class="mapa-placeholder">
       <p>[ MAPA DE GOOGLE MAPS - Ubicación de GEM Oaxaca ]</p>
       <p class="mapa-note">Calle Brasil #320, Col. América Sur, Oaxaca de Juárez, Oax.</p>
-      <!-- Reemplaza con: <img src="assets/images/mapa-gem.png" alt="Ubicación GEM"> -->
     </div>
   </div>
 </section>
