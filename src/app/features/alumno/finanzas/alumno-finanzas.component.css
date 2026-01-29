@@ -1,0 +1,486 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
+
+:host {
+  --color-primary: #E84545;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-text-dark: #1a1a1a;
+  --color-text-gray: #666666;
+  --color-bg-light: #fafafa;
+  --font-body: 'Outfit', sans-serif;
+}
+
+.finanzas-alumno-container {
+  padding: 2rem;
+  font-family: var(--font-body);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* =======================
+   HEADER
+   ======================= */
+.page-header {
+  margin-bottom: 3rem;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-text-dark);
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.page-title mat-icon {
+  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
+  color: var(--color-primary);
+}
+
+.page-subtitle {
+  font-size: 1.1rem;
+  color: var(--color-text-gray);
+  margin: 0;
+}
+
+/* =======================
+   RESUMEN FINANCIERO
+   ======================= */
+.resumen-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.resumen-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.resumen-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.card-icon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.card-icon mat-icon {
+  font-size: 2rem;
+  width: 2rem;
+  height: 2rem;
+}
+
+.resumen-card.adeudo .card-icon {
+  background: #fee2e2;
+  color: var(--color-danger);
+}
+
+.resumen-card.pagado .card-icon {
+  background: #d1fae5;
+  color: var(--color-success);
+}
+
+.resumen-card.descuento .card-icon {
+  background: #fef3c7;
+  color: var(--color-warning);
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.card-label {
+  font-size: 0.95rem;
+  color: var(--color-text-gray);
+  font-weight: 500;
+}
+
+.card-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-dark);
+}
+
+/* =======================
+   TABS
+   ======================= */
+.pagos-card {
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+::ng-deep .mat-mdc-tab-group {
+  font-family: var(--font-body);
+}
+
+::ng-deep .mat-mdc-tab {
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+::ng-deep .mat-mdc-tab-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tab-badge {
+  margin-left: 0.5rem;
+  min-height: 24px;
+  padding: 0 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--color-primary);
+  color: white;
+}
+
+.tab-badge.vencido {
+  background: var(--color-danger);
+}
+
+.tab-content {
+  padding: 2rem;
+  min-height: 300px;
+}
+
+/* =======================
+   NO PAGOS
+   ======================= */
+.no-pagos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.no-pagos mat-icon {
+  font-size: 5rem;
+  width: 5rem;
+  height: 5rem;
+  color: #d1d5db;
+  margin-bottom: 1rem;
+}
+
+.no-pagos p {
+  font-size: 1.2rem;
+  color: var(--color-text-gray);
+  margin: 0;
+}
+
+/* =======================
+   ALERTA VENCIDOS
+   ======================= */
+.alerta-vencidos {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #fee2e2;
+  border-left: 4px solid var(--color-danger);
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.alerta-vencidos mat-icon {
+  color: var(--color-danger);
+  font-size: 2rem;
+}
+
+.alerta-vencidos p {
+  margin: 0;
+  color: #991b1b;
+  font-weight: 600;
+}
+
+/* =======================
+   PAGOS LIST
+   ======================= */
+.pagos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pago-item {
+  background: white;
+  border: 2px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.pago-item:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 15px rgba(232, 69, 69, 0.1);
+}
+
+.pago-item.pagado {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+  border-color: var(--color-success);
+}
+
+.pago-item.vencido {
+  background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+  border-color: var(--color-danger);
+}
+
+/* Alerta de vencimiento */
+.alerta-vencimiento {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.alerta-vencimiento mat-icon {
+  font-size: 1.2rem;
+}
+
+/* Header del pago */
+.pago-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.pago-info {
+  flex: 1;
+}
+
+.pago-concepto {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-dark);
+  margin: 0 0 0.5rem 0;
+}
+
+.pago-descripcion {
+  font-size: 0.95rem;
+  color: var(--color-text-gray);
+  margin: 0;
+}
+
+.pago-estatus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.pago-estatus mat-icon {
+  font-size: 1.2rem;
+}
+
+.estatus-pagado {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.estatus-pendiente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.estatus-vencido {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Detalles del pago */
+.pago-detalles {
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.detalle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.detalle-row:last-child {
+  border-bottom: none;
+}
+
+.detalle-row.total {
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-top: 2px solid var(--color-primary);
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+}
+
+.detalle-label {
+  font-weight: 500;
+  color: var(--color-text-gray);
+}
+
+.detalle-value {
+  font-weight: 700;
+  color: var(--color-text-dark);
+  font-size: 1.05rem;
+}
+
+.detalle-value.descuento {
+  color: var(--color-success);
+}
+
+.detalle-value.fecha {
+  font-weight: 600;
+}
+
+/* Acciones del pago */
+.pago-acciones {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pago-acciones button {
+  font-family: var(--font-body);
+  font-weight: 600;
+  flex: 1;
+  min-width: 180px;
+}
+
+/* =======================
+   LOADING
+   ======================= */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-spinner {
+  font-size: 4rem;
+  width: 4rem;
+  height: 4rem;
+  color: var(--color-primary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loading-overlay p {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+  color: var(--color-text-gray);
+  font-weight: 600;
+}
+
+/* =======================
+   RESPONSIVE
+   ======================= */
+@media (max-width: 1024px) {
+  .finanzas-alumno-container {
+    padding: 1.5rem;
+  }
+  
+  .resumen-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .finanzas-alumno-container {
+    padding: 1rem;
+  }
+  
+  .page-title {
+    font-size: 2rem;
+  }
+  
+  .card-value {
+    font-size: 1.6rem;
+  }
+  
+  .pago-item {
+    padding: 1.5rem;
+  }
+  
+  .pago-header {
+    flex-direction: column;
+  }
+  
+  .pago-acciones {
+    flex-direction: column;
+  }
+  
+  .pago-acciones button {
+    width: 100%;
+  }
+  
+  .detalle-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* =======================
+   MATERIAL OVERRIDES
+   ======================= */
+::ng-deep .mat-mdc-card {
+  box-shadow: none !important;
+}
+
+::ng-deep .mat-mdc-raised-button {
+  border-radius: 8px !important;
+}
+
+::ng-deep .mat-mdc-chip {
+  border-radius: 12px !important;
+}

@@ -1,0 +1,242 @@
+<div class="finanzas-alumno-container">
+  
+  <!-- HEADER -->
+  <div class="page-header">
+    <h1 class="page-title">
+      <mat-icon>account_balance_wallet</mat-icon>
+      Mis Pagos
+    </h1>
+    <p class="page-subtitle">Consulta el estado de tus pagos y colegiaturas</p>
+  </div>
+
+  <!-- RESUMEN FINANCIERO -->
+  <div class="resumen-cards">
+    <mat-card class="resumen-card adeudo">
+      <div class="card-icon">
+        <mat-icon>warning</mat-icon>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Adeudo Pendiente</span>
+        <span class="card-value">{{ formatCurrency(totalAdeudo) }}</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="resumen-card pagado">
+      <div class="card-icon">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Total Pagado</span>
+        <span class="card-value">{{ formatCurrency(totalPagado) }}</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="resumen-card descuento">
+      <div class="card-icon">
+        <mat-icon>local_offer</mat-icon>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Descuentos (Beca)</span>
+        <span class="card-value">{{ formatCurrency(totalDescuentos) }}</span>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- TABS DE PAGOS -->
+  <mat-card class="pagos-card">
+    <mat-tab-group>
+      
+      <!-- TAB: PENDIENTES -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>schedule</mat-icon>
+          <span>Pendientes</span>
+          <mat-chip class="tab-badge" *ngIf="pagosPendientes.length > 0">
+            {{ pagosPendientes.length }}
+          </mat-chip>
+        </ng-template>
+        
+        <div class="tab-content">
+          <div *ngIf="pagosPendientes.length === 0" class="no-pagos">
+            <mat-icon>check_circle_outline</mat-icon>
+            <p>¡Excelente! No tienes pagos pendientes</p>
+          </div>
+
+          <div *ngIf="pagosPendientes.length > 0" class="pagos-list">
+            <div *ngFor="let pago of pagosPendientes" class="pago-item">
+              
+              <!-- Alerta de próximo a vencer -->
+              <div *ngIf="esPagoProximoVencer(pago)" class="alerta-vencimiento">
+                <mat-icon>alarm</mat-icon>
+                <span>Vence en {{ getDiasRestantes(pago) }} días</span>
+              </div>
+
+              <div class="pago-header">
+                <div class="pago-info">
+                  <h3 class="pago-concepto">{{ pago.concepto?.nombre }}</h3>
+                  <p class="pago-descripcion">{{ pago.concepto?.descripcion }}</p>
+                </div>
+                <span class="pago-estatus" [ngClass]="getEstatusClass(pago.estatus)">
+                  {{ pago.estatus }}
+                </span>
+              </div>
+
+              <div class="pago-detalles">
+                <div class="detalle-row">
+                  <span class="detalle-label">Monto Original:</span>
+                  <span class="detalle-value">{{ formatCurrency(pago.monto_original) }}</span>
+                </div>
+                
+                <div class="detalle-row" *ngIf="pago.monto_descuento > 0">
+                  <span class="detalle-label">Descuento (Beca):</span>
+                  <span class="detalle-value descuento">-{{ formatCurrency(pago.monto_descuento) }}</span>
+                </div>
+                
+                <div class="detalle-row total">
+                  <span class="detalle-label">Monto a Pagar:</span>
+                  <span class="detalle-value">{{ formatCurrency(pago.monto_final) }}</span>
+                </div>
+                
+                <div class="detalle-row">
+                  <span class="detalle-label">Fecha de Vencimiento:</span>
+                  <span class="detalle-value fecha">{{ pago.fecha_vencimiento | date:'dd/MM/yyyy' }}</span>
+                </div>
+              </div>
+
+              <div class="pago-acciones">
+                <button mat-raised-button color="primary" (click)="descargarOrdenPago(pago)">
+                  <mat-icon>download</mat-icon>
+                  Descargar Orden
+                </button>
+                <button mat-stroked-button color="accent" (click)="irAPortalPagos()">
+                  <mat-icon>payment</mat-icon>
+                  Pagar en Línea
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- TAB: PAGADOS -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>done_all</mat-icon>
+          <span>Pagados</span>
+          <mat-chip class="tab-badge" *ngIf="pagosPagados.length > 0">
+            {{ pagosPagados.length }}
+          </mat-chip>
+        </ng-template>
+        
+        <div class="tab-content">
+          <div *ngIf="pagosPagados.length === 0" class="no-pagos">
+            <mat-icon>history</mat-icon>
+            <p>No tienes pagos registrados aún</p>
+          </div>
+
+          <div *ngIf="pagosPagados.length > 0" class="pagos-list">
+            <div *ngFor="let pago of pagosPagados" class="pago-item pagado">
+              <div class="pago-header">
+                <div class="pago-info">
+                  <h3 class="pago-concepto">{{ pago.concepto?.nombre }}</h3>
+                  <p class="pago-descripcion">{{ pago.concepto?.descripcion }}</p>
+                </div>
+                <span class="pago-estatus" [ngClass]="getEstatusClass(pago.estatus)">
+                  <mat-icon>check_circle</mat-icon>
+                  {{ pago.estatus }}
+                </span>
+              </div>
+
+              <div class="pago-detalles">
+                <div class="detalle-row">
+                  <span class="detalle-label">Monto Pagado:</span>
+                  <span class="detalle-value">{{ formatCurrency(pago.monto_final) }}</span>
+                </div>
+                
+                <div class="detalle-row">
+                  <span class="detalle-label">Fecha de Pago:</span>
+                  <span class="detalle-value fecha">{{ pago.fecha_pago | date:'dd/MM/yyyy' }}</span>
+                </div>
+                
+                <div class="detalle-row" *ngIf="pago.metodo_pago">
+                  <span class="detalle-label">Método de Pago:</span>
+                  <span class="detalle-value">{{ pago.metodo_pago }}</span>
+                </div>
+                
+                <div class="detalle-row" *ngIf="pago.referencia_pago">
+                  <span class="detalle-label">Referencia:</span>
+                  <span class="detalle-value">{{ pago.referencia_pago }}</span>
+                </div>
+              </div>
+
+              <div class="pago-acciones">
+                <button mat-stroked-button (click)="descargarOrdenPago(pago)">
+                  <mat-icon>receipt</mat-icon>
+                  Ver Comprobante
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- TAB: VENCIDOS -->
+      <mat-tab *ngIf="pagosVencidos.length > 0">
+        <ng-template mat-tab-label>
+          <mat-icon>report</mat-icon>
+          <span>Vencidos</span>
+          <mat-chip class="tab-badge vencido">
+            {{ pagosVencidos.length }}
+          </mat-chip>
+        </ng-template>
+        
+        <div class="tab-content">
+          <div class="alerta-vencidos">
+            <mat-icon>warning</mat-icon>
+            <p>Tienes pagos vencidos. Por favor, regulariza tu situación lo antes posible.</p>
+          </div>
+
+          <div class="pagos-list">
+            <div *ngFor="let pago of pagosVencidos" class="pago-item vencido">
+              <div class="pago-header">
+                <div class="pago-info">
+                  <h3 class="pago-concepto">{{ pago.concepto?.nombre }}</h3>
+                  <p class="pago-descripcion">Vencido desde {{ pago.fecha_vencimiento | date:'dd/MM/yyyy' }}</p>
+                </div>
+                <span class="pago-estatus" [ngClass]="getEstatusClass(pago.estatus)">
+                  {{ pago.estatus }}
+                </span>
+              </div>
+
+              <div class="pago-detalles">
+                <div class="detalle-row total">
+                  <span class="detalle-label">Monto a Pagar:</span>
+                  <span class="detalle-value">{{ formatCurrency(pago.monto_final) }}</span>
+                </div>
+              </div>
+
+              <div class="pago-acciones">
+                <button mat-raised-button color="warn" (click)="descargarOrdenPago(pago)">
+                  <mat-icon>download</mat-icon>
+                  Descargar Orden
+                </button>
+                <button mat-stroked-button color="warn" (click)="irAPortalPagos()">
+                  <mat-icon>payment</mat-icon>
+                  Pagar Ahora
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </mat-card>
+
+  <!-- LOADING -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <mat-icon class="loading-spinner">refresh</mat-icon>
+    <p>Cargando tus pagos...</p>
+  </div>
+
+</div>

@@ -1,0 +1,258 @@
+<div class="finanzas-container">
+  
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <mat-icon>payments</mat-icon>
+        Módulo de Finanzas
+      </h1>
+      <p class="page-subtitle">Administración de pagos de estudiantes</p>
+    </div>
+    
+    <button mat-raised-button color="primary" (click)="nuevoPago()" class="btn-nuevo">
+      <mat-icon>add</mat-icon>
+      Nuevo Pago
+    </button>
+  </div>
+
+  <!-- FILTROS -->
+  <mat-card class="filtros-card">
+    <div class="filtros-container">
+      <mat-form-field appearance="outline">
+        <mat-label>Filtrar por estatus</mat-label>
+        <mat-select [(ngModel)]="filtroEstatus" (selectionChange)="onFiltroChange()">
+          <mat-option *ngFor="let option of estatusOptions" [value]="option.value">
+            {{ option.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <div class="filtros-info">
+        <span class="total-pagos">Total de pagos: <strong>{{ pagos.length }}</strong></span>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- FORMULARIO (Mostrar cuando se crea/edita) -->
+  <mat-card *ngIf="mostrarFormulario" class="formulario-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>{{ modoEdicion ? 'edit' : 'add_circle' }}</mat-icon>
+        {{ modoEdicion ? 'Editar Pago' : 'Crear Nuevo Pago' }}
+      </mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <form [formGroup]="pagoForm" class="pago-form">
+        
+        <div class="form-row">
+          <!-- Estudiante -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Estudiante</mat-label>
+            <mat-select formControlName="estudiante_id" (selectionChange)="onEstudianteChange()">
+              <mat-option *ngFor="let estudiante of estudiantes" [value]="estudiante.id">
+                {{ estudiante.matricula }} - {{ getNombreEstudiante(estudiante) }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="pagoForm.get('estudiante_id')?.hasError('required')">
+              Selecciona un estudiante
+            </mat-error>
+          </mat-form-field>
+          
+          <!-- Concepto -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Concepto de Pago</mat-label>
+            <mat-select formControlName="concepto_id" (selectionChange)="onConceptoChange()">
+              <mat-option *ngFor="let concepto of conceptos" [value]="concepto.id">
+                {{ concepto.nombre }} - {{ formatCurrency(concepto.monto_default) }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="pagoForm.get('concepto_id')?.hasError('required')">
+              Selecciona un concepto
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <!-- Monto Original -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Monto Original</mat-label>
+            <input matInput type="number" formControlName="monto_original" min="0" step="0.01">
+            <span matPrefix>$&nbsp;</span>
+            <mat-error *ngIf="pagoForm.get('monto_original')?.hasError('required')">
+              Ingresa el monto
+            </mat-error>
+          </mat-form-field>
+          
+          <!-- Descuento -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Descuento (por beca)</mat-label>
+            <input matInput type="number" formControlName="monto_descuento" min="0" step="0.01">
+            <span matPrefix>$&nbsp;</span>
+            <mat-hint>El descuento se calcula automáticamente según la beca</mat-hint>
+          </mat-form-field>
+          
+          <!-- Monto Final (readonly) -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Monto Final a Pagar</mat-label>
+            <input matInput type="number" formControlName="monto_final" readonly>
+            <span matPrefix>$&nbsp;</span>
+            <mat-icon matSuffix matTooltip="Este monto se calcula automáticamente">info</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <!-- Fecha de Vencimiento -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Fecha de Vencimiento</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="fecha_vencimiento">
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-error *ngIf="pagoForm.get('fecha_vencimiento')?.hasError('required')">
+              Selecciona una fecha
+            </mat-error>
+          </mat-form-field>
+          
+          <!-- Estatus -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Estatus</mat-label>
+            <mat-select formControlName="estatus">
+              <mat-option value="PENDIENTE">Pendiente</mat-option>
+              <mat-option value="PAGADO">Pagado</mat-option>
+              <mat-option value="VENCIDO">Vencido</mat-option>
+              <mat-option value="CANCELADO">Cancelado</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <!-- Comentarios -->
+          <mat-form-field appearance="outline" class="form-field-full">
+            <mat-label>Comentarios (opcional)</mat-label>
+            <textarea matInput formControlName="comentarios" rows="3"></textarea>
+          </mat-form-field>
+        </div>
+
+        <!-- Botones -->
+        <div class="form-actions">
+          <button mat-button (click)="cancelar()" type="button">
+            Cancelar
+          </button>
+          <button mat-raised-button color="primary" (click)="guardarPago()" [disabled]="pagoForm.invalid || isLoading">
+            <mat-icon>save</mat-icon>
+            {{ modoEdicion ? 'Actualizar' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- TABLA DE PAGOS -->
+  <mat-card class="tabla-card">
+    <mat-card-content>
+      <div class="table-container">
+        <table mat-table [dataSource]="pagos" class="pagos-table">
+          
+          <!-- Columna: Estudiante -->
+          <ng-container matColumnDef="estudiante">
+            <th mat-header-cell *matHeaderCellDef>Estudiante</th>
+            <td mat-cell *matCellDef="let pago">
+              <div class="estudiante-info">
+                <span class="estudiante-nombre">{{ getNombreEstudiante(pago.estudiante) }}</span>
+                <span class="estudiante-matricula">{{ pago.estudiante?.matricula }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna: Concepto -->
+          <ng-container matColumnDef="concepto">
+            <th mat-header-cell *matHeaderCellDef>Concepto</th>
+            <td mat-cell *matCellDef="let pago">
+              <div class="concepto-info">
+                <span class="concepto-nombre">{{ pago.concepto?.nombre }}</span>
+                <span class="concepto-codigo">{{ pago.concepto?.codigo }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna: Monto Original -->
+          <ng-container matColumnDef="monto_original">
+            <th mat-header-cell *matHeaderCellDef>Monto Original</th>
+            <td mat-cell *matCellDef="let pago">
+              <span class="monto">{{ formatCurrency(pago.monto_original) }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Columna: Descuento -->
+          <ng-container matColumnDef="descuento">
+            <th mat-header-cell *matHeaderCellDef>Descuento</th>
+            <td mat-cell *matCellDef="let pago">
+              <span class="monto-descuento">-{{ formatCurrency(pago.monto_descuento) }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Columna: Monto Final -->
+          <ng-container matColumnDef="monto_final">
+            <th mat-header-cell *matHeaderCellDef>Monto Final</th>
+            <td mat-cell *matCellDef="let pago">
+              <span class="monto-final">{{ formatCurrency(pago.monto_final) }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Columna: Fecha de Vencimiento -->
+          <ng-container matColumnDef="fecha_vencimiento">
+            <th mat-header-cell *matHeaderCellDef>Vencimiento</th>
+            <td mat-cell *matCellDef="let pago">
+              <span class="fecha">{{ pago.fecha_vencimiento | date:'dd/MM/yyyy' }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Columna: Estatus -->
+          <ng-container matColumnDef="estatus">
+            <th mat-header-cell *matHeaderCellDef>Estatus</th>
+            <td mat-cell *matCellDef="let pago">
+              <span class="estatus-badge" [ngClass]="getEstatusClass(pago.estatus)">
+                {{ pago.estatus }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Columna: Acciones -->
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let pago">
+              <div class="acciones-buttons">
+                <button mat-icon-button color="primary" (click)="editarPago(pago)" matTooltip="Editar">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="eliminarPago(pago)" matTooltip="Eliminar">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <!-- Mensaje si no hay datos -->
+        <div *ngIf="pagos.length === 0 && !isLoading" class="no-data">
+          <mat-icon>inbox</mat-icon>
+          <p>No hay pagos registrados</p>
+          <button mat-raised-button color="primary" (click)="nuevoPago()">
+            Crear Primer Pago
+          </button>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="isLoading" class="loading">
+          <mat-icon class="loading-spinner">refresh</mat-icon>
+          <p>Cargando...</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+</div>

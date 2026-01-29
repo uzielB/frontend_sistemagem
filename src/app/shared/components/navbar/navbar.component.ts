@@ -85,7 +85,8 @@ export class NavbarComponent implements OnInit {
       { label: 'Inicio', route: '/alumno/dashboard' },
       { label: 'Pagos', route: '/alumno/pagos' },
       { label: 'Mi Perfil', route: '/alumno/perfil' },
-      { label: 'Cerrar Sesión', action: () => this.logout(), isButton: true }
+      { label: 'Cerrar Sesión', action: () => this.logout(), isButton: true },
+      { label: 'Mis Pagos', route: '/alumno/finanzas', icon: 'account_balance_wallet' }
     ];
   }
 
@@ -101,7 +102,8 @@ export class NavbarComponent implements OnInit {
     return [
       { label: 'Dashboard', route: '/admin/dashboard' },
       { label: 'Finanzas', route: '/admin/finanzas' },
-      { label: 'Cerrar Sesión', action: () => this.logout(), isButton: true }
+      { label: 'Cerrar Sesión', action: () => this.logout(), isButton: true },
+      { label: 'Finanzas', route: '/admin/finanzas', icon: 'payments' }
     ];
   }
 
