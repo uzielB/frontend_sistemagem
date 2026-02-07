@@ -4,23 +4,38 @@ import { HomeComponent } from './features/home/home.component';
 import { LoginComponent } from './features/auth/components/login/login.component';
 import { AdminFinanzasComponent } from './features/admin/finanzas/admin-finanzas.component';
 import { AlumnoFinanzasComponent } from './features/alumno/finanzas/alumno-finanzas.component';
+import { publicGuard } from './core/guards/public.guard';
 
 export const routes: Routes = [
   {
     path: '',
-    component: HomeComponent
+    component: HomeComponent,
+    // canActivate: [publicGuard]  // ✅ Activar cuando funcione teachers
   },
-  { path: 'login', component: LoginComponent },
-  { path: 'home', component: HomeComponent },
-  { path: 'mantenimiento', component: MaintenanceComponent },
+  { 
+    path: 'login', 
+    component: LoginComponent 
+  },
+  { 
+    path: 'home', 
+    redirectTo: '',
+    pathMatch: 'full'
+  },
+  { 
+    path: 'mantenimiento', 
+    component: MaintenanceComponent 
+  },
   
-  // Admin - Finanzas (sin guards temporalmente)
+  { 
+    path: 'teachers', 
+    loadChildren: () => import('./features/teachers/teachers.routes').then(m => m.TEACHERS_ROUTES) 
+  },
+  
   { 
     path: 'admin/finanzas', 
     component: AdminFinanzasComponent
   },
   
-  // Alumno - Finanzas (sin guards temporalmente)
   { 
     path: 'alumno/finanzas', 
     component: AlumnoFinanzasComponent
