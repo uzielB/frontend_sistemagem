@@ -10,7 +10,7 @@ export const routes: Routes = [
   {
     path: '',
     component: HomeComponent,
-    // canActivate: [publicGuard]  // ✅ Activar cuando funcione teachers
+    canActivate: [publicGuard]
   },
   { 
     path: 'login', 
