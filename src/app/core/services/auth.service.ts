@@ -1,320 +1,482 @@
-import { Injectable, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
-import { User, UserRole, AuthState, LoginCredentials, LoginResponse, isValidCURP } from '../models/user.model';
+import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
+import { map, tap, catchError } from 'rxjs/operators';
+import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
+import { 
+  User, 
+  UserRole, 
+  LoginCredentials, 
+  LoginResponse,
+  AuthState 
+} from '../models/user.model';
 
+/**
+ * Servicio de Autenticación
+ * Maneja login, logout, persistencia de sesión y verificación de autenticación
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   
-  // Estado de autenticación usando BehaviorSubject para observabilidad
-  private authStateSubject = new BehaviorSubject<AuthState>({
+  // URL base del API
+  private apiUrl = environment.apiUrl;
+  
+  // Claves de localStorage
+  private readonly TOKEN_KEY = 'gem_auth_token';
+  private readonly USER_KEY = 'gem_user_data';
+  
+  // Estado de autenticación (observable)
+  private authState$ = new BehaviorSubject<AuthState>({
     isAuthenticated: false,
     user: null,
     token: undefined
   });
 
-  // Observable público del estado de autenticación
-  public authState$: Observable<AuthState> = this.authStateSubject.asObservable();
-
-  // Signals para el usuario actual (Angular 18)
-  public currentUser = signal<User | null>(null);
-  public isAuthenticated = signal<boolean>(false);
-  public userRole = signal<UserRole>(UserRole.GUEST);
-
   constructor(
-    private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private router: Router
   ) {
-    this.loadAuthStateFromStorage();
+    // Al iniciar el servicio, verificar si hay sesión guardada
+    this.checkStoredAuth();
   }
 
   /**
-   * Cargar estado de autenticación desde localStorage
+   * Login REAL - Conecta con el backend NestJS
+   * POST /api/auth/login
    */
-  private loadAuthStateFromStorage(): void {
-    const storedUser = localStorage.getItem('gem_user');
-    const storedToken = localStorage.getItem('gem_token');
+  /**
+ * Login REAL - Conecta con el backend NestJS
+ * POST /api/auth/login
+ */
+/**
+ * Login REAL - Conecta con el backend NestJS
+ * POST /api/auth/login
+ */
 
-    if (storedUser && storedToken) {
-      try {
-        const user: User = JSON.parse(storedUser);
-        this.setAuthState(user, storedToken);
-      } catch (error) {
-        console.error('Error al cargar usuario desde localStorage:', error);
-        this.clearAuthState();
+
+/**
+ * Login REAL - Conecta con el backend NestJS
+ * POST /api/auth/login
+ */
+login(curp: string, contrasena: string): Observable<LoginResponse> {
+  const url = `${this.apiUrl}/auth/login`;
+  const credentials: LoginCredentials = { curp, contrasena };
+  
+  if (environment.enableDebugLogs) {
+    console.log('🔐 [AUTH SERVICE] Intentando login:', { curp, url });
+  }
+
+  return this.http.post<any>(url, credentials).pipe(
+    tap(response => {
+      if (environment.enableDebugLogs) {
+        console.log('✅ [AUTH SERVICE] Respuesta completa del backend:', response);
+        console.log('📦 [AUTH SERVICE] Keys en response:', Object.keys(response));
+        
+        if (response.data) {
+          console.log('📦 [AUTH SERVICE] Keys en response.data:', Object.keys(response.data));
+          console.log('📦 [AUTH SERVICE] response.data completo:', response.data);
+          
+          if (response.data.user) {
+            console.log('👤 [AUTH SERVICE] response.data.user encontrado:', response.data.user);
+          }
+          
+          if (response.data.access_token) {
+            console.log('🔑 [AUTH SERVICE] Token encontrado en response.data.access_token');
+          }
+        }
       }
+    }),
+    map(response => {
+      // ⚠️ ESTRUCTURA CORRECTA DEL BACKEND:
+      // {
+      //   message: "Inicio de sesión exitoso",
+      //   data: {
+      //     access_token: "...",
+      //     user: { id, curp, nombre, apellidoPaterno, ... }
+      //   }
+      // }
+      
+      let user: User;
+      let token: string;
+      
+      // El backend siempre responde con response.data
+      if (response.data) {
+        
+        // Caso 1: Usuario en response.data.user (✅ ESTRUCTURA ACTUAL)
+        if (response.data.user && typeof response.data.user === 'object') {
+          if (environment.enableDebugLogs) {
+            console.log('✅ [AUTH SERVICE] Usuario encontrado en response.data.user');
+          }
+          
+          const backendUser = response.data.user;
+          
+          user = {
+            id: backendUser.id,
+            curp: backendUser.curp,
+            correo: backendUser.correo,
+            rol: backendUser.rol,
+            nombre: backendUser.nombre,
+            apellido_paterno: backendUser.apellidoPaterno,
+            apellido_materno: backendUser.apellidoMaterno,
+            telefono: backendUser.telefono,
+            esta_activo: true, // Si hizo login, está activo
+            debe_cambiar_contrasena: backendUser.debeCambiarContrasena || false
+          };
+          
+          token = response.data.access_token || response.data.token;
+        }
+        // Caso 2: Usuario directamente en response.data
+        else if (response.data.id && response.data.curp) {
+          if (environment.enableDebugLogs) {
+            console.log('✅ [AUTH SERVICE] Usuario encontrado en response.data');
+          }
+          
+          user = {
+            id: response.data.id,
+            curp: response.data.curp,
+            correo: response.data.correo,
+            rol: response.data.rol,
+            nombre: response.data.nombre,
+            apellido_paterno: response.data.apellidoPaterno || response.data.apellido_paterno,
+            apellido_materno: response.data.apellidoMaterno || response.data.apellido_materno,
+            telefono: response.data.telefono,
+            esta_activo: true,
+            debe_cambiar_contrasena: response.data.debeCambiarContrasena || response.data.debe_cambiar_contrasena || false
+          };
+          
+          token = response.data.access_token || response.data.token || response.token;
+        }
+        else {
+          console.error('❌ [AUTH SERVICE] Estructura de response.data no reconocida');
+          console.error('📦 response.data:', response.data);
+          throw new Error('Respuesta del servidor inválida');
+        }
+      }
+      // Caso 3: Usuario en response.user (por si cambia el backend)
+      else if (response.user && typeof response.user === 'object') {
+        if (environment.enableDebugLogs) {
+          console.log('✅ [AUTH SERVICE] Usuario encontrado en response.user');
+        }
+        
+        user = {
+          id: response.user.id,
+          curp: response.user.curp,
+          correo: response.user.correo,
+          rol: response.user.rol,
+          nombre: response.user.nombre,
+          apellido_paterno: response.user.apellidoPaterno || response.user.apellido_paterno,
+          apellido_materno: response.user.apellidoMaterno || response.user.apellido_materno,
+          telefono: response.user.telefono,
+          esta_activo: true,
+          debe_cambiar_contrasena: response.user.debeCambiarContrasena || response.user.debe_cambiar_contrasena || false
+        };
+        
+        token = response.access_token || response.token;
+      }
+      else {
+        console.error('❌ [AUTH SERVICE] No se pudo extraer usuario de la respuesta');
+        console.error('📦 Response completo:', response);
+        throw new Error('Respuesta del servidor inválida');
+      }
+
+      if (environment.enableDebugLogs) {
+        console.log('👤 [AUTH SERVICE] Usuario extraído:', user);
+        console.log('🔑 [AUTH SERVICE] Token extraído:', token ? token.substring(0, 20) + '...' : 'No encontrado');
+      }
+
+      // Validar que tengamos los datos mínimos
+      if (!user || !user.id || !user.curp || !user.rol) {
+        console.error('❌ [AUTH SERVICE] Datos de usuario incompletos:', user);
+        throw new Error('Datos de usuario inválidos');
+      }
+
+      if (!token) {
+        console.error('❌ [AUTH SERVICE] Token no encontrado en la respuesta');
+        throw new Error('Token de autenticación no encontrado');
+      }
+
+      // Guardar datos de autenticación
+      this.saveAuthData(user, token);
+
+      // Transformar a LoginResponse
+      const loginResponse: LoginResponse = {
+        success: true,
+        user: user,
+        token: token,
+        message: response.message || 'Inicio de sesión exitoso'
+      };
+
+      return loginResponse;
+    }),
+    catchError(error => {
+      if (environment.enableDebugLogs) {
+        console.error('❌ [AUTH SERVICE] Error en login:', error);
+      }
+      return throwError(() => error);
+    })
+  );
+}
+
+  /**
+   * Login DEMO - Para desarrollo sin backend
+   * Simula un login exitoso con usuarios de prueba
+   */
+  loginDemo(curp: string, contrasena: string): Observable<LoginResponse> {
+    if (environment.enableDebugLogs) {
+      console.log('🧪 [AUTH SERVICE] Login DEMO:', { curp });
+    }
+
+    // Simular delay de red (500ms)
+    return of(null).pipe(
+      map(() => {
+        // Usuarios DEMO que coinciden con los seeders del backend
+        const demoUsers: { [key: string]: User } = {
+          'SUPE800101HDFXXX01': {
+            id: 1,
+            curp: 'SUPE800101HDFXXX01',
+            correo: 'superadmin@gem.edu.mx',
+            rol: UserRole.SUPER_ADMIN,
+            nombre: 'Super',
+            apellido_paterno: 'Administrador',
+            apellido_materno: 'GEM',
+            esta_activo: true,
+            debe_cambiar_contrasena: false
+          },
+          'ADMI850101HDFXXX02': {
+            id: 2,
+            curp: 'ADMI850101HDFXXX02',
+            correo: 'admin@gem.edu.mx',
+            rol: UserRole.ADMIN,
+            nombre: 'Administrador',
+            apellido_paterno: 'General',
+            apellido_materno: 'GEM',
+            esta_activo: true,
+            debe_cambiar_contrasena: false
+          },
+          'DOCE900101HDFXXX03': {
+            id: 3,
+            curp: 'DOCE900101HDFXXX03',
+            correo: 'docente@gem.edu.mx',
+            rol: UserRole.DOCENTE,
+            nombre: 'María',
+            apellido_paterno: 'González',
+            apellido_materno: 'López',
+            esta_activo: true,
+            debe_cambiar_contrasena: false
+          },
+          'ALUM050101HDFXXX04': {
+            id: 4,
+            curp: 'ALUM050101HDFXXX04',
+            correo: 'alumno@gem.edu.mx',
+            rol: UserRole.ALUMNO,
+            nombre: 'Estudiante',
+            apellido_paterno: 'Ejemplo',
+            apellido_materno: 'Demo',
+            esta_activo: true,
+            debe_cambiar_contrasena: false
+          }
+        };
+
+        // Buscar usuario por CURP
+        const user = demoUsers[curp.toUpperCase()];
+
+        if (!user) {
+          // Si no está en la lista, crear usuario genérico
+          const genericUser: User = {
+            id: 999,
+            curp: curp.toUpperCase(),
+            correo: 'usuario@gem.edu.mx',
+            rol: UserRole.ALUMNO,
+            nombre: 'Usuario',
+            apellido_paterno: 'Demo',
+            esta_activo: true,
+            debe_cambiar_contrasena: false
+          };
+
+          const response: LoginResponse = {
+            success: true,
+            user: genericUser,
+            token: 'demo_token_' + Date.now(),
+            message: 'Login demo exitoso'
+          };
+
+          this.saveAuthData(response.user, response.token);
+          return response;
+        }
+
+        // Usuario encontrado
+        const response: LoginResponse = {
+          success: true,
+          user: user,
+          token: 'demo_token_' + Date.now(),
+          message: 'Login demo exitoso'
+        };
+
+        this.saveAuthData(response.user, response.token);
+        return response;
+      })
+    );
+  }
+
+  // ========================
+  // MÉTODOS PÚBLICOS - LOGOUT
+  // ========================
+
+  /**
+   * Cerrar sesión
+   * Limpia localStorage y redirige al login
+   */
+  logout(): void {
+    if (environment.enableDebugLogs) {
+      console.log('🚪 [AUTH SERVICE] Cerrando sesión');
+    }
+
+    this.clearAuthData();
+    this.router.navigate(['/auth/login']);
+  }
+
+  // ========================
+  // MÉTODOS PÚBLICOS - VERIFICACIÓN
+  // ========================
+
+  /**
+   * Verifica si el usuario está autenticado
+   */
+  isUserAuthenticated(): boolean {
+    const token = this.getToken();
+    const user = this.getUser();
+    
+    const isAuthenticated = !!(token && user && user.esta_activo);
+    
+    if (environment.enableDebugLogs) {
+      console.log('🔍 [AUTH SERVICE] isUserAuthenticated:', isAuthenticated);
+    }
+    
+    return isAuthenticated;
+  }
+
+  /**
+   * Obtiene el rol del usuario actual
+   */
+  getUserRole(): UserRole {
+    const user = this.getUser();
+    return user?.rol || UserRole.GUEST;
+  }
+
+  /**
+   * Obtiene el usuario actual
+   */
+  getUser(): User | null {
+    const userJson = localStorage.getItem(this.USER_KEY);
+    
+    if (!userJson) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(userJson) as User;
+    } catch (error) {
+      console.error('Error al parsear usuario desde localStorage:', error);
+      return null;
     }
   }
 
   /**
-   * Establecer el estado de autenticación
+   * Obtiene el token JWT actual
    */
-  private setAuthState(user: User, token: string): void {
-    this.currentUser.set(user);
-    this.isAuthenticated.set(true);
-    this.userRole.set(user.rol);
+  getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
+  }
 
-    this.authStateSubject.next({
+  /**
+   * Obtiene el estado de autenticación como observable
+   */
+  getAuthState(): Observable<AuthState> {
+    return this.authState$.asObservable();
+  }
+
+  /**
+   * Verifica si el usuario tiene un rol específico
+   */
+  hasRole(role: UserRole): boolean {
+    return this.getUserRole() === role;
+  }
+
+  /**
+   * Verifica si el usuario tiene alguno de los roles especificados
+   */
+  hasAnyRole(roles: UserRole[]): boolean {
+    const userRole = this.getUserRole();
+    return roles.includes(userRole);
+  }
+
+  // ========================
+  // MÉTODOS PRIVADOS
+  // ========================
+
+  /**
+   * Guarda los datos de autenticación en localStorage
+   */
+  private saveAuthData(user: User, token: string): void {
+    localStorage.setItem(this.TOKEN_KEY, token);
+    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    
+    // Actualizar el estado observable
+    this.authState$.next({
       isAuthenticated: true,
       user: user,
       token: token
     });
+
+    if (environment.enableDebugLogs) {
+      console.log('💾 [AUTH SERVICE] Datos guardados en localStorage');
+    }
   }
 
   /**
-   * Limpiar el estado de autenticación
+   * Limpia los datos de autenticación de localStorage
    */
-  private clearAuthState(): void {
-    localStorage.removeItem('gem_user');
-    localStorage.removeItem('gem_token');
+  private clearAuthData(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.USER_KEY);
     
-    this.currentUser.set(null);
-    this.isAuthenticated.set(false);
-    this.userRole.set(UserRole.GUEST);
-    
-    this.authStateSubject.next({
+    // Actualizar el estado observable
+    this.authState$.next({
       isAuthenticated: false,
       user: null,
       token: undefined
     });
+
+    if (environment.enableDebugLogs) {
+      console.log('🗑️ [AUTH SERVICE] Datos limpiados de localStorage');
+    }
   }
 
   /**
-   * Login del usuario con CURP y contraseña
-   * Conecta con el backend real de PostgreSQL
+   * Verifica si hay sesión guardada al iniciar el servicio
    */
-  login(curp: string, contrasena: string): Observable<LoginResponse> {
-    // Validar formato de CURP
-    if (!isValidCURP(curp.toUpperCase())) {
-      return throwError(() => new Error('CURP inválido. Debe tener 18 caracteres.'));
-    }
+  private checkStoredAuth(): void {
+    const token = this.getToken();
+    const user = this.getUser();
+    
+    if (token && user) {
+      // Hay sesión guardada, actualizar estado
+      this.authState$.next({
+        isAuthenticated: true,
+        user: user,
+        token: token
+      });
 
-    // Validar contraseña
-    if (!contrasena || contrasena.length < 6) {
-      return throwError(() => new Error('La contraseña debe tener al menos 6 caracteres.'));
-    }
-
-    const credentials: LoginCredentials = {
-      curp: curp.toUpperCase(),
-      contrasena: contrasena
-    };
-
-    // Petición HTTP real a tu backend
-    return this.http.post<LoginResponse>(
-      `${environment.apiUrl}/auth/login`,
-      credentials,
-      {
-        headers: new HttpHeaders({
-          'Content-Type': 'application/json'
-        })
+      if (environment.enableDebugLogs) {
+        console.log('✅ [AUTH SERVICE] Sesión restaurada desde localStorage');
       }
-    ).pipe(
-      tap((response: LoginResponse) => {
-        if (response.success && response.user && response.token) {
-          // Guardar en localStorage
-          localStorage.setItem('gem_user', JSON.stringify(response.user));
-          localStorage.setItem('gem_token', response.token);
-          
-          // Actualizar estado
-          this.setAuthState(response.user, response.token);
-        }
-      }),
-      catchError(error => {
-        console.error('Error en login:', error);
-        return throwError(() => error);
-      })
-    );
-  }
-
-  /**
-   * Login simulado para desarrollo (SIN BACKEND)
-   * TODO: ELIMINAR cuando el backend esté listo
-   */
-  loginDemo(curp: string, contrasena: string): Observable<LoginResponse> {
-    return new Observable(observer => {
-      setTimeout(() => {
-        // Validar CURP
-        if (!isValidCURP(curp.toUpperCase())) {
-          observer.error(new Error('CURP inválido'));
-          return;
-        }
-
-        // Validar contraseña
-        if (contrasena.length < 6) {
-          observer.error(new Error('Contraseña muy corta'));
-          return;
-        }
-
-        // Determinar rol según CURP (DEMO)
-        let rol: UserRole = UserRole.ALUMNO;
-        if (curp.startsWith('SUPE')) rol = UserRole.SUPER_ADMIN;
-        else if (curp.startsWith('ADMI')) rol = UserRole.ADMIN;
-        else if (curp.startsWith('DOCE')) rol = UserRole.DOCENTE;
-        else if (curp.startsWith('ALUM')) rol = UserRole.ALUMNO;
-
-        const mockUser: User = {
-          id: 1,
-          curp: curp.toUpperCase(),
-          correo: `${curp.toLowerCase()}@gem.edu.mx`,
-          rol: rol,
-          nombre: 'Usuario',
-          apellido_paterno: 'Demo',
-          apellido_materno: 'Prueba',
-          esta_activo: true,
-          debe_cambiar_contrasena: false
-        };
-        
-        const mockToken = `jwt-token-${Date.now()}`;
-        
-        // Guardar en localStorage
-        localStorage.setItem('gem_user', JSON.stringify(mockUser));
-        localStorage.setItem('gem_token', mockToken);
-        
-        // Actualizar estado
-        this.setAuthState(mockUser, mockToken);
-        
-        observer.next({ 
-          success: true, 
-          user: mockUser, 
-          token: mockToken,
-          message: 'Login exitoso (MODO DEMO)'
-        });
-        observer.complete();
-      }, 1000);
-    });
-  }
-
-  /**
-   * Logout del usuario
-   */
-  logout(): void {
-    // TODO: Opcional - notificar al backend sobre el logout
-    // this.http.post(`${environment.apiUrl}/auth/logout`, {}).subscribe();
-    
-    // Limpiar estado local
-    this.clearAuthState();
-    
-    // Redirigir al home
-    this.router.navigate(['/']);
-  }
-
-  /**
-   * Verificar si el usuario debe cambiar su contraseña
-   */
-  shouldChangePassword(): boolean {
-    const user = this.currentUser();
-    return user ? user.debe_cambiar_contrasena : false;
-  }
-
-  /**
-   * Cambiar contraseña del usuario
-   */
-  changePassword(currentPassword: string, newPassword: string): Observable<any> {
-    const user = this.currentUser();
-    if (!user) {
-      return throwError(() => new Error('Usuario no autenticado'));
+    } else {
+      if (environment.enableDebugLogs) {
+        console.log('ℹ️ [AUTH SERVICE] No hay sesión guardada');
+      }
     }
-
-    return this.http.post(
-      `${environment.apiUrl}/auth/change-password`,
-      {
-        curp: user.curp,
-        contrasena_actual: currentPassword,
-        contrasena_nueva: newPassword
-      },
-      { headers: this.getAuthHeaders() }
-    ).pipe(
-      tap(() => {
-        // Actualizar flag en usuario local
-        if (user) {
-          user.debe_cambiar_contrasena = false;
-          localStorage.setItem('gem_user', JSON.stringify(user));
-          this.currentUser.set(user);
-        }
-      })
-    );
-  }
-
-  /**
-   * Obtener headers con token de autenticación
-   */
-  private getAuthHeaders(): HttpHeaders {
-    const token = this.getToken();
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
-  }
-
-  /**
-   * Obtener el usuario actual
-   */
-  getCurrentUser(): User | null {
-    return this.currentUser();
-  }
-
-  /**
-   * Verificar si el usuario está autenticado
-   */
-  isUserAuthenticated(): boolean {
-    return this.isAuthenticated();
-  }
-
-  /**
-   * Obtener el rol del usuario actual
-   */
-  getUserRole(): UserRole {
-    return this.userRole();
-  }
-
-  /**
-   * Verificar si el usuario tiene un rol específico
-   */
-  hasRole(role: UserRole): boolean {
-    return this.userRole() === role;
-  }
-
-  /**
-   * Verificar si el usuario tiene alguno de los roles especificados
-   */
-  hasAnyRole(roles: UserRole[]): boolean {
-    return roles.includes(this.userRole());
-  }
-
-  /**
-   * Verificar si es administrador (SUPER_ADMIN o ADMIN)
-   */
-  isAdmin(): boolean {
-    return this.hasAnyRole([UserRole.SUPER_ADMIN, UserRole.ADMIN]);
-  }
-
-  /**
-   * Obtener el token de autenticación
-   */
-  getToken(): string | null {
-    return localStorage.getItem('gem_token');
-  }
-
-  /**
-   * Refrescar el token (si el backend lo soporta)
-   */
-  refreshToken(): Observable<any> {
-    const token = this.getToken();
-    if (!token) {
-      return throwError(() => new Error('No hay token para refrescar'));
-    }
-
-    return this.http.post(`${environment.apiUrl}/auth/refresh`, { token }).pipe(
-      tap((response: any) => {
-        if (response.token) {
-          localStorage.setItem('gem_token', response.token);
-        }
-      })
-    );
   }
 }

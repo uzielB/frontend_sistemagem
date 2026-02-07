@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,7 +9,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../../core/services/auth.service';
-import { UserRole, isValidCURP } from '../../../../core/models/user.model';
+import { UserRole, isValidCURP, User } from '../../../../core/models/user.model';
 
 @Component({
   selector: 'app-login',
@@ -17,6 +17,7 @@ import { UserRole, isValidCURP } from '../../../../core/models/user.model';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
@@ -31,10 +32,9 @@ export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   isLoading = false;
   errorMessage = '';
-  hidePassword = true;
+  hidePassword = false;
   
-  // Modo DEMO para desarrollo sin backend
-  isDemoMode = true; // ← Cambiar a false cuando el backend esté listo
+  isDemoMode = false;
 
   constructor(
     private fb: FormBuilder,
@@ -56,34 +56,27 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Si el usuario ya está autenticado, redirigir a su dashboard
     if (this.authService.isUserAuthenticated()) {
-      this.redirectToRoleDashboard(this.authService.getUserRole());
+      const user = this.authService.getUser();
+      if (user) {
+        console.log('🎯 Redirigiendo usuario autenticado según rol:', user.rol);
+        this.redirectToRoleDashboard(user); 
+      }
     }
   }
 
-  /**
-   * Validador personalizado para CURP
-   */
   curpValidator(control: any): { [key: string]: any } | null {
     if (!control.value) return null;
-    
     const curp = control.value.toUpperCase();
     return isValidCURP(curp) ? null : { 'invalidCurp': true };
   }
 
-  /**
-   * Convertir CURP a mayúsculas mientras se escribe
-   */
   onCurpInput(event: any): void {
     const input = event.target;
     input.value = input.value.toUpperCase();
     this.loginForm.patchValue({ curp: input.value });
   }
 
-  /**
-   * Submit del formulario de login
-   */
   onSubmit(): void {
     if (this.loginForm.valid) {
       this.isLoading = true;
@@ -91,31 +84,58 @@ export class LoginComponent implements OnInit {
       
       const { curp, contrasena } = this.loginForm.value;
       
-      // Usar login DEMO o real según configuración
       const loginObservable = this.isDemoMode 
         ? this.authService.loginDemo(curp, contrasena)
         : this.authService.login(curp, contrasena);
       
       loginObservable.subscribe({
-        next: (response:any) => {
+        next: (response: any) => {
+          console.log('✅ Login response completo:', response);
           this.isLoading = false;
           
-          if (response.success && response.user) {
-            // Verificar si debe cambiar contraseña
-            if (response.user.debe_cambiar_contrasena) {
-              this.router.navigate(['/auth/change-password']);
-              return;
-            }
+          // Obtener usuario del servicio (que ya lo guardó)
+          const user = this.authService.getUser();
+          
+          if (user) {
+            console.log('👤 Usuario obtenido:', user);
             
-            // Redirigir según el rol
-            this.redirectToRoleDashboard(response.user.rol);
+            // Verificar si debe cambiar contraseña
+            // if (user.debe_cambiar_contrasena) {
+            //   console.log('🔄 Usuario debe cambiar contraseña');
+            //   this.router.navigate(['/auth/change-password']);
+            //   return;
+            // }
+            
+            // ⚠️ REDIRECCIÓN FORZADA PARA DOCENTES
+            if (user.rol === UserRole.DOCENTE) {
+              console.log('🔥 FORZANDO redirección a /teachers');
+              
+              // Usar setTimeout para asegurar que el cambio de detección termine
+              setTimeout(() => {
+                this.router.navigateByUrl('/teachers', { replaceUrl: true }).then(success => {
+                  console.log('✅ Navegación resultado:', success);
+                  console.log('📍 URL actual después de navegación:', this.router.url);
+                  
+                  if (!success) {
+                    console.error('❌ Navegación falló, intentando window.location...');
+                    window.location.href = '/teachers';
+                  }
+                });
+              }, 100);
+            } else {
+              // Para otros roles, usar el método normal
+              console.log('🎯 Redirigiendo según rol:', user.rol);
+              this.redirectToRoleDashboard(user);
+            }
+          } else {
+            console.error('❌ No se pudo obtener el usuario después del login');
+            this.errorMessage = 'Error al procesar la sesión';
           }
         },
-        error: (error:any) => {
+        error: (error: any) => {
           this.isLoading = false;
-          console.error('Error en login:', error);
+          console.error('❌ Error en login:', error);
           
-          // Manejar diferentes tipos de errores
           if (error.status === 401) {
             this.errorMessage = 'CURP o contraseña incorrectos';
           } else if (error.status === 403) {
@@ -128,36 +148,47 @@ export class LoginComponent implements OnInit {
         }
       });
     } else {
-      // Marcar todos los campos como tocados para mostrar errores
       Object.keys(this.loginForm.controls).forEach(key => {
         this.loginForm.get(key)?.markAsTouched();
       });
     }
   }
 
-  /**
-   * Redirigir al dashboard según el rol del usuario
-   */
-  private redirectToRoleDashboard(role: UserRole): void {
-    switch (role) {
+  private redirectToRoleDashboard(user: User): void {
+    let targetRoute = '/';
+
+    console.log('🚀 Redirigiendo según rol:', user.rol);
+
+    switch (user.rol) {
       case UserRole.SUPER_ADMIN:
+        targetRoute = '/admin/dashboard';
+        break;
       case UserRole.ADMIN:
-        this.router.navigate(['/admin/dashboard']);
+        targetRoute = '/admin/dashboard';
         break;
       case UserRole.DOCENTE:
-        this.router.navigate(['/docente/dashboard']);
+        targetRoute = '/teachers';  
         break;
       case UserRole.ALUMNO:
-        this.router.navigate(['/alumno/dashboard']);
+        targetRoute = '/alumno/dashboard';
         break;
       default:
-        this.router.navigate(['/']);
+        targetRoute = '/';
+        break;
     }
+
+    console.log('📍 Navegando a:', targetRoute);
+
+    // Navegación forzada
+    this.router.navigate([targetRoute], { replaceUrl: true }).then(success => {
+      if (success) {
+        console.log('✅ Navegación exitosa a:', targetRoute);
+      } else {
+        console.error('❌ Navegación falló a:', targetRoute);
+      }
+    });
   }
 
-  /**
-   * Obtener mensaje de error para campo CURP
-   */
   getCurpErrorMessage(): string {
     const control = this.loginForm.get('curp');
     
@@ -176,9 +207,6 @@ export class LoginComponent implements OnInit {
     return '';
   }
 
-  /**
-   * Obtener mensaje de error para contraseña
-   */
   getPasswordErrorMessage(): string {
     const control = this.loginForm.get('contrasena');
     
@@ -193,9 +221,6 @@ export class LoginComponent implements OnInit {
     return '';
   }
 
-  /**
-   * Toggle visibilidad de contraseña
-   */
   togglePasswordVisibility(): void {
     this.hidePassword = !this.hidePassword;
   }
