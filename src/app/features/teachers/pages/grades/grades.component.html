@@ -1,1 +1,214 @@
-<p>grades works!</p>
+<div class="grades-container">
+  
+  <!-- HEADER -->
+  <div class="header">
+    <button mat-icon-button (click)="cancel()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Capturar Calificaciones</h1>
+  </div>
+
+  <!-- MENSAJES -->
+  <div *ngIf="successMessage" class="success-message">
+    <mat-icon>check_circle</mat-icon>
+    <p>{{ successMessage }}</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    <mat-icon>error</mat-icon>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- CARD PRINCIPAL -->
+  <mat-card class="grades-card">
+    <mat-card-content>
+      
+      <!-- FILTROS -->
+      <form [formGroup]="gradesForm" class="filters-section">
+        <div class="filters-row">
+          
+          <!-- Filtro Sistema -->
+          <mat-form-field appearance="outline">
+            <mat-label>Sistema</mat-label>
+            <mat-select formControlName="sistema" (selectionChange)="applyFilters()">
+              <mat-option *ngFor="let sistema of sistemas" [value]="sistema">
+                {{ sistema }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Filtro Grupo -->
+          <mat-form-field appearance="outline">
+            <mat-label>Grupo</mat-label>
+            <mat-select formControlName="grupo" (selectionChange)="applyFilters()">
+              <mat-option *ngFor="let grupo of grupos" [value]="grupo">
+                {{ grupo }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Filtro Materia -->
+          <mat-form-field appearance="outline">
+            <mat-label>Materia</mat-label>
+            <mat-select formControlName="materia" (selectionChange)="applyFilters()">
+              <mat-option *ngFor="let materia of materias" [value]="materia">
+                {{ materia }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+        </div>
+
+        <!-- Info de selección actual -->
+        <div class="selection-info" *ngIf="selectedMateria !== 'TODOS'">
+          <mat-icon>info</mat-icon>
+          <span>
+            Capturando calificaciones para: 
+            <strong>{{ selectedMateria }}</strong> - 
+            Grupo <strong>{{ selectedGrupo }}</strong> - 
+            <strong>{{ selectedSistema }}</strong>
+          </span>
+        </div>
+      </form>
+
+      <!-- TABLA DE CALIFICACIONES -->
+      <div class="table-container">
+        <table mat-table [dataSource]="alumnosFormArray.controls" class="grades-table">
+
+          <!-- Columna Matrícula -->
+          <ng-container matColumnDef="matricula">
+            <th mat-header-cell *matHeaderCellDef>Matrícula</th>
+            <td mat-cell *matCellDef="let alumno; let i = index">
+              {{ alumno.get('matricula')?.value }}
+            </td>
+          </ng-container>
+
+          <!-- Columna Nombre Completo -->
+          <ng-container matColumnDef="nombreCompleto">
+            <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
+            <td mat-cell *matCellDef="let alumno; let i = index">
+              {{ alumno.get('nombreCompleto')?.value }}
+            </td>
+          </ng-container>
+
+          <!-- Columna P1 (Editable) -->
+          <ng-container matColumnDef="p1">
+            <th mat-header-cell *matHeaderCellDef>P1</th>
+            <td mat-cell *matCellDef="let alumno; let i = index">
+              <mat-form-field appearance="outline" class="grade-input">
+                <input 
+                  matInput 
+                  type="number" 
+                  min="0" 
+                  max="100"
+                  [formControl]="alumno.get('p1')"
+                  (blur)="validateGrade($event, i, 'p1')"
+                  (input)="calculateTotal(i)"
+                  placeholder="0-100">
+              </mat-form-field>
+            </td>
+          </ng-container>
+
+          <!-- Columna P2 (Editable) -->
+          <ng-container matColumnDef="p2">
+            <th mat-header-cell *matHeaderCellDef>P2</th>
+            <td mat-cell *matCellDef="let alumno; let i = index">
+              <mat-form-field appearance="outline" class="grade-input">
+                <input 
+                  matInput 
+                  type="number" 
+                  min="0" 
+                  max="100"
+                  [formControl]="alumno.get('p2')"
+                  (blur)="validateGrade($event, i, 'p2')"
+                  (input)="calculateTotal(i)"
+                  placeholder="0-100">
+              </mat-form-field>
+            </td>
+          </ng-container>
+
+          <!-- Columna P3 (Editable) -->
+          <ng-container matColumnDef="p3">
+            <th mat-header-cell *matHeaderCellDef>P3</th>
+            <td mat-cell *matCellDef="let alumno; let i = index">
+              <mat-form-field appearance="outline" class="grade-input">
+                <input 
+                  matInput 
+                  type="number" 
+                  min="0" 
+                  max="100"
+                  [formControl]="alumno.get('p3')"
+                  (blur)="validateGrade($event, i, 'p3')"
+                  (input)="calculateTotal(i)"
+                  placeholder="0-100">
+              </mat-form-field>
+            </td>
+          </ng-container>
+
+          <!-- Columna Total (Solo lectura) -->
+          <ng-container matColumnDef="total">
+            <th mat-header-cell *matHeaderCellDef>Total</th>
+            <td mat-cell *matCellDef="let alumno; let i = index">
+              <span class="total-grade" [class.high-grade]="alumno.get('total')?.value >= 90"
+                                       [class.medium-grade]="alumno.get('total')?.value >= 70 && alumno.get('total')?.value < 90"
+                                       [class.low-grade]="alumno.get('total')?.value < 70">
+                {{ alumno.get('total')?.value || 0 }}
+              </span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+        </table>
+
+        <!-- Mensaje si no hay alumnos -->
+        <div *ngIf="alumnosFormArray.length === 0" class="no-data">
+          <mat-icon>school</mat-icon>
+          <p>No hay alumnos para mostrar</p>
+          <p class="hint">Selecciona una materia en los filtros</p>
+        </div>
+      </div>
+
+      <!-- BOTONES DE ACCIÓN -->
+      <div class="actions-section">
+        <div class="changes-indicator" *ngIf="hasChanges">
+          <mat-icon>edit</mat-icon>
+          <span>Tienes cambios sin guardar</span>
+        </div>
+
+        <div class="button-group">
+          <button 
+            mat-raised-button 
+            (click)="cancel()"
+            [disabled]="isLoading">
+            Cancelar
+          </button>
+
+          <button 
+            mat-raised-button 
+            color="primary"
+            (click)="saveGrades()"
+            [disabled]="isLoading || !hasChanges || gradesForm.invalid">
+            <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
+            <span *ngIf="!isLoading">Guardar Calificaciones</span>
+          </button>
+        </div>
+      </div>
+
+    </mat-card-content>
+  </mat-card>
+
+  <!-- INSTRUCCIONES -->
+  <div class="instructions-card">
+    <h3>📝 Instrucciones:</h3>
+    <ul>
+      <li>Selecciona el <strong>Sistema</strong>, <strong>Grupo</strong> y <strong>Materia</strong> en los filtros</li>
+      <li>Captura las calificaciones de cada parcial (<strong>P1</strong>, <strong>P2</strong>, <strong>P3</strong>)</li>
+      <li>El <strong>Total</strong> se calcula automáticamente como el promedio de los 3 parciales</li>
+      <li>Las calificaciones deben estar entre <strong>0 y 100</strong></li>
+      <li>Haz clic en <strong>Guardar Calificaciones</strong> para registrar los cambios</li>
+    </ul>
+  </div>
+
+</div>
