@@ -1,0 +1,146 @@
+<div class="student-list-content">
+  
+  <!-- FILTROS Y BÚSQUEDA -->
+  <div class="filters-section">
+    
+    <!-- Barra de búsqueda -->
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Buscar alumno</mat-label>
+      <input 
+        matInput 
+        [formControl]="searchControl"
+        placeholder="Nombre, matrícula o correo...">
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    <!-- Filtros -->
+    <div class="filter-controls">
+      <mat-form-field appearance="outline">
+        <mat-label>Grupo</mat-label>
+        <mat-select [formControl]="grupoControl">
+          <mat-option *ngFor="let grupo of grupos" [value]="grupo">
+            {{ grupo }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Materia</mat-label>
+        <mat-select [formControl]="materiaControl">
+          <mat-option *ngFor="let materia of materias" [value]="materia">
+            {{ materia }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Botones de exportación -->
+    <div class="export-buttons">
+      <button mat-raised-button color="accent" (click)="exportToExcel()">
+        <mat-icon>file_download</mat-icon>
+        Excel
+      </button>
+      <button mat-raised-button color="warn" (click)="exportToPDF()">
+        <mat-icon>picture_as_pdf</mat-icon>
+        PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTADOR -->
+  <div class="result-count">
+    <mat-icon>people</mat-icon>
+    <span>Mostrando {{ alumnosFiltrados.length }} de {{ alumnos.length }} alumnos</span>
+  </div>
+
+  <!-- TABLA DE ALUMNOS -->
+  <div class="table-container">
+    <table mat-table [dataSource]="alumnosFiltrados" class="students-table">
+
+      <!-- Matrícula -->
+      <ng-container matColumnDef="matricula">
+        <th mat-header-cell *matHeaderCellDef>Matrícula</th>
+        <td mat-cell *matCellDef="let alumno">
+          <span class="matricula">{{ alumno.matricula }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Nombre Completo -->
+      <ng-container matColumnDef="nombreCompleto">
+        <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
+        <td mat-cell *matCellDef="let alumno">
+          {{ alumno.nombreCompleto }}
+        </td>
+      </ng-container>
+
+      <!-- Programa -->
+      <ng-container matColumnDef="programa">
+        <th mat-header-cell *matHeaderCellDef>Programa</th>
+        <td mat-cell *matCellDef="let alumno">
+          <span class="programa">{{ alumno.programa }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Grupo -->
+      <ng-container matColumnDef="grupo">
+        <th mat-header-cell *matHeaderCellDef>Grupo</th>
+        <td mat-cell *matCellDef="let alumno">
+          <mat-chip class="grupo-chip">{{ alumno.grupo }}</mat-chip>
+        </td>
+      </ng-container>
+
+      <!-- Correo -->
+      <ng-container matColumnDef="correo">
+        <th mat-header-cell *matHeaderCellDef>Correo</th>
+        <td mat-cell *matCellDef="let alumno">
+          <a [href]="'mailto:' + alumno.correo" class="email-link">
+            <mat-icon>email</mat-icon>
+            {{ alumno.correo }}
+          </a>
+        </td>
+      </ng-container>
+
+      <!-- Teléfono -->
+      <ng-container matColumnDef="telefono">
+        <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+        <td mat-cell *matCellDef="let alumno">
+          <span class="telefono">{{ alumno.telefono }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Estatus -->
+      <ng-container matColumnDef="estatus">
+        <th mat-header-cell *matHeaderCellDef>Estatus</th>
+        <td mat-cell *matCellDef="let alumno">
+          <mat-chip [ngClass]="getEstatusClass(alumno.estatus)">
+            {{ alumno.estatus === 'ACTIVO' ? 'Activo' : 
+               alumno.estatus === 'BAJA_TEMPORAL' ? 'Baja Temporal' : 
+               'Egresado' }}
+          </mat-chip>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+    </table>
+
+    <!-- Sin resultados -->
+    <div *ngIf="alumnosFiltrados.length === 0" class="no-results">
+      <mat-icon>search_off</mat-icon>
+      <p>No se encontraron alumnos</p>
+      <p class="hint">Intenta con otros filtros</p>
+    </div>
+  </div>
+
+  <!-- INFORMACIÓN ADICIONAL -->
+  <div class="info-section">
+    <mat-icon>info</mat-icon>
+    <p>
+      Esta lista muestra todos los alumnos asignados a tus grupos. 
+      Puedes usar la búsqueda para encontrar alumnos específicos por nombre, matrícula o correo.
+      Los botones de exportación te permitirán descargar la lista en Excel o PDF.
+    </p>
+  </div>
+
+</div>
