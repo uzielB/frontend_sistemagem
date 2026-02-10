@@ -1,6 +1,4 @@
 <div class="dashboard-container">
-
-  <!-- SIDEBAR IZQUIERDO -->
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="gem-logo">
@@ -31,10 +29,11 @@
         <span>Capturar Asistencias</span>
       </button>
 
-      <button class="menu-item">
+      <button class="menu-item" (click)="navigateTo('/teachers/gestion-grupal')"> 
         <mat-icon>groups</mat-icon>
         <span>Gestión Grupal/Clase</span>
       </button>
+      
       <div class="sidebar-divider"></div>
       <button class="menu-item" (click)="navigateTo('/teachers/cambiar-contrasena')">
         <mat-icon>lock</mat-icon>
@@ -88,11 +87,7 @@
           <p class="stat-title">Clases Esta Semana</p>
           <p class="stat-value">12</p>
         </div>
-
       </div>
-
     </div>
-
   </main>
-
 </div>

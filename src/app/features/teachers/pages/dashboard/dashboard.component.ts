@@ -62,6 +62,6 @@ export class TeacherDashboardComponent implements OnInit {
   }
 
   navigateTo(route: string): void {
-    this.router.navigate([route]);
-  }
+  this.router.navigate([route]);
+}
 }
