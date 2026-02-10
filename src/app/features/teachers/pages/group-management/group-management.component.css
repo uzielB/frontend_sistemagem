@@ -1,0 +1,102 @@
+.group-management-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ===== HEADER ===== */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.header h1 {
+  margin: 0;
+  color: #333;
+  font-size: 1.75rem;
+}
+
+.back-button {
+  color: #d32f2f;
+}
+
+/* ===== CARD DE TABS ===== */
+.tabs-card {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+mat-card-content {
+  padding: 0 !important;
+}
+
+/* ===== TABS PERSONALIZADOS ===== */
+.custom-tabs {
+  min-height: 600px;
+}
+
+.custom-tabs ::ng-deep .mat-mdc-tab-labels {
+  background: #f5f5f5;
+  border-bottom: 2px solid #d32f2f;
+}
+
+.custom-tabs ::ng-deep .mat-mdc-tab {
+  min-width: 160px;
+  padding: 0 24px;
+}
+
+.custom-tabs ::ng-deep .mat-mdc-tab-label-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tab-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.custom-tabs ::ng-deep .mat-mdc-tab:not(.mat-mdc-tab-disabled).mdc-tab--active {
+  background: white;
+}
+
+.custom-tabs ::ng-deep .mdc-tab-indicator__content--underline {
+  border-color: #d32f2f;
+  border-width: 3px;
+}
+
+/* ===== CONTENIDO DE TAB ===== */
+.tab-content {
+  padding: 2rem;
+  min-height: 500px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .group-management-container {
+    padding: 1rem;
+  }
+
+  .custom-tabs ::ng-deep .mat-mdc-tab {
+    min-width: 100px;
+    padding: 0 12px;
+  }
+
+  .tab-content {
+    padding: 1rem;
+  }
+
+  .custom-tabs ::ng-deep .mat-mdc-tab-label-content {
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+  }
+
+  .tab-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}

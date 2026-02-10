@@ -1,0 +1,55 @@
+<div class="group-management-container">
+  
+  <!-- HEADER -->
+  <div class="header">
+    <button mat-icon-button (click)="goBack()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Gestión Grupal/Clase</h1>
+  </div>
+
+  <!-- TABS -->
+  <mat-card class="tabs-card">
+    <mat-card-content>
+      
+      <mat-tab-group animationDuration="300ms" class="custom-tabs">
+        
+        <!-- TAB 1: HORARIOS -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">schedule</mat-icon>
+            Horarios
+          </ng-template>
+          <div class="tab-content">
+            <app-schedule></app-schedule>
+          </div>
+        </mat-tab>
+
+        <!-- TAB 2: LISTAS DE ALUMNOS -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">people</mat-icon>
+            Listas de Alumnos
+          </ng-template>
+          <div class="tab-content">
+            <app-student-list></app-student-list>
+          </div>
+        </mat-tab>
+
+        <!-- TAB 3: TEMARIOS -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon">description</mat-icon>
+            Temarios
+          </ng-template>
+          <div class="tab-content">
+            <app-syllabus></app-syllabus>
+          </div>
+        </mat-tab>
+
+      </mat-tab-group>
+
+    </mat-card-content>
+  </mat-card>
+
+</div>
