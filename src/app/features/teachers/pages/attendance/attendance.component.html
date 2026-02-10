@@ -1,1 +1,267 @@
-<p>attendance works!</p>
+<div class="attendance-container">
+  
+  <!-- HEADER -->
+  <div class="header">
+    <button mat-icon-button (click)="cancel()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Capturar Asistencias</h1>
+  </div>
+
+  <!-- MENSAJES -->
+  <div *ngIf="successMessage" class="success-message">
+    <mat-icon>check_circle</mat-icon>
+    <p>{{ successMessage }}</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    <mat-icon>error</mat-icon>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- CARD PRINCIPAL -->
+  <mat-card class="attendance-card">
+    <mat-card-content>
+      
+      <!-- FILTROS -->
+      <form [formGroup]="attendanceForm" class="filters-section">
+        
+        <!-- Selector de Fecha -->
+        <div class="date-selector">
+          <mat-form-field appearance="outline" class="date-field">
+            <mat-label>Fecha de Asistencia</mat-label>
+            <input 
+              matInput 
+              [matDatepicker]="picker" 
+              formControlName="fecha"
+              [max]="maxDate"
+              (dateChange)="onDateChange($event)">
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <!-- Otros Filtros -->
+        <div class="filters-row">
+          
+          <!-- Filtro Sistema -->
+          <mat-form-field appearance="outline">
+            <mat-label>Sistema</mat-label>
+            <mat-select formControlName="sistema" (selectionChange)="applyFilters()">
+              <mat-option *ngFor="let sistema of sistemas" [value]="sistema">
+                {{ sistema }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Filtro Grupo -->
+          <mat-form-field appearance="outline">
+            <mat-label>Grupo</mat-label>
+            <mat-select formControlName="grupo" (selectionChange)="applyFilters()">
+              <mat-option *ngFor="let grupo of grupos" [value]="grupo">
+                {{ grupo }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Filtro Materia -->
+          <mat-form-field appearance="outline">
+            <mat-label>Materia</mat-label>
+            <mat-select formControlName="materia" (selectionChange)="applyFilters()">
+              <mat-option *ngFor="let materia of materias" [value]="materia">
+                {{ materia }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+        </div>
+
+        <!-- Info de selección actual -->
+        <div class="selection-info" *ngIf="selectedMateria !== 'TODOS'">
+          <mat-icon>info</mat-icon>
+          <span>
+            Asistencia del <strong>{{ selectedDate | date:'dd/MM/yyyy' }}</strong> - 
+            <strong>{{ selectedMateria }}</strong> - 
+            Grupo <strong>{{ selectedGrupo }}</strong>
+          </span>
+        </div>
+      </form>
+
+      <!-- TABLA DE ASISTENCIAS -->
+      <div class="table-container">
+        <table mat-table [dataSource]="alumnosFormArray.controls" class="attendance-table">
+
+          <!-- Columna Número -->
+          <ng-container matColumnDef="numero">
+            <th mat-header-cell *matHeaderCellDef>#</th>
+            <td mat-cell *matCellDef="let alumno; let i = index">
+              {{ i + 1 }}
+            </td>
+          </ng-container>
+
+          <!-- Columna Matrícula -->
+          <ng-container matColumnDef="matricula">
+            <th mat-header-cell *matHeaderCellDef>Matrícula</th>
+            <td mat-cell *matCellDef="let alumno">
+              {{ alumno.get('matricula')?.value }}
+            </td>
+          </ng-container>
+
+          <!-- Columna Nombre Completo -->
+          <ng-container matColumnDef="nombreCompleto">
+            <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
+            <td mat-cell *matCellDef="let alumno">
+              {{ alumno.get('nombreCompleto')?.value }}
+            </td>
+          </ng-container>
+
+          <!-- Columna Estado (Botones Toggle) -->
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>Estado de Asistencia</th>
+            <td mat-cell *matCellDef="let alumno; let i = index">
+              <div class="estado-buttons">
+                <button 
+                  mat-mini-fab 
+                  [class.active]="alumno.get('estado')?.value === 'ASISTIO'"
+                  class="btn-asistio"
+                  (click)="setEstado(i, 'ASISTIO')"
+                  matTooltip="Asistió">
+                  <mat-icon>check</mat-icon>
+                </button>
+
+                <button 
+                  mat-mini-fab 
+                  [class.active]="alumno.get('estado')?.value === 'FALTO'"
+                  class="btn-falto"
+                  (click)="setEstado(i, 'FALTO')"
+                  matTooltip="Faltó">
+                  <mat-icon>close</mat-icon>
+                </button>
+
+                <button 
+                  mat-mini-fab 
+                  [class.active]="alumno.get('estado')?.value === 'RETARDO'"
+                  class="btn-retardo"
+                  (click)="setEstado(i, 'RETARDO')"
+                  matTooltip="Retardo">
+                  <mat-icon>schedule</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna Porcentaje de Asistencia -->
+          <ng-container matColumnDef="porcentaje">
+            <th mat-header-cell *matHeaderCellDef>% Asistencia</th>
+            <td mat-cell *matCellDef="let alumno">
+              <span class="porcentaje-badge" 
+                    [ngClass]="getPorcentajeClass(alumno.get('porcentajeAsistencia')?.value)">
+                {{ alumno.get('porcentajeAsistencia')?.value }}%
+              </span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+        </table>
+
+        <!-- Mensaje si no hay alumnos -->
+        <div *ngIf="alumnosFormArray.length === 0" class="no-data">
+          <mat-icon>school</mat-icon>
+          <p>No hay alumnos para mostrar</p>
+          <p class="hint">Selecciona una materia en los filtros</p>
+        </div>
+      </div>
+
+      <!-- RESUMEN -->
+      <div class="resumen-section">
+        <div class="resumen-card">
+          <mat-icon>people</mat-icon>
+          <div class="resumen-content">
+            <span class="resumen-label">Total Alumnos</span>
+            <span class="resumen-value">{{ getResumen().total }}</span>
+          </div>
+        </div>
+
+        <div class="resumen-card asistencias">
+          <mat-icon>check_circle</mat-icon>
+          <div class="resumen-content">
+            <span class="resumen-label">Asistencias</span>
+            <span class="resumen-value">{{ getResumen().asistencias }}</span>
+          </div>
+        </div>
+
+        <div class="resumen-card faltas">
+          <mat-icon>cancel</mat-icon>
+          <div class="resumen-content">
+            <span class="resumen-label">Faltas</span>
+            <span class="resumen-value">{{ getResumen().faltas }}</span>
+          </div>
+        </div>
+
+        <div class="resumen-card retardos">
+          <mat-icon>schedule</mat-icon>
+          <div class="resumen-content">
+            <span class="resumen-label">Retardos</span>
+            <span class="resumen-value">{{ getResumen().retardos }}</span>
+          </div>
+        </div>
+
+        <div class="resumen-card pendientes" *ngIf="getResumen().pendientes > 0">
+          <mat-icon>help_outline</mat-icon>
+          <div class="resumen-content">
+            <span class="resumen-label">Sin Capturar</span>
+            <span class="resumen-value">{{ getResumen().pendientes }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTONES DE ACCIÓN -->
+      <div class="actions-section">
+        <div class="changes-indicator" *ngIf="hasChanges">
+          <mat-icon>edit</mat-icon>
+          <span>Tienes cambios sin guardar</span>
+        </div>
+
+        <div class="button-group">
+          <button 
+            mat-raised-button 
+            (click)="cancel()"
+            [disabled]="isLoading">
+            Cancelar
+          </button>
+
+          <button 
+            mat-raised-button 
+            color="primary"
+            (click)="saveAttendance()"
+            [disabled]="isLoading || !hasChanges">
+            <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
+            <span *ngIf="!isLoading">Guardar Asistencias</span>
+          </button>
+        </div>
+      </div>
+
+    </mat-card-content>
+  </mat-card>
+
+  <!-- INSTRUCCIONES -->
+  <div class="instructions-card">
+    <h3>📝 Instrucciones:</h3>
+    <ul>
+      <li>Selecciona la <strong>fecha</strong> para la cual deseas capturar asistencia</li>
+      <li>Elige el <strong>Sistema</strong>, <strong>Grupo</strong> y <strong>Materia</strong></li>
+      <li>Para cada alumno, haz clic en:
+        <ul>
+          <li><mat-icon class="icon-inline asistio">check</mat-icon> <strong>Asistió</strong> (verde)</li>
+          <li><mat-icon class="icon-inline falto">close</mat-icon> <strong>Faltó</strong> (rojo)</li>
+          <li><mat-icon class="icon-inline retardo">schedule</mat-icon> <strong>Retardo</strong> (amarillo)</li>
+        </ul>
+      </li>
+      <li>El <strong>% Asistencia</strong> muestra el promedio acumulado del alumno</li>
+      <li>Haz clic en <strong>Guardar Asistencias</strong> para registrar</li>
+    </ul>
+  </div>
+
+</div>
