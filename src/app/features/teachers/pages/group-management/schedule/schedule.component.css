@@ -1,0 +1,321 @@
+.schedule-content {
+  width: 100%;
+}
+
+/* ===== RESUMEN ===== */
+.summary-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #d32f2f;
+}
+
+.summary-card mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #d32f2f;
+}
+
+.summary-label {
+  display: block;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.summary-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+/* ===== CALENDARIO ===== */
+.calendar-container {
+  overflow-x: auto;
+  margin-bottom: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  min-width: 900px;
+}
+
+.schedule-table thead tr {
+  background: #f5f5f5;
+  border-bottom: 2px solid #d32f2f;
+}
+
+.schedule-table th {
+  padding: 1rem;
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.time-column {
+  width: 150px;
+  text-align: left !important;
+}
+
+.schedule-table td {
+  padding: 0.5rem;
+  border: 1px solid #e0e0e0;
+  vertical-align: top;
+  min-height: 120px;
+}
+
+.time-cell {
+  background: #fafafa;
+  font-weight: 500;
+}
+
+.time-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.modulo-number {
+  font-size: 0.9rem;
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+.time-range {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* ===== TARJETA DE CLASE ===== */
+.class-card {
+  padding: 0.75rem;
+  border-radius: 6px;
+  height: 100%;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.class-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.class-card.escolarizado {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-left: 4px solid #2196f3;
+}
+
+.class-card.sabatino {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border-left: 4px solid #ff9800;
+}
+
+.class-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.class-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #333;
+}
+
+.class-materia {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #333;
+  line-height: 1.2;
+}
+
+.class-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.detail-row mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  color: #666;
+}
+
+.sistema-chip {
+  font-size: 0.7rem !important;
+  padding: 0.2rem 0.5rem !important;
+  height: auto !important;
+  min-height: 20px !important;
+  align-self: flex-start;
+}
+
+.sistema-chip.escolarizado {
+  background: #2196f3 !important;
+  color: white !important;
+}
+
+.sistema-chip.sabatino {
+  background: #ff9800 !important;
+  color: white !important;
+}
+
+/* ===== SLOT VACÍO ===== */
+.empty-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  color: #ccc;
+}
+
+.empty-slot mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+/* ===== LEYENDA ===== */
+.legend-section {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.legend-section h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.legend-items {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.legend-color {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.legend-color.escolarizado {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-left: 4px solid #2196f3;
+}
+
+.legend-color.sabatino {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border-left: 4px solid #ff9800;
+}
+
+/* ===== LISTA DE MATERIAS ===== */
+.materias-list {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.materias-list h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.materia-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.materia-chips mat-chip {
+  background: white !important;
+  border: 1px solid #e0e0e0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.materia-chips mat-chip mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #d32f2f;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .summary-section {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-container {
+    overflow-x: scroll;
+  }
+
+  .schedule-table {
+    font-size: 0.85rem;
+  }
+
+  .schedule-table th,
+  .schedule-table td {
+    padding: 0.5rem;
+  }
+
+  .class-card {
+    min-height: 80px;
+  }
+
+  .class-materia {
+    font-size: 0.8rem;
+  }
+
+  .detail-row {
+    font-size: 0.75rem;
+  }
+
+  .legend-items {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
