@@ -16,9 +16,9 @@ export const TEACHERS_ROUTES: Routes = [
     loadComponent: () => import('./components/attendance-table/attendance-table.component')
       .then(m => m.AttendanceTableComponent)
   },
-  // {
-  //   path: 'cambiar-contrasena',
-  //   loadComponent: () => import('./pages/change-password/change-password.component')
-  //     .then(m => m.ChangePasswordComponent)
-  // }
+  {
+    path: 'cambiar-contrasena',
+    loadComponent: () => import('./pages/change-password/change-password.component')
+      .then(m => m.ChangePasswordComponent)
+  }
 ];
