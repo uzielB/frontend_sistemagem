@@ -35,6 +35,7 @@
       </button>
       
       <div class="sidebar-divider"></div>
+      
       <button class="menu-item" (click)="navigateTo('/teachers/cambiar-contrasena')">
         <mat-icon>lock</mat-icon>
         <span>Cambiar Contraseña</span>
@@ -50,16 +51,14 @@
 
   <!-- CONTENIDO PRINCIPAL -->
   <main class="main-content">
-
-    <br><br>
     <!-- ÁREA DE TRABAJO -->
     <div class="content-body">
       <div class="welcome-card">
-        <h2>Bienvenido(a), {{ getUserName() }}</h2>
+        <h2>Bienvenido(a) Docente, {{ getUserName() }}</h2>
         <div class="user-data">
           <p class="user-curp"><strong>CURP:</strong> {{ currentUser?.curp }}</p>
           <p class="user-email"><strong>Correo:</strong> {{ currentUser?.correo }}</p>
-        </div>
+        </div>  
       </div>
 
       <div class="stats-grid">
