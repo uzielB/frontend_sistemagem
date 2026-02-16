@@ -1,21 +1,43 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatInputModule } from '@angular/material/input';
+import Swal from 'sweetalert2';
+
+// ✅ IMPORTAR SERVICIO
+import { 
+  SyllabusesService, 
+  Syllabus, 
+  LessonPlan,
+  CreateLessonPlanDto
+} from '../../../../../core/services/syllabuses.service';
 
 interface Temario {
   id: number;
   materia: string;
   nombreArchivo: string;
-  fechaSubida: Date;
-  tamano: string; // en MB
-  url: string;
+  fechaSubida: string;
+  tamano: number;
+  estado?: string;
+}
+
+interface Planeacion {
+  id: number;
+  temarioId: number;
+  materia: string;
+  nombreArchivo: string;
+  fechaSubida: string;
+  estatus: string;
+  version: number;
+  observaciones?: string;
 }
 
 @Component({
@@ -27,216 +49,466 @@ interface Temario {
     MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatChipsModule,
+    MatProgressBarModule,
     MatProgressSpinnerModule,
     MatSelectModule,
-    MatFormFieldModule
+    MatFormFieldModule,
+    MatChipsModule,
+    MatInputModule
   ],
   templateUrl: './syllabus.component.html',
   styleUrls: ['./syllabus.component.css']
 })
 export class SyllabusComponent implements OnInit {
   
-  isUploading = false;
-  uploadProgress = 0;
-  errorMessage = '';
-  successMessage = '';
+  // ============================================
+  // PROPIEDADES
+  // ============================================
+  
+  // Mensajes
+  successMessage: string = '';
+  errorMessage: string = '';
+  
+  // Control de carga
+  isUploading: boolean = false;
+  uploadProgress: number = 0;
+  
+  // Archivo seleccionado para PLANEACIÓN
+  selectedFile: File | null = null;
+  
+  // Temario seleccionado para subir planeación
+  temarioSeleccionadoId: number | null = null;
+  
+  // Formulario de filtro
+  materiaControl = new FormControl('TODOS');
+  
+  // Datos de TEMARIOS (solo lectura)
+  temarios: Temario[] = [];
+  materias: string[] = ['TODOS'];
+  
+  // Datos de PLANEACIONES (subidas por el docente)
+  planeaciones: Planeacion[] = [];
+  
+  // Datos del backend
+  syllabuses: Syllabus[] = [];
+  lessonPlans: LessonPlan[] = [];
 
-  materiaControl = new FormControl('TODAS');
-
-  // Datos de demostración
-  temarios: Temario[] = [
-    {
-      id: 1,
-      materia: 'Anatomía Humana',
-      nombreArchivo: 'Temario_Anatomia_Humana_2025.pdf',
-      fechaSubida: new Date('2025-01-15'),
-      tamano: '2.3',
-      url: '#'
-    },
-    {
-      id: 2,
-      materia: 'Fisiología',
-      nombreArchivo: 'Temario_Fisiologia_Enero2025.pdf',
-      fechaSubida: new Date('2025-01-18'),
-      tamano: '1.8',
-      url: '#'
-    },
-    {
-      id: 3,
-      materia: 'Biomecánica',
-      nombreArchivo: 'Temario_Biomecanica_Sabatino.pdf',
-      fechaSubida: new Date('2025-01-20'),
-      tamano: '3.1',
-      url: '#'
-    }
-  ];
-
-  temariosFiltrados: Temario[] = [];
-  materias: string[] = ['TODAS', 'Anatomía Humana', 'Fisiología', 'Biomecánica'];
+  constructor(
+    private syllabusesService: SyllabusesService
+  ) {}
 
   ngOnInit(): void {
-    this.temariosFiltrados = [...this.temarios];
-    this.materiaControl.valueChanges.subscribe(() => this.applyFilter());
+    this.loadData();
   }
 
+  // ============================================
+  // CARGAR DATOS DESDE BACKEND
+  // ============================================
+
   /**
-   * Aplicar filtro por materia
+   * ✅ Cargar temarios (solo lectura) y planeaciones
    */
-  applyFilter(): void {
-    const materia = this.materiaControl.value;
-    if (materia === 'TODAS') {
-      this.temariosFiltrados = [...this.temarios];
-    } else {
-      this.temariosFiltrados = this.temarios.filter(t => t.materia === materia);
-    }
+  loadData(): void {
+    this.errorMessage = '';
+
+    // Cargar TEMARIOS (subidos por Admin)
+    this.syllabusesService.getMySyllabuses().subscribe({
+      next: (syllabuses) => {
+        this.syllabuses = syllabuses;
+        this.transformSyllabusesToUI();
+        
+        // Cargar PLANEACIONES (subidas por el docente)
+        this.loadMyLessonPlans();
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar temarios:', error);
+        this.errorMessage = 'Error al cargar temarios. Usando datos de demostración.';
+        
+        // Fallback a datos mock
+        this.useMockData();
+      }
+    });
   }
 
   /**
-   * Manejar selección de archivo
+   * ✅ Cargar mis planeaciones
+   */
+  loadMyLessonPlans(): void {
+    this.syllabusesService.getMyLessonPlans().subscribe({
+      next: (lessonPlans) => {
+        this.lessonPlans = lessonPlans;
+        this.transformLessonPlansToUI();
+        
+        this.successMessage = 'Datos cargados exitosamente';
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar planeaciones:', error);
+        // Las planeaciones son opcionales
+      }
+    });
+  }
+
+  /**
+   * Transformar temarios a formato UI
+   */
+  transformSyllabusesToUI(): void {
+    this.temarios = this.syllabuses.map(s => ({
+      id: s.id,
+      materia: s.titulo || 'Sin título',
+      nombreArchivo: s.nombreOriginal,
+      fechaSubida: s.fechaSubida,
+      tamano: s.tamanoMb,
+      estado: 'Disponible'
+    }));
+
+    // Extraer materias únicas para filtro
+    const materiasSet = new Set(this.temarios.map(t => t.materia));
+    this.materias = ['TODOS', ...Array.from(materiasSet)];
+  }
+
+  /**
+   * Transformar planeaciones a formato UI
+   */
+  transformLessonPlansToUI(): void {
+    this.planeaciones = this.lessonPlans.map(p => ({
+      id: p.id,
+      temarioId: p.temarioId,
+      materia: p.syllabus?.titulo || 'Sin título',
+      nombreArchivo: p.nombreOriginal,
+      fechaSubida: p.fechaSubida,
+      estatus: this.getStatusTextFromEnum(p.estatus),
+      version: p.version,
+      observaciones: p.observaciones
+    }));
+  }
+
+  /**
+   * Fallback: Usar datos mock
+   */
+  useMockData(): void {
+    this.temarios = [
+      {
+        id: 1,
+        materia: 'Anatomía Humana',
+        nombreArchivo: 'Temario_Anatomia_2025-1.pdf',
+        fechaSubida: '2025-01-15T10:00:00Z',
+        tamano: 2.3,
+        estado: 'Disponible'
+      },
+      {
+        id: 2,
+        materia: 'Fisiología',
+        nombreArchivo: 'Temario_Fisiologia_2025-1.pdf',
+        fechaSubida: '2025-01-15T11:00:00Z',
+        tamano: 1.8,
+        estado: 'Disponible'
+      }
+    ];
+
+    this.planeaciones = [
+      {
+        id: 1,
+        temarioId: 1,
+        materia: 'Anatomía Humana',
+        nombreArchivo: 'Planeacion_Anatomia_Grupo1A.pdf',
+        fechaSubida: '2025-01-20T10:00:00Z',
+        estatus: 'Aprobada',
+        version: 1
+      }
+    ];
+
+    this.materias = ['TODOS', 'Anatomía Humana', 'Fisiología'];
+  }
+
+  // ============================================
+  // DESCARGAR TEMARIOS (Solo lectura)
+  // ============================================
+
+  /**
+   * ✅ Descargar temario (PDF del Admin)
+   */
+  downloadTemario(temario: Temario): void {
+    this.syllabusesService.downloadSyllabus(temario.id).subscribe({
+      next: (blob) => {
+        this.syllabusesService.downloadFile(blob, temario.nombreArchivo);
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Descargando...',
+          text: `Descargando ${temario.nombreArchivo}`,
+          timer: 2000,
+          showConfirmButton: false
+        });
+      },
+      error: (error) => {
+        console.error('❌ Error al descargar temario:', error);
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al descargar',
+          text: 'No se pudo descargar el temario.',
+          confirmButtonColor: '#1976d2'
+        });
+      }
+    });
+  }
+
+  // ============================================
+  // SUBIR PLANEACIÓN (Basada en temario)
+  // ============================================
+
+  /**
+   * ✅ Seleccionar archivo para PLANEACIÓN
    */
   onFileSelected(event: any): void {
-    const file: File = event.target.files[0];
+    const file = event.target.files[0];
     
-    if (!file) return;
+    if (file) {
+      // Validar que sea PDF
+      if (file.type !== 'application/pdf') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Archivo inválido',
+          text: 'Solo se permiten archivos PDF',
+          confirmButtonColor: '#1976d2'
+        });
+        return;
+      }
 
-    // Validar que sea PDF
-    if (file.type !== 'application/pdf') {
-      this.errorMessage = 'Solo se permiten archivos PDF';
-      setTimeout(() => this.errorMessage = '', 3000);
-      return;
+      // Validar tamaño (10MB máximo)
+      const maxSize = 10 * 1024 * 1024;
+      if (file.size > maxSize) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Archivo muy grande',
+          text: 'El archivo no debe superar los 10MB',
+          confirmButtonColor: '#1976d2'
+        });
+        return;
+      }
+
+      this.selectedFile = file;
+      console.log('✅ Archivo de planeación seleccionado:', file.name);
     }
-
-    // Validar tamaño (máx 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      this.errorMessage = 'El archivo no debe superar 10MB';
-      setTimeout(() => this.errorMessage = '', 3000);
-      return;
-    }
-
-    this.uploadFile(file);
   }
 
   /**
-   * Subir archivo (simulado)
+   * ✅ Subir planeación basada en un temario
    */
-  uploadFile(file: File): void {
+  uploadPlaneacion(temarioId: number, materia: string): void {
+    if (!this.selectedFile) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Selecciona un archivo',
+        text: 'Debes seleccionar un archivo PDF para subir tu planeación',
+        confirmButtonColor: '#1976d2'
+      });
+      return;
+    }
+
+    // Pedir confirmación
+    Swal.fire({
+      title: 'Subir Planeación',
+      html: `
+        <p>¿Deseas subir tu planeación para <strong>${materia}</strong>?</p>
+        <p class="text-muted">Archivo: ${this.selectedFile.name}</p>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, subir',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#1976d2'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.performUploadPlaneacion(temarioId, materia);
+      }
+    });
+  }
+
+  /**
+   * ✅ Realizar subida de planeación al backend
+   */
+  performUploadPlaneacion(temarioId: number, materia: string): void {
+    if (!this.selectedFile) return;
+
     this.isUploading = true;
     this.uploadProgress = 0;
-    this.errorMessage = '';
-    this.successMessage = '';
 
-    console.log('📤 Subiendo archivo:', file.name);
+    const asignacionId = 1; // TODO: Obtener del contexto real
 
-    // Simular progreso de subida
-    const interval = setInterval(() => {
-      this.uploadProgress += 10;
-      
-      if (this.uploadProgress >= 100) {
-        clearInterval(interval);
-        
-        // Simular archivo subido
-        const nuevoTemario: Temario = {
-          id: this.temarios.length + 1,
-          materia: 'Anatomía Humana', // En producción, el usuario selecciona
-          nombreArchivo: file.name,
-          fechaSubida: new Date(),
-          tamano: (file.size / (1024 * 1024)).toFixed(1),
-          url: '#'
-        };
+    const data: CreateLessonPlanDto = {
+      temarioId,
+      asignacionId,
+      titulo: `Planeación ${materia}`,
+      descripcion: `Planeación para ${materia}`
+    };
 
-        this.temarios.unshift(nuevoTemario);
-        this.applyFilter();
-
-        this.isUploading = false;
-        this.successMessage = '✅ Temario subido exitosamente';
-        
-        setTimeout(() => {
-          this.successMessage = '';
-        }, 3000);
+    // Simular progreso
+    const progressInterval = setInterval(() => {
+      if (this.uploadProgress < 90) {
+        this.uploadProgress += 10;
       }
     }, 200);
 
-    /* Código real para backend:
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('materia_id', this.selectedMateria);
+    this.syllabusesService.uploadLessonPlan(this.selectedFile, data).subscribe({
+      next: (lessonPlan) => {
+        clearInterval(progressInterval);
+        this.uploadProgress = 100;
 
-    this.http.post(`${environment.apiUrl}/temarios/upload`, formData, {
-      headers: { Authorization: `Bearer ${this.authService.getToken()}` },
-      reportProgress: true,
-      observe: 'events'
-    }).subscribe({
-      next: (event: any) => {
-        if (event.type === HttpEventType.UploadProgress) {
-          this.uploadProgress = Math.round(100 * event.loaded / event.total);
-        } else if (event.type === HttpEventType.Response) {
+        setTimeout(() => {
           this.isUploading = false;
-          this.successMessage = 'Temario subido exitosamente';
-          this.loadTemarios();
-        }
-      },
-      error: (error: any) => {
-        this.isUploading = false;
-        this.errorMessage = error.error?.message || 'Error al subir el archivo';
-      }
-    });
-    */
-  }
+          this.uploadProgress = 0;
+          this.selectedFile = null;
 
-  /**
-   * Descargar temario (simulado)
-   */
-  downloadTemario(temario: Temario): void {
-    console.log('📥 Descargando:', temario.nombreArchivo);
-    alert(`Descargando: ${temario.nombreArchivo}\n\nEn producción, esto descargará el archivo PDF desde el servidor.`);
-    
-    // En producción:
-    // window.open(temario.url, '_blank');
-  }
+          Swal.fire({
+            icon: 'success',
+            title: '¡Planeación subida!',
+            text: 'Tu planeación ha sido subida exitosamente y está pendiente de revisión.',
+            confirmButtonColor: '#1976d2'
+          });
 
-  /**
-   * Eliminar temario (simulado)
-   */
-  deleteTemario(temario: Temario): void {
-    const confirmDelete = confirm(`¿Estás seguro de eliminar el temario "${temario.nombreArchivo}"?`);
-    
-    if (!confirmDelete) return;
-
-    console.log('🗑️ Eliminando:', temario.nombreArchivo);
-    
-    // Eliminar de la lista
-    const index = this.temarios.findIndex(t => t.id === temario.id);
-    if (index > -1) {
-      this.temarios.splice(index, 1);
-      this.applyFilter();
-      this.successMessage = 'Temario eliminado exitosamente';
-      setTimeout(() => this.successMessage = '', 3000);
-    }
-
-    /* Código real para backend:
-    this.http.delete(`${environment.apiUrl}/temarios/${temario.id}`, {
-      headers: { Authorization: `Bearer ${this.authService.getToken()}` }
-    }).subscribe({
-      next: () => {
-        this.successMessage = 'Temario eliminado';
-        this.loadTemarios();
+          // Recargar planeaciones
+          this.loadMyLessonPlans();
+        }, 500);
       },
       error: (error) => {
-        this.errorMessage = 'Error al eliminar';
+        clearInterval(progressInterval);
+        this.isUploading = false;
+        this.uploadProgress = 0;
+
+        console.error('❌ Error al subir planeación:', error);
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al subir',
+          text: error.error?.message || 'Ocurrió un error al subir la planeación.',
+          confirmButtonColor: '#1976d2'
+        });
       }
     });
-    */
+  }
+
+  // ============================================
+  // PLANEACIONES - Ver y descargar
+  // ============================================
+
+  /**
+   * ✅ Descargar mi planeación
+   */
+  downloadPlaneacion(planeacion: Planeacion): void {
+    this.syllabusesService.downloadLessonPlan(planeacion.id).subscribe({
+      next: (blob) => {
+        this.syllabusesService.downloadFile(blob, planeacion.nombreArchivo);
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Descargando...',
+          text: `Descargando ${planeacion.nombreArchivo}`,
+          timer: 2000,
+          showConfirmButton: false
+        });
+      },
+      error: (error) => {
+        console.error('❌ Error al descargar planeación:', error);
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al descargar',
+          text: 'No se pudo descargar la planeación.',
+          confirmButtonColor: '#1976d2'
+        });
+      }
+    });
+  }
+
+  /**
+   * ✅ Ver observaciones de la planeación
+   */
+  verObservaciones(planeacion: Planeacion): void {
+    if (!planeacion.observaciones) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Sin observaciones',
+        text: 'Esta planeación no tiene observaciones.',
+        confirmButtonColor: '#1976d2'
+      });
+      return;
+    }
+
+    Swal.fire({
+      icon: 'info',
+      title: 'Observaciones',
+      html: `
+        <div style="text-align: left;">
+          <p><strong>Estatus:</strong> ${planeacion.estatus}</p>
+          <p><strong>Versión:</strong> ${planeacion.version}</p>
+          <hr>
+          <p>${planeacion.observaciones}</p>
+        </div>
+      `,
+      confirmButtonColor: '#1976d2'
+    });
+  }
+
+  // ============================================
+  // FILTROS Y HELPERS
+  // ============================================
+
+  /**
+   * Obtener temarios filtrados
+   */
+  get temariosFiltrados(): Temario[] {
+    const materiaSeleccionada = this.materiaControl.value;
+    
+    if (materiaSeleccionada === 'TODOS') {
+      return this.temarios;
+    }
+    
+    return this.temarios.filter(t => t.materia === materiaSeleccionada);
   }
 
   /**
    * Formatear fecha
    */
-  formatDate(date: Date): string {
-    return new Date(date).toLocaleDateString('es-MX', {
-      day: '2-digit',
+  formatDate(fechaISO: string): string {
+    const fecha = new Date(fechaISO);
+    return fecha.toLocaleDateString('es-MX', {
+      year: 'numeric',
       month: 'long',
-      year: 'numeric'
+      day: 'numeric'
     });
   }
+
+  /**
+   * Obtener texto de estatus desde enum
+   */
+  getStatusTextFromEnum(estatus: string): string {
+    const statusMap: { [key: string]: string } = {
+      'PENDIENTE_REVISION': 'Pendiente de Revisión',
+      'EN_REVISION': 'En Revisión',
+      'APROBADA': 'Aprobada',
+      'RECHAZADA': 'Rechazada',
+      'CON_OBSERVACIONES': 'Con Observaciones'
+    };
+    return statusMap[estatus] || estatus;
+  }
+
+  /**
+   * Obtener clase CSS según estatus
+   */
+  getEstatusClass(estatus: string): string {
+    const statusMap: { [key: string]: string } = {
+      'Aprobada': 'status-approved',
+      'Pendiente de Revisión': 'status-pending',
+      'Rechazada': 'status-rejected',
+      'En Revisión': 'status-reviewing',
+      'Con Observaciones': 'status-observations'
+    };
+    return statusMap[estatus] || 'status-pending';
+  }
+
+  // NOTA: deleteTemario NO existe aquí porque el docente NO puede eliminar temarios
+  // Solo puede VER y DESCARGAR temarios
+  // Y puede SUBIR planeaciones
 }
