@@ -34,6 +34,7 @@ export class ChangePasswordComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
   successMessage = '';
+  incorrectCurrentPassword = false; // 🆕 Nueva variable
   
   hideCurrentPassword = true;
   hideNewPassword = true;
@@ -60,6 +61,12 @@ export class ChangePasswordComponent implements OnInit {
     if (!this.authService.isUserAuthenticated()) {
       this.router.navigate(['/auth/login']);
     }
+
+    // 🆕 Limpiar el error de contraseña incorrecta cuando el usuario empiece a escribir
+    this.changePasswordForm.get('contrasenaActual')?.valueChanges.subscribe(() => {
+      this.incorrectCurrentPassword = false;
+      this.errorMessage = '';
+    });
   }
 
   passwordsMatchValidator(group: FormGroup): { [key: string]: boolean } | null {
@@ -67,6 +74,25 @@ export class ChangePasswordComponent implements OnInit {
     const confirmPassword = group.get('confirmarContrasena')?.value;
     if (!newPassword || !confirmPassword) return null;
     return newPassword === confirmPassword ? null : { passwordsMismatch: true };
+  }
+
+  // Mostrar advertencia de contraseñas que no coinciden
+  showPasswordMismatchWarning(): boolean {
+    const newPass = this.changePasswordForm.get('nuevaContrasena');
+    const confirmPass = this.changePasswordForm.get('confirmarContrasena');
+    
+    if (!newPass || !confirmPass) return false;
+    
+    const bothHaveValues = newPass.value && confirmPass.value;
+    const eitherTouched = newPass.touched || confirmPass.touched;
+    const passwordsDontMatch = this.changePasswordForm.hasError('passwordsMismatch');
+    
+    return bothHaveValues && eitherTouched && passwordsDontMatch;
+  }
+
+  // 🆕 Mostrar advertencia de contraseña actual incorrecta
+  showIncorrectCurrentPasswordWarning(): boolean {
+    return this.incorrectCurrentPassword;
   }
 
   onSubmit(): void {
@@ -80,6 +106,7 @@ export class ChangePasswordComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
     this.successMessage = '';
+    this.incorrectCurrentPassword = false; // 🆕 Resetear antes de enviar
 
     const { contrasenaActual, nuevaContrasena, confirmarContrasena } = this.changePasswordForm.value;
     const token = this.authService.getToken();
@@ -95,14 +122,18 @@ export class ChangePasswordComponent implements OnInit {
       next: (response: any) => {
         console.log('✅ Contraseña cambiada:', response);
         this.isLoading = false;
-        this.successMessage = '¡Contraseña cambiada exitosamente!';
+        this.successMessage = '¡Contraseña actualizada exitosamente!';
         this.changePasswordForm.reset();
+        this.incorrectCurrentPassword = false; // 🆕 Resetear
         setTimeout(() => this.router.navigate(['/teachers']), 2000);
       },
       error: (error: any) => {
         console.error('❌ Error:', error);
         this.isLoading = false;
+        
         if (error.status === 401) {
+          // 🆕 Activar bandera de contraseña incorrecta
+          this.incorrectCurrentPassword = true;
           this.errorMessage = 'La contraseña actual es incorrecta';
         } else if (error.error?.message) {
           this.errorMessage = error.error.message;
@@ -128,26 +159,25 @@ export class ChangePasswordComponent implements OnInit {
     return '';
   }
 
-getConfirmPasswordError(): string {
-  const confirm = this.changePasswordForm.get('confirmarContrasena');
-  const newPass = this.changePasswordForm.get('nuevaContrasena');
+  getConfirmPasswordError(): string {
+    const confirm = this.changePasswordForm.get('confirmarContrasena');
+    const newPass = this.changePasswordForm.get('nuevaContrasena');
 
-  if (!confirm || !newPass) return '';
+    if (!confirm || !newPass) return '';
 
-  if (confirm.hasError('required') && confirm.touched) {
-    return 'Confirma tu nueva contraseña';
+    if (confirm.hasError('required') && confirm.touched) {
+      return 'Confirma tu nueva contraseña';
+    }
+
+    if (
+      this.changePasswordForm.hasError('passwordsMismatch') &&
+      (confirm.dirty || newPass.dirty)
+    ) {
+      return 'Las contraseñas no coinciden';
+    }
+
+    return '';
   }
-
-  if (
-    this.changePasswordForm.hasError('passwordsMismatch') &&
-    (confirm.dirty || newPass.dirty)
-  ) {
-    return 'Las contraseñas no coinciden';
-  }
-
-  return '';
-}
-
 
   cancel(): void {
     this.router.navigate(['/teachers']);
