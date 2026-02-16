@@ -5,6 +5,7 @@ import { LoginComponent } from './features/auth/components/login/login.component
 import { AdminFinanzasComponent } from './features/admin/finanzas/admin-finanzas.component';
 import { AlumnoFinanzasComponent } from './features/alumno/finanzas/alumno-finanzas.component';
 import { publicGuard } from './core/guards/public.guard';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -28,7 +29,8 @@ export const routes: Routes = [
   
   { 
     path: 'teachers', 
-    loadChildren: () => import('./features/teachers/teachers.routes').then(m => m.TEACHERS_ROUTES) 
+    loadChildren: () => import('./features/teachers/teachers.routes').then(m => m.TEACHERS_ROUTES),
+    canActivate: [authGuard]
   },
   
   { 
