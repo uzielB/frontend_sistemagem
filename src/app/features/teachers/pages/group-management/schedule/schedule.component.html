@@ -1,123 +1,144 @@
 <div class="schedule-content">
   
-  <!-- RESUMEN -->
-  <div class="summary-section">
-    <div class="summary-card">
-      <mat-icon>event</mat-icon>
-      <div>
-        <span class="summary-label">Total de clases semanales</span>
-        <span class="summary-value">{{ horarios.length }}</span>
-      </div>
-    </div>
-
-    <div class="summary-card">
-      <mat-icon>schedule</mat-icon>
-      <div>
-        <span class="summary-label">Horas semanales</span>
-        <span class="summary-value">{{ getTotalHoras() }} hrs</span>
-      </div>
-    </div>
-
-    <div class="summary-card">
-      <mat-icon>school</mat-icon>
-      <div>
-        <span class="summary-label">Materias</span>
-        <span class="summary-value">{{ getMateriasUnicas().length }}</span>
-      </div>
-    </div>
+  <!-- ===== ESTADO DE CARGA ===== -->
+  <div *ngIf="isLoading" class="loading-state">
+    <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+    <p>Cargando tu horario semanal...</p>
   </div>
 
-  <!-- CALENDARIO SEMANAL -->
-  <div class="calendar-container">
-    <table class="schedule-table">
-      
-      <!-- ENCABEZADO: Días de la semana -->
-      <thead>
-        <tr>
-          <th class="time-column">Módulo / Horario</th>
-          <th *ngFor="let dia of dias">{{ dia }}</th>
-        </tr>
-      </thead>
+  <!-- ===== ESTADO DE ERROR ===== -->
+  <div *ngIf="errorMessage && !isLoading" class="error-state">
+    <mat-icon>event_busy</mat-icon>
+    <p>{{ errorMessage }}</p>
+    <button mat-raised-button color="primary" (click)="reloadSchedule()">
+      <mat-icon>refresh</mat-icon>
+      Reintentar
+    </button>
+  </div>
 
-      <!-- CUERPO: Módulos y clases -->
-      <tbody>
-        <tr *ngFor="let modulo of modulos">
-          
-          <!-- Columna de hora -->
-          <td class="time-cell">
-            <div class="time-info">
-              <span class="modulo-number">Módulo {{ modulo.numero }}</span>
-              <span class="time-range">{{ modulo.hora }}</span>
-            </div>
-          </td>
+  <!-- ===== CONTENIDO PRINCIPAL ===== -->
+  <div *ngIf="!isLoading && !errorMessage">
+    
+    <!-- RESUMEN -->
+    <div class="summary-section">
+      <div class="summary-card">
+        <mat-icon>event</mat-icon>
+        <div>
+          <span class="summary-label">Total de clases semanales</span>
+          <span class="summary-value">{{ horarios.length }}</span>
+        </div>
+      </div>
 
-          <!-- Celdas de cada día -->
-          <td *ngFor="let dia of dias" [class.has-class]="hasClase(dia, modulo.numero)">
+      <div class="summary-card">
+        <mat-icon>schedule</mat-icon>
+        <div>
+          <span class="summary-label">Horas semanales</span>
+          <span class="summary-value">{{ getTotalHoras() }} hrs</span>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <mat-icon>school</mat-icon>
+        <div>
+          <span class="summary-label">Materias</span>
+          <span class="summary-value">{{ getMateriasUnicas().length }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDARIO SEMANAL -->
+    <div class="calendar-container">
+      <table class="schedule-table">
+        
+        <!-- ENCABEZADO: Días de la semana -->
+        <thead>
+          <tr>
+            <th class="time-column">Módulo / Horario</th>
+            <th *ngFor="let dia of dias">{{ dia }}</th>
+          </tr>
+        </thead>
+
+        <!-- CUERPO: Módulos y clases -->
+        <tbody>
+          <tr *ngFor="let modulo of modulos">
             
-            <!-- Si hay clase en este slot -->
-            <div *ngIf="hasClase(dia, modulo.numero)" class="class-card" 
-                 [ngClass]="getSistemaClass(getClase(dia, modulo.numero)!.sistema)">
-              <div class="class-header">
-                <mat-icon class="class-icon">book</mat-icon>
-                <span class="class-materia">{{ getClase(dia, modulo.numero)!.materia }}</span>
+            <!-- Columna de hora -->
+            <td class="time-cell">
+              <div class="time-info">
+                <span class="modulo-number">Módulo {{ modulo.numero }}</span>
+                <span class="time-range">{{ modulo.hora }}</span>
               </div>
+            </td>
+
+            <!-- Celdas de cada día -->
+            <td *ngFor="let dia of dias" [class.has-class]="hasClase(dia, modulo.numero)">
               
-              <div class="class-details">
-                <div class="detail-row">
-                  <mat-icon>groups</mat-icon>
-                  <span>Grupo {{ getClase(dia, modulo.numero)!.grupo }}</span>
+              <!-- Si hay clase en este slot -->
+              <div *ngIf="hasClase(dia, modulo.numero)" class="class-card" 
+                   [ngClass]="getSistemaClass(getClase(dia, modulo.numero)!.sistema)">
+                <div class="class-header">
+                  <mat-icon class="class-icon">book</mat-icon>
+                  <span class="class-materia">{{ getClase(dia, modulo.numero)!.materia }}</span>
                 </div>
-                <div class="detail-row">
-                  <mat-icon>meeting_room</mat-icon>
-                  <span>Aula {{ getClase(dia, modulo.numero)!.aula }}</span>
+                
+                <div class="class-details">
+                  <div class="detail-row">
+                    <mat-icon>groups</mat-icon>
+                    <span>Grupo {{ getClase(dia, modulo.numero)!.grupo }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <mat-icon>meeting_room</mat-icon>
+                    <span>Aula {{ getClase(dia, modulo.numero)!.aula }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <mat-icon>access_time</mat-icon>
+                    <span>{{ getClase(dia, modulo.numero)!.horaInicio }} - {{ getClase(dia, modulo.numero)!.horaFin }}</span>
+                  </div>
                 </div>
-                <div class="detail-row">
-                  <mat-icon>access_time</mat-icon>
-                  <span>{{ getClase(dia, modulo.numero)!.horaInicio }} - {{ getClase(dia, modulo.numero)!.horaFin }}</span>
-                </div>
+
+                <mat-chip class="sistema-chip" [ngClass]="getSistemaClass(getClase(dia, modulo.numero)!.sistema)">
+                  {{ getClase(dia, modulo.numero)!.sistema }}
+                </mat-chip>
               </div>
 
-              <mat-chip class="sistema-chip" [ngClass]="getSistemaClass(getClase(dia, modulo.numero)!.sistema)">
-                {{ getClase(dia, modulo.numero)!.sistema }}
-              </mat-chip>
-            </div>
+              <!-- Si NO hay clase -->
+              <div *ngIf="!hasClase(dia, modulo.numero)" class="empty-slot">
+                <mat-icon>remove</mat-icon>
+              </div>
 
-            <!-- Si NO hay clase -->
-            <div *ngIf="!hasClase(dia, modulo.numero)" class="empty-slot">
-              <mat-icon>remove</mat-icon>
-            </div>
+            </td>
+          </tr>
+        </tbody>
 
-          </td>
-        </tr>
-      </tbody>
+      </table>
+    </div>
 
-    </table>
-  </div>
-
-  <!-- LEYENDA -->
-  <div class="legend-section">
-    <h3>Leyenda:</h3>
-    <div class="legend-items">
-      <div class="legend-item">
-        <div class="legend-color escolarizado"></div>
-        <span>Sistema Escolarizado (Lunes a Jueves)</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color sabatino"></div>
-        <span>Sistema Sabatino (Sábados)</span>
+    <!-- LEYENDA -->
+    <div class="legend-section">
+      <h3>Leyenda:</h3>
+      <div class="legend-items">
+        <div class="legend-item">
+          <div class="legend-color escolarizado"></div>
+          <span>Sistema Escolarizado (Lunes a Jueves)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color sabatino"></div>
+          <span>Sistema Sabatino (Sábados)</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- LISTA DE MATERIAS -->
-  <div class="materias-list">
-    <h3>Materias asignadas:</h3>
-    <div class="materia-chips">
-      <mat-chip *ngFor="let materia of getMateriasUnicas()">
-        <mat-icon>book</mat-icon>
-        {{ materia }}
-      </mat-chip>
+    <!-- LISTA DE MATERIAS -->
+    <div class="materias-list">
+      <h3>Materias asignadas:</h3>
+      <div class="materia-chips">
+        <mat-chip *ngFor="let materia of getMateriasUnicas()">
+          <mat-icon>book</mat-icon>
+          {{ materia }}
+        </mat-chip>
+      </div>
     </div>
+
   </div>
 
 </div>
