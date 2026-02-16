@@ -28,17 +28,28 @@ export interface TeacherAssignment {
   grupo: string;
   materia: string;
   aula: string;
+  
+  // ✅ CAMPOS PLANOS DEL MÓDULO HORARIO (para Schedule)
+  moduloNumero?: number;
+  moduloHoraInicio?: string;
+  moduloHoraFin?: string;
+  moduloSistema?: string;
+  moduloDiasSemana?: string;
+  
+  // Objeto anidado (mantener para compatibilidad)
   moduloHorario?: {
     numeroModulo: number;
     horaInicio: string;
     horaFin: string;
     diasSemana: string;
   };
+  
   programa?: {
     id: number;
     nombre: string;
     codigo: string;
   };
+  
   periodoEscolar?: {
     id: number;
     nombre: string;
