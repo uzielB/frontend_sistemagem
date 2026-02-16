@@ -11,45 +11,19 @@
     <p>{{ errorMessage }}</p>
   </div>
 
-  <!-- HEADER Y SUBIDA -->
-  <div class="upload-section">
-    <div class="section-header">
-      <mat-icon>description</mat-icon>
-      <h2>Subir Nuevo Temario</h2>
-    </div>
+  <!-- ===================================== -->
+  <!-- SECCIÓN 1: TEMARIOS (Solo lectura)   -->
+  <!-- ===================================== -->
+  
+  <!-- HEADER DE TEMARIOS -->
+  <div class="section-header">
+    <mat-icon>description</mat-icon>
+    <h2>Temarios Disponibles</h2>
+  </div>
 
-    <div class="upload-card">
-      <input 
-        type="file" 
-        accept=".pdf"
-        #fileInput
-        (change)="onFileSelected($event)"
-        style="display: none;">
-      
-      <button 
-        mat-raised-button 
-        color="primary"
-        (click)="fileInput.click()"
-        [disabled]="isUploading">
-        <mat-icon>upload_file</mat-icon>
-        Seleccionar Archivo PDF
-      </button>
-
-      <div class="upload-info">
-        <mat-icon>info</mat-icon>
-        <span>Formatos permitidos: PDF | Tamaño máximo: 10MB</span>
-      </div>
-    </div>
-
-    <!-- BARRA DE PROGRESO -->
-    <div *ngIf="isUploading" class="upload-progress">
-      <mat-progress-spinner 
-        mode="determinate" 
-        [value]="uploadProgress"
-        diameter="50">
-      </mat-progress-spinner>
-      <span class="progress-text">Subiendo... {{ uploadProgress }}%</span>
-    </div>
+  <div class="info-banner">
+    <mat-icon>info</mat-icon>
+    <p>Los temarios son subidos por el administrador. Puedes descargarlos y basarte en ellos para crear tu planeación.</p>
   </div>
 
   <!-- FILTRO POR MATERIA -->
@@ -98,19 +72,22 @@
       </mat-card-content>
 
       <mat-card-actions>
+        <!-- ✅ SOLO DESCARGAR (docente NO puede eliminar temarios) -->
         <button 
           mat-button 
           color="primary"
           (click)="downloadTemario(temario)">
           <mat-icon>download</mat-icon>
-          Descargar
+          Descargar Temario
         </button>
+        
+        <!-- ✅ NUEVO: Subir planeación basada en este temario -->
         <button 
           mat-button 
-          color="warn"
-          (click)="deleteTemario(temario)">
-          <mat-icon>delete</mat-icon>
-          Eliminar
+          color="accent"
+          (click)="uploadPlaneacion(temario.id, temario.materia)">
+          <mat-icon>upload_file</mat-icon>
+          Subir Planeación
         </button>
       </mat-card-actions>
     </mat-card>
@@ -121,19 +98,112 @@
   <div *ngIf="temariosFiltrados.length === 0" class="no-temarios">
     <mat-icon>folder_open</mat-icon>
     <p>No hay temarios disponibles</p>
-    <p class="hint">Sube tu primer temario usando el botón de arriba</p>
+    <p class="hint">El administrador aún no ha subido temarios para tus materias</p>
+  </div>
+
+  <!-- ===================================== -->
+  <!-- SECCIÓN 2: MIS PLANEACIONES          -->
+  <!-- ===================================== -->
+
+  <div class="divider"></div>
+
+  <div class="section-header">
+    <mat-icon>assignment</mat-icon>
+    <h2>Mis Planeaciones</h2>
+  </div>
+
+  <!-- INPUT PARA SELECCIONAR ARCHIVO DE PLANEACIÓN (oculto) -->
+  <input 
+    type="file" 
+    accept=".pdf"
+    #fileInput
+    (change)="onFileSelected($event)"
+    style="display: none;">
+
+  <!-- BARRA DE PROGRESO (Solo se muestra al subir) -->
+  <div *ngIf="isUploading" class="upload-progress">
+    <mat-progress-spinner 
+      mode="determinate" 
+      [value]="uploadProgress"
+      diameter="50">
+    </mat-progress-spinner>
+    <span class="progress-text">Subiendo planeación... {{ uploadProgress }}%</span>
+  </div>
+
+  <!-- LISTA DE MIS PLANEACIONES -->
+  <div class="planeaciones-grid" *ngIf="planeaciones.length > 0">
+    
+    <mat-card *ngFor="let planeacion of planeaciones" class="planeacion-card">
+      <mat-card-header>
+        <div mat-card-avatar class="planeacion-icon">
+          <mat-icon>assignment_turned_in</mat-icon>
+        </div>
+        <mat-card-title>{{ planeacion.nombreArchivo }}</mat-card-title>
+        <mat-card-subtitle>
+          <mat-chip class="materia-chip">{{ planeacion.materia }}</mat-chip>
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="planeacion-info">
+          <div class="info-row">
+            <mat-icon>event</mat-icon>
+            <span>{{ formatDate(planeacion.fechaSubida) }}</span>
+          </div>
+          <div class="info-row">
+            <mat-icon>numbers</mat-icon>
+            <span>Versión {{ planeacion.version }}</span>
+          </div>
+          <div class="info-row">
+            <mat-icon>flag</mat-icon>
+            <mat-chip [class]="getEstatusClass(planeacion.estatus)" class="status-chip">
+              {{ planeacion.estatus }}
+            </mat-chip>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button 
+          mat-button 
+          color="primary"
+          (click)="downloadPlaneacion(planeacion)">
+          <mat-icon>download</mat-icon>
+          Descargar
+        </button>
+        
+        <button 
+          mat-button 
+          color="accent"
+          *ngIf="planeacion.observaciones"
+          (click)="verObservaciones(planeacion)">
+          <mat-icon>comment</mat-icon>
+          Ver Observaciones
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+  </div>
+
+  <!-- MENSAJE SI NO HAY PLANEACIONES -->
+  <div *ngIf="planeaciones.length === 0" class="no-planeaciones">
+    <mat-icon>assignment</mat-icon>
+    <p>Aún no has subido ninguna planeación</p>
+    <p class="hint">Selecciona un temario arriba y haz clic en "Subir Planeación"</p>
   </div>
 
   <!-- INSTRUCCIONES -->
   <div class="instructions-card">
     <h3>📚 Instrucciones:</h3>
     <ul>
-      <li>Haz clic en <strong>"Seleccionar Archivo PDF"</strong> para subir un nuevo temario</li>
-      <li>Los archivos deben estar en formato <strong>PDF</strong> y no superar los <strong>10MB</strong></li>
-      <li>Usa el filtro para buscar temarios por materia específica</li>
-      <li>Puedes <strong>descargar</strong> cualquier temario haciendo clic en su botón</li>
-      <li>Para <strong>eliminar</strong> un temario, haz clic en el botón rojo de eliminar</li>
-      <li>Los temarios estarán disponibles para consulta de los alumnos</li>
+      <li><strong>Ver Temarios:</strong> Los temarios son documentos base subidos por el administrador</li>
+      <li><strong>Descargar Temario:</strong> Descarga el temario para basarte en él</li>
+      <li><strong>Subir Planeación:</strong> Haz clic en "Subir Planeación" en cualquier temario</li>
+      <li>Selecciona tu archivo PDF de planeación (máximo 10MB)</li>
+      <li><strong>Estatus:</strong> Tu planeación quedará como "Pendiente de Revisión"</li>
+      <li>El administrador revisará y aprobará/rechazará tu planeación</li>
+      <li><strong>Observaciones:</strong> Si hay comentarios, podrás verlos haciendo clic en "Ver Observaciones"</li>
+      <li>Puedes resubir una planeación si fue rechazada (incrementa la versión)</li>
     </ul>
   </div>
 
