@@ -14,26 +14,35 @@
 
 .header h1 {
   margin: 0;
-  color: #333;
+  color: #3A4655;
   font-size: 1.75rem;
+  font-weight: 600;
 }
 
 .back-button {
-  color: #d32f2f;
+  color: #E3201B !important;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: rgba(227, 32, 27, 0.1) !important;
+  transform: scale(1.05);
 }
 
 /* ===== MENSAJES ===== */
 .success-message {
-  background: #d4edda;
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
   border: 1px solid #c3e6cb;
-  border-radius: 8px;
-  padding: 1rem;
+  border-left: 5px solid #28a745;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   color: #155724;
-  animation: slideDown 0.3s ease-out;
+  animation: slideDown 0.4s ease-out;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.15);
 }
 
 .success-message mat-icon {
@@ -42,20 +51,22 @@
 }
 
 .error-message {
-  background: #f8d7da;
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
   border: 1px solid #f5c6cb;
-  border-radius: 8px;
-  padding: 1rem;
+  border-left: 5px solid #E3201B;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   color: #721c24;
-  animation: slideDown 0.3s ease-out;
+  animation: slideDown 0.4s ease-out;
+  box-shadow: 0 4px 12px rgba(227, 32, 27, 0.15);
 }
 
 .error-message mat-icon {
-  color: #dc3545;
+  color: #E3201B;
   font-size: 24px;
 }
 
@@ -72,8 +83,18 @@
 
 /* ===== CARD PRINCIPAL ===== */
 .grades-card {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
   margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+/* Barra superior decorativa con gradiente rojo */
+.grades-card::before {
+  content: "";
+  display: block;
+  height: 6px;
+  background: linear-gradient(90deg, #E3201B 0%, #ff6b6b 50%, #E3201B 100%);
 }
 
 mat-card-content {
@@ -83,6 +104,15 @@ mat-card-content {
 /* ===== FILTROS ===== */
 .filters-section {
   margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #3A4655;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #f0f0f0;
 }
 
 .filters-row {
@@ -96,21 +126,46 @@ mat-card-content {
   width: 100%;
 }
 
+.assignment-selector {
+  margin-top: 1.5rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
 .selection-info {
-  background: #e3f2fd;
-  border-left: 4px solid #2196f3;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffebee 100%);
+  border-left: 4px solid #E3201B;
   padding: 0.75rem 1rem;
-  border-radius: 4px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #1565c0;
+  color: #b71c1c;
   font-size: 0.9rem;
+  margin-top: 1rem;
 }
 
 .selection-info mat-icon {
-  color: #2196f3;
+  color: #E3201B;
   font-size: 20px;
+}
+
+/* ===== LOADING ===== */
+.loading-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  gap: 1rem;
+}
+
+.loading-section p {
+  color: #666;
+  font-size: 0.95rem;
+  margin: 0;
 }
 
 /* ===== TABLA ===== */
@@ -118,7 +173,8 @@ mat-card-content {
   overflow-x: auto;
   margin-bottom: 2rem;
   border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .grades-table {
@@ -127,70 +183,74 @@ mat-card-content {
 }
 
 .grades-table th {
-  background: #f5f5f5;
-  color: #333;
+  background: #f8f9fa;
+  color: #3A4655;
   font-weight: 600;
   padding: 1rem !important;
   text-align: left;
-  border-bottom: 2px solid #d32f2f;
+  border-bottom: 2px solid #E3201B;
+  font-size: 0.9rem;
 }
 
 .grades-table td {
   padding: 0.75rem 1rem !important;
   border-bottom: 1px solid #e0e0e0;
+  vertical-align: middle;
+  color: #3A4655;
 }
 
 .grades-table tr:hover {
   background: #fafafa;
+  transition: background 0.2s;
 }
 
-/* ===== INPUTS DE CALIFICACIONES ===== */
+/* Input de calificaciones */
 .grade-input {
-  width: 80px;
+  width: 90px;
   margin: 0;
 }
 
 .grade-input input {
   text-align: center;
   font-weight: 500;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  color: #3A4655;
 }
 
-.grade-input ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+::ng-deep .grade-input .mat-mdc-form-field-subscript-wrapper {
   display: none;
 }
 
-.grade-input ::ng-deep .mat-mdc-text-field-wrapper {
+::ng-deep .grade-input .mat-mdc-text-field-wrapper {
   padding: 0 !important;
 }
 
-.grade-input ::ng-deep .mat-mdc-form-field-infix {
-  padding: 8px 0 !important;
-  min-height: unset !important;
+::ng-deep .grade-input input {
+  padding: 8px 4px !important;
 }
 
-/* ===== TOTAL CON COLORES ===== */
-.total-grade {
+/* ===== PROMEDIO BADGE ===== */
+.promedio-badge {
   display: inline-block;
   padding: 0.5rem 1rem;
   border-radius: 20px;
   font-weight: bold;
-  font-size: 1rem;
+  font-size: 0.9rem;
   min-width: 60px;
   text-align: center;
 }
 
-.high-grade {
+.promedio-alto {
   background: #d4edda;
   color: #155724;
 }
 
-.medium-grade {
+.promedio-medio {
   background: #fff3cd;
   color: #856404;
 }
 
-.low-grade {
+.promedio-bajo {
   background: #f8d7da;
   color: #721c24;
 }
@@ -213,11 +273,75 @@ mat-card-content {
 .no-data p {
   margin: 0.5rem 0;
   font-size: 1.1rem;
+  color: #3A4655;
 }
 
 .no-data .hint {
   color: #999;
   font-size: 0.9rem;
+}
+
+/* ===== RESUMEN ===== */
+.resumen-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.resumen-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
+}
+
+.resumen-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.resumen-card mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #666;
+}
+
+.resumen-card.aprobados mat-icon {
+  color: #28a745;
+}
+
+.resumen-card.reprobados mat-icon {
+  color: #E3201B;
+}
+
+.resumen-card.promedio mat-icon {
+  color: #2196f3;
+}
+
+.resumen-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.resumen-label {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.resumen-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #3A4655;
 }
 
 /* ===== ACCIONES ===== */
@@ -249,6 +373,63 @@ mat-card-content {
 
 .button-group button {
   min-width: 140px;
+  height: 46px;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+/* BOTÓN CANCELAR */
+.button-group button:not([color="primary"]) {
+  background: #f8f9fa !important;
+  color: #6b7280 !important;
+  border: 2px solid #e9ecef !important;
+}
+
+.button-group button:not([color="primary"]):hover {
+  background: #e9ecef !important;
+  border-color: #d1d5db !important;
+  color: #3A4655 !important;
+}
+
+/* BOTÓN GUARDAR (ROJO) */
+::ng-deep button[color="primary"] {
+  background: linear-gradient(135deg, #E3201B 0%, #c62828 100%) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 6px 20px rgba(227, 32, 27, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+::ng-deep button[color="primary"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+::ng-deep button[color="primary"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(227, 32, 27, 0.4);
+  background: linear-gradient(135deg, #ff6b6b 0%, #E3201B 100%) !important;
+}
+
+::ng-deep button[color="primary"]:hover::before {
+  left: 100%;
+}
+
+/* BOTÓN DESHABILITADO */
+::ng-deep button[color="primary"][disabled] {
+  background: #e9ecef !important;
+  color: #adb5bd !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
 .button-spinner {
@@ -256,18 +437,24 @@ mat-card-content {
   margin-right: 0.5rem;
 }
 
+::ng-deep .button-spinner circle {
+  stroke: white !important;
+}
+
 /* ===== INSTRUCCIONES ===== */
 .instructions-card {
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #bbdefb 100%);
+  border-radius: 12px;
   padding: 1.5rem;
   border-left: 4px solid #2196f3;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
 }
 
 .instructions-card h3 {
   margin: 0 0 1rem 0;
-  color: #333;
+  color: #1565c0;
   font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .instructions-card ul {
@@ -276,9 +463,13 @@ mat-card-content {
 }
 
 .instructions-card li {
-  color: #666;
+  color: #3A4655;
   margin-bottom: 0.5rem;
   line-height: 1.6;
+}
+
+.instructions-card ul ul {
+  margin-top: 0.5rem;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -289,6 +480,10 @@ mat-card-content {
 
   mat-card-content {
     padding: 1rem !important;
+  }
+
+  .header h1 {
+    font-size: 1.4rem;
   }
 
   .filters-row {
@@ -305,13 +500,27 @@ mat-card-content {
   }
 
   .grade-input {
-    width: 60px;
+    width: 70px;
   }
 
-  .total-grade {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.85rem;
+  .promedio-badge {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
     min-width: 50px;
+  }
+
+  .resumen-section {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .resumen-card mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .resumen-value {
+    font-size: 1.25rem;
   }
 
   .actions-section {
@@ -340,9 +549,4 @@ mat-card-content {
 
 button {
   transition: all 0.3s;
-}
-
-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
