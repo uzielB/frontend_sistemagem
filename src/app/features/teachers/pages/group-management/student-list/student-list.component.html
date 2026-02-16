@@ -4,14 +4,17 @@
   <div class="filters-section">
     
     <!-- Barra de búsqueda -->
-    <mat-form-field appearance="outline" class="search-field">
-      <mat-label>Buscar alumno</mat-label>
-      <input 
-        matInput 
-        [formControl]="searchControl"
-        placeholder="Nombre, matrícula o correo...">
-      <mat-icon matPrefix>search</mat-icon>
-    </mat-form-field>
+<mat-form-field appearance="outline" class="search-field">
+  <mat-icon matPrefix style="font-size: 22px;">
+    search
+  </mat-icon>
+
+  <input 
+    matInput 
+    [formControl]="searchControl"
+    placeholder="Buscar alumno por nombre, matrícula o correo">
+</mat-form-field>
+
 
     <!-- Filtros -->
     <div class="filter-controls">

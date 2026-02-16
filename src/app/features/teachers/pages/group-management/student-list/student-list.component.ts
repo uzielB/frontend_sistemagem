@@ -8,6 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 // ✅ IMPORTAR TeachersService
 import {
@@ -39,7 +40,8 @@ interface Alumno {
     MatSelectModule,
     MatIconModule,
     MatButtonModule,
-    MatChipsModule
+    MatChipsModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './student-list.component.html',
   styleUrls: ['./student-list.component.css']
@@ -72,15 +74,23 @@ export class StudentListComponent implements OnInit {
   }
 
   /**
-   * ✅ Cargar asignaciones del docente
+   * ✅ Cargar asignaciones del docente desde el backend
    */
   loadAssignments(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    this.alumnos = [];
+    this.alumnosFiltrados = [];
 
     this.teachersService.getMyAssignments().subscribe({
       next: (response: any) => {
         this.asignaciones = response.asignaciones;
+
+        if (this.asignaciones.length === 0) {
+          this.errorMessage = 'No tienes asignaciones registradas en el sistema.';
+          this.isLoading = false;
+          return;
+        }
 
         // Extraer grupos y materias únicas
         const gruposSet = new Set(this.asignaciones.map(a => a.grupo));
@@ -94,30 +104,20 @@ export class StudentListComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('❌ Error al cargar asignaciones:', error);
-        this.errorMessage = 'Error al cargar asignaciones. Usando datos de demostración.';
+        this.errorMessage = 'Error al conectar con el servidor. Verifica tu conexión e intenta de nuevo.';
         this.isLoading = false;
-        
-        // Fallback a datos mock
-        this.useMockData();
-        this.setupFilters();
       }
     });
   }
 
   /**
-   * ✅ Cargar todos los alumnos de todas las asignaciones
+   * ✅ Cargar todos los alumnos de todas las asignaciones desde el backend
    */
   loadAllStudents(): void {
     const alumnosMap = new Map<number, Alumno>();
 
     let asignacionesCompletadas = 0;
     const totalAsignaciones = this.asignaciones.length;
-
-    if (totalAsignaciones === 0) {
-      this.errorMessage = 'No tienes asignaciones registradas.';
-      this.isLoading = false;
-      return;
-    }
 
     // Cargar alumnos de cada asignación
     this.asignaciones.forEach(asignacion => {
@@ -149,87 +149,24 @@ export class StudentListComponent implements OnInit {
             this.setupFilters();
 
             if (this.alumnos.length === 0) {
-              this.errorMessage = 'No se encontraron alumnos asignados.';
+              this.errorMessage = 'No hay alumnos asignados a tus grupos actualmente.';
             }
           }
         },
         error: (error: any) => {
-          console.error('❌ Error al cargar alumnos:', error);
+          console.error('❌ Error al cargar alumnos de asignación:', asignacion.id, error);
           asignacionesCompletadas++;
 
           if (asignacionesCompletadas === totalAsignaciones) {
             this.isLoading = false;
+            
             if (this.alumnos.length === 0) {
-              this.errorMessage = 'Error al cargar alumnos. Usando datos de demostración.';
-              this.useMockData();
-              this.setupFilters();
+              this.errorMessage = 'Error al cargar la lista de alumnos. Intenta recargar la página.';
             }
           }
         }
       });
     });
-  }
-
-  /**
-   * ✅ Fallback: Usar datos mock si el backend falla
-   */
-  private useMockData(): void {
-    this.alumnos = [
-      {
-        id: 1,
-        matricula: '2021001',
-        nombreCompleto: 'Juan Carlos Pérez García',
-        programa: 'Licenciatura en Fisioterapia',
-        grupo: '1A',
-        correo: 'juan.perez@gem.edu.mx',
-        telefono: '951-123-4567',
-        estatus: 'ACTIVO'
-      },
-      {
-        id: 2,
-        matricula: '2021002',
-        nombreCompleto: 'María Fernanda García López',
-        programa: 'Licenciatura en Fisioterapia',
-        grupo: '1A',
-        correo: 'maria.garcia@gem.edu.mx',
-        telefono: '951-234-5678',
-        estatus: 'ACTIVO'
-      },
-      {
-        id: 3,
-        matricula: '2021003',
-        nombreCompleto: 'Carlos Alberto López Martínez',
-        programa: 'Licenciatura en Fisioterapia',
-        grupo: '1A',
-        correo: 'carlos.lopez@gem.edu.mx',
-        telefono: '951-345-6789',
-        estatus: 'ACTIVO'
-      },
-      {
-        id: 4,
-        matricula: '2021004',
-        nombreCompleto: 'Ana Patricia Rodríguez Sánchez',
-        programa: 'Licenciatura en Fisioterapia',
-        grupo: '1A',
-        correo: 'ana.rodriguez@gem.edu.mx',
-        telefono: '951-456-7890',
-        estatus: 'ACTIVO'
-      },
-      {
-        id: 5,
-        matricula: '2021005',
-        nombreCompleto: 'Pedro Antonio Hernández Torres',
-        programa: 'Licenciatura en Fisioterapia',
-        grupo: '2B',
-        correo: 'pedro.hernandez@gem.edu.mx',
-        telefono: '951-567-8901',
-        estatus: 'ACTIVO'
-      }
-    ];
-
-    this.alumnosFiltrados = [...this.alumnos];
-    this.grupos = ['TODOS', '1A', '2B'];
-    this.materias = ['TODOS', 'Anatomía Humana', 'Fisiología'];
   }
 
   /**
@@ -242,7 +179,7 @@ export class StudentListComponent implements OnInit {
   }
 
   /**
-   * Aplicar filtros
+   * Aplicar filtros a la lista de alumnos
    */
   applyFilters(): void {
     let filtered = [...this.alumnos];
@@ -263,7 +200,25 @@ export class StudentListComponent implements OnInit {
       filtered = filtered.filter(a => a.grupo === grupo);
     }
 
+    // Filtro de materia (basado en asignaciones)
+    const materia = this.materiaControl.value;
+    if (materia && materia !== 'TODOS') {
+      // Obtener IDs de grupos que tienen esta materia
+      const gruposConMateria = this.asignaciones
+        .filter(a => a.materia === materia)
+        .map(a => a.grupo);
+      
+      filtered = filtered.filter(a => gruposConMateria.includes(a.grupo));
+    }
+
     this.alumnosFiltrados = filtered;
+  }
+
+  /**
+   * Recargar datos desde el backend
+   */
+  reloadData(): void {
+    this.loadAssignments();
   }
 
   /**
@@ -279,18 +234,28 @@ export class StudentListComponent implements OnInit {
   }
 
   /**
-   * Exportar lista (simulado)
+   * Exportar lista a Excel (simulado)
    */
   exportToExcel(): void {
+    if (this.alumnosFiltrados.length === 0) {
+      alert('No hay alumnos para exportar.');
+      return;
+    }
+    
     console.log('📊 Exportando a Excel...', this.alumnosFiltrados);
-    alert('Función de exportación en desarrollo. Se exportarían ' + this.alumnosFiltrados.length + ' alumnos.');
+    alert(`Función de exportación en desarrollo. Se exportarían ${this.alumnosFiltrados.length} alumno(s).`);
   }
 
   /**
-   * Exportar a PDF (simulado)
+   * Exportar lista a PDF (simulado)
    */
   exportToPDF(): void {
+    if (this.alumnosFiltrados.length === 0) {
+      alert('No hay alumnos para exportar.');
+      return;
+    }
+    
     console.log('📄 Exportando a PDF...', this.alumnosFiltrados);
-    alert('Función de exportación en desarrollo. Se exportarían ' + this.alumnosFiltrados.length + ' alumnos.');
+    alert(`Función de exportación en desarrollo. Se exportarían ${this.alumnosFiltrados.length} alumno(s).`);
   }
 }
