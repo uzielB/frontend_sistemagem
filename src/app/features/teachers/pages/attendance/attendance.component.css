@@ -373,16 +373,18 @@ mat-card-content {
 
 /* ===== INSTRUCCIONES ===== */
 .instructions-card {
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #bbdefb 100%);
+  border-radius: 12px;
   padding: 1.5rem;
   border-left: 4px solid #2196f3;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
 }
 
 .instructions-card h3 {
   margin: 0 0 1rem 0;
-  color: #333;
+  color: #1565c0;
   font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .instructions-card ul {
@@ -391,7 +393,7 @@ mat-card-content {
 }
 
 .instructions-card li {
-  color: #666;
+  color: #3A4655;
   margin-bottom: 0.5rem;
   line-height: 1.6;
 }

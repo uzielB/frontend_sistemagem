@@ -17,6 +17,14 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../../core/services/auth.service';
 import { environment } from '../../../../../environments/environment';
+// ✅ IMPORTAR TeachersService
+import {
+  TeachersService,
+  TeacherAssignment,
+  Student,
+  AttendanceStatus,
+  Attendance
+} from '../../../../core/services/teachers.service';
 
 type EstadoAsistencia = 'ASISTIO' | 'FALTO' | 'RETARDO' | null;
 
@@ -70,23 +78,13 @@ export class AttendanceComponent implements OnInit {
   selectedDate: Date = new Date();
   maxDate: Date = new Date();
 
-  // Datos de demostración
-  asignaciones: Asignacion[] = [
-    { id: 1, sistema: 'ESCOLARIZADO', grupo: '1A', materia: 'Anatomía Humana' },
-    { id: 2, sistema: 'ESCOLARIZADO', grupo: '2B', materia: 'Fisiología' },
-    { id: 3, sistema: 'SABATINO', grupo: '3S', materia: 'Biomecánica' }
-  ];
+  // ✅ Datos desde el backend (ya no mock)
+  asignaciones: Asignacion[] = [];
+  alumnos: Alumno[] = [];
+  asistenciasCargadas: Attendance[] = [];
 
-  alumnos: Alumno[] = [
-    { id: 1, matricula: '2021001', nombreCompleto: 'Juan Carlos Pérez García', estado: 'ASISTIO', porcentajeAsistencia: 92 },
-    { id: 2, matricula: '2021002', nombreCompleto: 'María Fernanda García López', estado: 'ASISTIO', porcentajeAsistencia: 88 },
-    { id: 3, matricula: '2021003', nombreCompleto: 'Carlos Alberto López Martínez', estado: 'RETARDO', porcentajeAsistencia: 95 },
-    { id: 4, matricula: '2021004', nombreCompleto: 'Ana Patricia Rodríguez Sánchez', estado: 'ASISTIO', porcentajeAsistencia: 98 },
-    { id: 5, matricula: '2021005', nombreCompleto: 'Pedro Antonio Hernández Torres', estado: 'FALTO', porcentajeAsistencia: 65 },
-    { id: 6, matricula: '2021006', nombreCompleto: 'Laura Isabel Martínez Flores', estado: 'ASISTIO', porcentajeAsistencia: 90 },
-    { id: 7, matricula: '2021007', nombreCompleto: 'Roberto Daniel González Ruiz', estado: 'ASISTIO', porcentajeAsistencia: 85 },
-    { id: 8, matricula: '2021008', nombreCompleto: 'Sofía Guadalupe Ramírez Cruz', estado: 'ASISTIO', porcentajeAsistencia: 94 }
-  ];
+  // ✅ Asignación seleccionada
+  selectedAsignacion: TeacherAssignment | null = null;
 
   sistemas: string[] = ['TODOS', 'ESCOLARIZADO', 'SABATINO'];
   grupos: string[] = [];
@@ -100,7 +98,8 @@ export class AttendanceComponent implements OnInit {
     private fb: FormBuilder,
     private http: HttpClient,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private teachersService: TeachersService // ✅ Inyectar servicio
   ) {
     this.attendanceForm = this.fb.group({
       fecha: [this.selectedDate],
@@ -112,7 +111,61 @@ export class AttendanceComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadFilters();
+    this.loadAssignments(); // ✅ Cargar desde backend
+  }
+
+  /**
+   * ✅ NUEVO: Cargar asignaciones del docente desde el backend
+   */
+  loadAssignments(): void {
+    this.teachersService.getMyAssignments().subscribe({
+      next: (response: any) => {
+        // Transformar a la estructura que usa tu HTML
+        this.asignaciones = response.asignaciones.map((a: TeacherAssignment) => ({
+          id: a.id,
+          sistema: a.sistema,
+          grupo: a.grupo,
+          materia: a.materia
+        }));
+
+        this.loadFilters();
+
+        if (this.asignaciones.length === 0) {
+          this.errorMessage = 'No tienes asignaciones registradas en el sistema.';
+        }
+      },
+      error: (error: any) => {
+        console.error('❌ Error al cargar asignaciones:', error);
+        this.errorMessage = 'Error al cargar tus asignaciones. Verifica tu conexión.';
+        
+        // Fallback a datos mock si falla
+        this.useMockData();
+        this.loadFilters();
+      }
+    });
+  }
+
+  /**
+   * ✅ Fallback: Usar datos mock si el backend falla
+   */
+  private useMockData(): void {
+    this.asignaciones = [
+      { id: 1, sistema: 'ESCOLARIZADO', grupo: '1A', materia: 'Anatomía Humana' },
+      { id: 2, sistema: 'ESCOLARIZADO', grupo: '2B', materia: 'Fisiología' },
+      { id: 3, sistema: 'SABATINO', grupo: '3S', materia: 'Biomecánica' }
+    ];
+
+    this.alumnos = [
+      { id: 1, matricula: '2021001', nombreCompleto: 'Juan Carlos Pérez García', estado: 'ASISTIO', porcentajeAsistencia: 92 },
+      { id: 2, matricula: '2021002', nombreCompleto: 'María Fernanda García López', estado: 'ASISTIO', porcentajeAsistencia: 88 },
+      { id: 3, matricula: '2021003', nombreCompleto: 'Carlos Alberto López Martínez', estado: 'RETARDO', porcentajeAsistencia: 95 },
+      { id: 4, matricula: '2021004', nombreCompleto: 'Ana Patricia Rodríguez Sánchez', estado: 'ASISTIO', porcentajeAsistencia: 98 },
+      { id: 5, matricula: '2021005', nombreCompleto: 'Pedro Antonio Hernández Torres', estado: 'FALTO', porcentajeAsistencia: 65 },
+      { id: 6, matricula: '2021006', nombreCompleto: 'Laura Isabel Martínez Flores', estado: 'ASISTIO', porcentajeAsistencia: 90 },
+      { id: 7, matricula: '2021007', nombreCompleto: 'Roberto Daniel González Ruiz', estado: 'ASISTIO', porcentajeAsistencia: 85 },
+      { id: 8, matricula: '2021008', nombreCompleto: 'Sofía Guadalupe Ramírez Cruz', estado: 'ASISTIO', porcentajeAsistencia: 94 }
+    ];
+
     this.initializeForm();
   }
 
@@ -202,7 +255,7 @@ export class AttendanceComponent implements OnInit {
   }
 
   /**
-   * Aplicar filtros
+   * ✅ ACTUALIZADO: Aplicar filtros y cargar alumnos del backend
    */
   applyFilters(): void {
     this.selectedSistema = this.attendanceForm.get('sistema')?.value || 'TODOS';
@@ -216,7 +269,80 @@ export class AttendanceComponent implements OnInit {
       materia: this.selectedMateria
     });
 
-    // TODO: Cargar alumnos filtrados desde el backend
+    // ✅ Buscar asignación que coincida con los filtros
+    const asignacionFiltrada = this.asignaciones.find(a => {
+      const coincideSistema = this.selectedSistema === 'TODOS' || a.sistema === this.selectedSistema;
+      const coincideGrupo = this.selectedGrupo === 'TODOS' || a.grupo === this.selectedGrupo;
+      const coincideMateria = this.selectedMateria === 'TODOS' || a.materia === this.selectedMateria;
+      return coincideSistema && coincideGrupo && coincideMateria;
+    });
+
+    if (asignacionFiltrada) {
+      this.loadStudents(asignacionFiltrada.id);
+    } else {
+      // Limpiar si no hay coincidencia
+      this.alumnos = [];
+      this.initializeForm();
+    }
+  }
+
+  /**
+   * ✅ NUEVO: Cargar alumnos desde el backend
+   */
+  private loadStudents(asignacionId: number): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.teachersService.getStudents({ asignacionId }).subscribe({
+      next: (students: Student[]) => {
+        // Transformar a la estructura que usa tu HTML
+        this.alumnos = students.map(s => ({
+          id: s.id,
+          matricula: s.matricula,
+          nombreCompleto: s.nombreCompleto,
+          estado: null, // Se llenará con asistencias existentes
+          porcentajeAsistencia: 0 // Se puede calcular desde el backend
+        }));
+
+        // Cargar asistencias de esta fecha
+        this.loadAttendances(asignacionId);
+      },
+      error: (error: any) => {
+        console.error('❌ Error al cargar alumnos:', error);
+        this.errorMessage = 'Error al cargar la lista de alumnos.';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  /**
+   * ✅ NUEVO: Cargar asistencias existentes de la fecha seleccionada
+   */
+  private loadAttendances(asignacionId: number): void {
+    const fecha = this.formatDate(this.selectedDate);
+
+    this.teachersService.getAttendances({ asignacionId, fecha }).subscribe({
+      next: (asistencias: Attendance[]) => {
+        this.asistenciasCargadas = asistencias;
+
+        // Actualizar estados de alumnos con asistencias existentes
+        this.alumnos.forEach(alumno => {
+          const asistencia = asistencias.find(a => a.estudianteId === alumno.id);
+          if (asistencia) {
+            alumno.estado = asistencia.estatus as EstadoAsistencia;
+          }
+        });
+
+        this.initializeForm();
+        this.isLoading = false;
+      },
+      error: (error: any) => {
+        console.error('❌ Error al cargar asistencias:', error);
+        // Aún así mostrar alumnos sin asistencias previas
+        this.initializeForm();
+        this.isLoading = false;
+      }
+    });
   }
 
   /**
@@ -228,54 +354,75 @@ export class AttendanceComponent implements OnInit {
   }
 
   /**
-   * Guardar asistencias
+   * ✅ ACTUALIZADO: Guardar asistencias en el backend REAL
    */
   saveAttendance(): void {
+    // Validar que tengamos una asignación seleccionada
+    const asignacionActual = this.asignaciones.find(a => {
+      const coincideSistema = this.selectedSistema === 'TODOS' || a.sistema === this.selectedSistema;
+      const coincideGrupo = this.selectedGrupo === 'TODOS' || a.grupo === this.selectedGrupo;
+      const coincideMateria = this.selectedMateria === 'TODOS' || a.materia === this.selectedMateria;
+      return coincideSistema && coincideGrupo && coincideMateria;
+    });
+
+    if (!asignacionActual) {
+      this.errorMessage = 'Selecciona una asignación válida primero.';
+      return;
+    }
+
     this.isLoading = true;
     this.errorMessage = '';
     this.successMessage = '';
 
-    const asistencias = this.alumnosFormArray.value;
+    const asistencias = this.alumnosFormArray.value
+      .filter((a: any) => a.estado !== null) // Solo guardar los que tienen estado
+      .map((a: any) => ({
+        estudianteId: a.id,
+        estatus: a.estado as AttendanceStatus,
+        comentarios: undefined
+      }));
+
+    if (asistencias.length === 0) {
+      this.errorMessage = 'No hay asistencias para guardar. Marca al menos un alumno.';
+      this.isLoading = false;
+      return;
+    }
+
+    const fecha = this.formatDate(this.selectedDate);
+
     console.log('💾 Guardando asistencias:', {
-      fecha: this.selectedDate,
+      fecha,
+      asignacionId: asignacionActual.id,
       asistencias
     });
 
-    // Simulación de guardado
-    setTimeout(() => {
-      this.isLoading = false;
-      this.successMessage = '✅ Asistencias guardadas exitosamente';
-      this.hasChanges = false;
-
-      setTimeout(() => {
-        this.successMessage = '';
-      }, 3000);
-    }, 1500);
-
-    /*
-    // Código real para el backend:
-    const token = this.authService.getToken();
-    const url = `${environment.apiUrl}/asistencias`;
-
-    this.http.post(url, {
-      fecha: this.selectedDate,
-      asistencias
-    }, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
+    // ✅ Llamada REAL al backend
+    this.teachersService.saveBulkAttendances(fecha, asignacionActual.id, asistencias).subscribe({
       next: (response: any) => {
         console.log('✅ Asistencias guardadas:', response);
         this.isLoading = false;
-        this.successMessage = 'Asistencias guardadas exitosamente';
+        this.successMessage = `✅ ${response.registradas} asistencias guardadas exitosamente`;
         this.hasChanges = false;
+
+        // Ocultar mensaje después de 3 segundos
+        setTimeout(() => {
+          this.successMessage = '';
+        }, 3000);
+
+        // Recargar asistencias para actualizar porcentajes
+        this.loadAttendances(asignacionActual.id);
       },
       error: (error: any) => {
         console.error('❌ Error al guardar:', error);
         this.isLoading = false;
         this.errorMessage = error.error?.message || 'Error al guardar asistencias';
+
+        // Ocultar mensaje de error después de 5 segundos
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 5000);
       }
     });
-    */
   }
 
   /**
@@ -287,5 +434,15 @@ export class AttendanceComponent implements OnInit {
       if (!confirmCancel) return;
     }
     this.router.navigate(['/teachers']);
+  }
+
+  /**
+   * ✅ NUEVO: Formatear fecha a YYYY-MM-DD
+   */
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }
