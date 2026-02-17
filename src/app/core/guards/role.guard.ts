@@ -9,13 +9,12 @@ export function roleGuard(allowedRoles: UserRole[]): CanActivateFn {
     const authService = inject(AuthService);
     const router = inject(Router);
     
-    const currentRole = authService.userRole();
+    const currentRole = authService.getUserRole();
     
     if (allowedRoles.includes(currentRole)) {
       return true;
     }
     
-    // Redirigir según el rol
     console.warn(`Acceso denegado. Rol actual: ${currentRole}, Roles permitidos: ${allowedRoles}`);
     
     switch (currentRole) {
