@@ -1,0 +1,305 @@
+<div class="dashboard-container">
+
+  <!-- ===== HEADER ===== -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <div class="header-title">
+        <mat-icon class="header-icon">dashboard</mat-icon>
+        <div>
+          <h1>Dashboard SuperAdmin</h1>
+          <p class="subtitle">Sistema Académico GEM</p>
+        </div>
+      </div>
+      <button mat-raised-button color="primary" (click)="reloadDashboard()" [disabled]="isLoading">
+        <mat-icon>refresh</mat-icon>
+        Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== ESTADO DE CARGA ===== -->
+  <div *ngIf="isLoading" class="loading-state">
+    <mat-progress-spinner mode="indeterminate" diameter="60"></mat-progress-spinner>
+    <p>Cargando métricas del sistema...</p>
+  </div>
+
+  <!-- ===== ESTADO DE ERROR ===== -->
+  <div *ngIf="errorMessage && !isLoading" class="error-state">
+    <mat-icon>error_outline</mat-icon>
+    <p>{{ errorMessage }}</p>
+    <button mat-raised-button color="primary" (click)="reloadDashboard()">
+      <mat-icon>refresh</mat-icon>
+      Reintentar
+    </button>
+  </div>
+
+  <!-- ===== CONTENIDO PRINCIPAL ===== -->
+  <div *ngIf="dashboardData && !isLoading" class="dashboard-content">
+
+    <!-- PERIODO ACTUAL -->
+    <mat-card class="periodo-card" *ngIf="dashboardData.academico.periodoActual">
+      <mat-card-content>
+        <div class="periodo-info">
+          <mat-icon>event</mat-icon>
+          <div>
+            <span class="periodo-label">Periodo Actual:</span>
+            <span class="periodo-nombre">{{ dashboardData.academico.periodoActual.nombre }}</span>
+            <span class="periodo-fechas">{{ formatPeriodoDates() }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- ALERTAS -->
+    <mat-card class="alertas-card" *ngIf="getTotalAlertas() > 0">
+      <mat-card-content>
+        <div class="alertas-header">
+          <div class="alertas-title">
+            <mat-icon [matBadge]="getTotalAlertas()" matBadgeColor="warn">notifications_active</mat-icon>
+            <h3>Alertas del Sistema</h3>
+          </div>
+        </div>
+        <div class="alertas-grid">
+          <div class="alerta-item" *ngIf="dashboardData.alertas.documentosDocentesPendientes > 0">
+            <mat-icon>folder_open</mat-icon>
+            <div>
+              <span class="alerta-count">{{ dashboardData.alertas.documentosDocentesPendientes }}</span>
+              <span class="alerta-text">Documentos de docentes pendientes</span>
+            </div>
+          </div>
+          <div class="alerta-item" *ngIf="dashboardData.alertas.planeacionesPendientesRevision > 0">
+            <mat-icon>description</mat-icon>
+            <div>
+              <span class="alerta-count">{{ dashboardData.alertas.planeacionesPendientesRevision }}</span>
+              <span class="alerta-text">Planeaciones pendientes de revisión</span>
+            </div>
+          </div>
+          <div class="alerta-item" *ngIf="dashboardData.alertas.disponibilidadPendienteRevision > 0">
+            <mat-icon>schedule</mat-icon>
+            <div>
+              <span class="alerta-count">{{ dashboardData.alertas.disponibilidadPendienteRevision }}</span>
+              <span class="alerta-text">Disponibilidad horaria pendiente</span>
+            </div>
+          </div>
+          <div class="alerta-item" *ngIf="dashboardData.alertas.asignacionesSinModulo > 0">
+            <mat-icon>assignment_late</mat-icon>
+            <div>
+              <span class="alerta-count">{{ dashboardData.alertas.asignacionesSinModulo }}</span>
+              <span class="alerta-text">Asignaciones sin módulo horario</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- MÉTRICAS PRINCIPALES -->
+    <div class="metrics-grid">
+      
+      <!-- USUARIOS -->
+      <mat-card class="metric-card usuarios-card">
+        <mat-card-content>
+          <div class="metric-header">
+            <mat-icon>people</mat-icon>
+            <h3>Usuarios</h3>
+          </div>
+          <div class="metric-main">
+            <span class="metric-value">{{ dashboardData.usuarios.totalUsuarios }}</span>
+            <span class="metric-label">Total</span>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="metric-details">
+            <div class="detail-row">
+              <span>Activos:</span>
+              <span class="detail-value success">{{ dashboardData.usuarios.usuariosActivos }}</span>
+            </div>
+            <div class="detail-row">
+              <span>Nuevos este mes:</span>
+              <span class="detail-value primary">{{ dashboardData.usuarios.nuevosEsteMes }}</span>
+            </div>
+          </div>
+          <div class="metric-footer">
+            <div class="role-chip">
+              <mat-icon>admin_panel_settings</mat-icon>
+              <span>{{ dashboardData.usuarios.usuariosPorRol.superAdmin + dashboardData.usuarios.usuariosPorRol.admin }} Admins</span>
+            </div>
+            <div class="role-chip">
+              <mat-icon>school</mat-icon>
+              <span>{{ dashboardData.usuarios.usuariosPorRol.docente }} Docentes</span>
+            </div>
+            <div class="role-chip">
+              <mat-icon>groups</mat-icon>
+              <span>{{ dashboardData.usuarios.usuariosPorRol.alumno }} Alumnos</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- DOCENTES -->
+      <mat-card class="metric-card docentes-card">
+        <mat-card-content>
+          <div class="metric-header">
+            <mat-icon>school</mat-icon>
+            <h3>Docentes</h3>
+          </div>
+          <div class="metric-main">
+            <span class="metric-value">{{ dashboardData.docentes.totalDocentes }}</span>
+            <span class="metric-label">Total</span>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="metric-details">
+            <div class="detail-row">
+              <span>Activos:</span>
+              <span class="detail-value success">{{ dashboardData.docentes.docentesActivos }}</span>
+            </div>
+            <div class="detail-row">
+              <span>Con formulario completo:</span>
+              <span class="detail-value">{{ dashboardData.docentes.docentesConFormularioCompleto }}</span>
+            </div>
+            <div class="detail-row">
+              <span>Con documentos completos:</span>
+              <span class="detail-value">{{ dashboardData.docentes.docentesConDocumentosCompletos }}</span>
+            </div>
+            <div class="detail-row">
+              <span>Con datos bancarios:</span>
+              <span class="detail-value">{{ dashboardData.docentes.docentesConDatosBancarios }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- ESTUDIANTES -->
+      <mat-card class="metric-card estudiantes-card">
+        <mat-card-content>
+          <div class="metric-header">
+            <mat-icon>groups</mat-icon>
+            <h3>Estudiantes</h3>
+          </div>
+          <div class="metric-main">
+            <span class="metric-value">{{ dashboardData.estudiantes.totalEstudiantes }}</span>
+            <span class="metric-label">Total</span>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="metric-details">
+            <div class="detail-row">
+              <span>Activos:</span>
+              <span class="detail-value success">{{ dashboardData.estudiantes.estudiantesPorEstatus.activos }}</span>
+            </div>
+            <div class="detail-row">
+              <span>Baja temporal:</span>
+              <span class="detail-value warning">{{ dashboardData.estudiantes.estudiantesPorEstatus.bajaTemporal }}</span>
+            </div>
+            <div class="detail-row">
+              <span>Egresados:</span>
+              <span class="detail-value info">{{ dashboardData.estudiantes.estudiantesPorEstatus.egresados }}</span>
+            </div>
+            <div class="detail-row">
+              <span>Nuevos este mes:</span>
+              <span class="detail-value primary">{{ dashboardData.estudiantes.nuevosEsteMes }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- ACADÉMICO -->
+      <mat-card class="metric-card academico-card">
+        <mat-card-content>
+          <div class="metric-header">
+            <mat-icon>menu_book</mat-icon>
+            <h3>Académico</h3>
+          </div>
+          <div class="metric-main">
+            <span class="metric-value">{{ dashboardData.academico.totalProgramas }}</span>
+            <span class="metric-label">Programas</span>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="metric-details">
+            <div class="detail-row">
+              <span>Materias:</span>
+              <span class="detail-value">{{ dashboardData.academico.totalMaterias }}</span>
+            </div>
+            <div class="detail-row">
+              <span>Grupos:</span>
+              <span class="detail-value">{{ dashboardData.academico.totalGrupos }}</span>
+            </div>
+            <div class="detail-row">
+              <span>Grupos activos:</span>
+              <span class="detail-value success">{{ dashboardData.academico.gruposActivos }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- ASIGNACIONES -->
+      <mat-card class="metric-card asignaciones-card">
+        <mat-card-content>
+          <div class="metric-header">
+            <mat-icon>assignment</mat-icon>
+            <h3>Asignaciones</h3>
+          </div>
+          <div class="metric-main">
+            <span class="metric-value">{{ dashboardData.asignaciones.totalAsignaciones }}</span>
+            <span class="metric-label">Total</span>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="metric-details">
+            <div class="detail-row">
+              <span>Activas:</span>
+              <span class="detail-value success">{{ dashboardData.asignaciones.asignacionesActivas }}</span>
+            </div>
+            <div class="detail-row">
+              <span>Sin módulo horario:</span>
+              <span class="detail-value warning">{{ dashboardData.asignaciones.asignacionesSinModuloHorario }}</span>
+            </div>
+            <div class="detail-row">
+              <span>Docentes con asignaciones:</span>
+              <span class="detail-value">{{ dashboardData.asignaciones.docentesConAsignaciones }}</span>
+            </div>
+            <div class="detail-row">
+              <span>Grupos cubiertos:</span>
+              <span class="detail-value">{{ dashboardData.asignaciones.gruposCubiertos }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- TOP 3 PROGRAMAS -->
+      <mat-card class="metric-card programas-card">
+        <mat-card-content>
+          <div class="metric-header">
+            <mat-icon>trending_up</mat-icon>
+            <h3>Top Programas</h3>
+          </div>
+          <div class="top-programas">
+            <div class="programa-item" *ngFor="let programa of getTop3Programas(); let i = index">
+              <div class="programa-rank">{{ i + 1 }}</div>
+              <div class="programa-info">
+                <span class="programa-nombre">{{ programa.programaNombre }}</span>
+                <span class="programa-cantidad">{{ programa.cantidad }} estudiantes</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+    </div>
+
+    <!-- ACCESOS RÁPIDOS -->
+    <div class="quick-actions-section">
+      <h2 class="section-title">
+        <mat-icon>flash_on</mat-icon>
+        Accesos Rápidos
+      </h2>
+      <div class="quick-actions-grid">
+        <mat-card class="quick-action-card" *ngFor="let action of quickActions" (click)="navigateTo(action.route)">
+          <mat-card-content>
+            <mat-icon [color]="action.color">{{ action.icon }}</mat-icon>
+            <h4>{{ action.title }}</h4>
+            <p>{{ action.description }}</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+  </div>
+
+</div>
