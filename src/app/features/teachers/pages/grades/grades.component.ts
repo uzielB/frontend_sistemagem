@@ -52,7 +52,7 @@ interface Alumno {
 export class GradesComponent implements OnInit {
   gradesForm: FormGroup;
   
-  sistemas: string[] = ['TODOS', 'Escolarizado', 'Semiescolarizado'];
+  sistemas: string[] = ['TODOS', 'Escolarizado', 'Sabatino'];
   grupos: string[] = ['TODOS', 'A', 'B', 'C', 'D'];
   materias: string[] = ['TODOS', 'Matemáticas', 'Física', 'Química', 'Historia'];
   
