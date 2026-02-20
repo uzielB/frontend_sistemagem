@@ -1,0 +1,97 @@
+<div class="programas-container">
+  
+  <!-- HEADER -->
+  <div class="header">
+    <div class="title-section">
+      <h1>Gestión de Temarios por Carrera</h1>
+      <p class="subtitle">Administra los temarios de cada programa académico</p>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando programas académicos...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="errorMessage && !isLoading" class="error-container">
+    <mat-icon color="warn">error</mat-icon>
+    <p>{{ errorMessage }}</p>
+    <button mat-raised-button color="primary" (click)="loadProgramas()">
+      <mat-icon>refresh</mat-icon>
+      Reintentar
+    </button>
+  </div>
+
+  <!-- LISTA DE PROGRAMAS -->
+  <div *ngIf="!isLoading && !errorMessage" class="programas-grid">
+    
+    <mat-card   *ngFor="let programa of programas" 
+  class="programa-card clickable-card"
+  (click)="verMaterias(programa.id)">
+      
+      <!-- HEADER DE LA CARD -->
+      <mat-card-header>
+        <div mat-card-avatar class="programa-avatar">
+          <mat-icon>{{ getModalidadIcon(programa.modalidad) }}</mat-icon>
+        </div>
+        <mat-card-title>{{ programa.nombre }}</mat-card-title>
+        <mat-card-subtitle>{{ programa.codigo }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <!-- CONTENIDO -->
+      <mat-card-content>
+        
+        <!-- MODALIDAD -->
+        <!-- <div class="info-row">
+          <mat-chip-set>
+            <mat-chip class="chip-modalidad">
+              {{ programa.modalidad }}
+            </mat-chip>
+          </mat-chip-set>
+        </div> -->
+
+        <!-- ESTADÍSTICAS -->
+        <div class="stats-row">
+          <div class="stat-item">
+            <mat-icon>schedule</mat-icon>
+            <span>{{ programa.duracionSemestres }} semestres</span>
+          </div>
+          <div class="stat-item">
+            <mat-icon>book</mat-icon>
+            <span [matBadge]="programa.totalMaterias || 0" matBadgeColor="accent">
+              Materias
+            </span>
+          </div>
+        </div>
+
+      </mat-card-content>
+
+      <!-- ACCIONES -->
+      <mat-card-actions>
+        <!-- Botón Subir Materias Masivas (NUEVO) -->
+        <button 
+          mat-raised-button 
+          color="accent"
+          (click)="subirMateriasMasivas(programa)"
+          class="action-button"
+        >
+          <mat-icon>cloud_upload</mat-icon>
+          Subir Materias
+        </button>
+
+      </mat-card-actions>
+
+    </mat-card>
+
+    <!-- MENSAJE SI NO HAY PROGRAMAS -->
+    <div *ngIf="programas.length === 0" class="empty-state">
+      <mat-icon>inbox</mat-icon>
+      <h3>No hay programas académicos registrados</h3>
+      <p>Contacta al administrador del sistema</p>
+    </div>
+
+  </div>
+
+</div>
