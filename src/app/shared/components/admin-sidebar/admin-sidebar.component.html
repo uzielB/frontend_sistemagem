@@ -1,0 +1,49 @@
+<div class="sidebar">
+  
+  <!-- ===== LOGO Y TÍTULO ===== -->
+  <div class="sidebar-header">
+    <div class="logo-container">
+      <h1 class="logo">GEM</h1>
+      <p class="logo-subtitle">GRUPO EDUCATIVO DE MÉXICO</p>
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- ===== INFO DEL USUARIO ===== -->
+  <div class="user-info">
+    <div class="user-avatar">
+      <span>{{ getUserInitials() }}</span>
+    </div>
+    <div class="user-details">
+      <p class="user-name">{{ getUserFullName() }}</p>
+      <p class="user-role">{{ getRoleText() }}</p>
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- ===== MENÚ DE NAVEGACIÓN ===== -->
+  <nav class="sidebar-menu">
+    <button
+      *ngFor="let item of visibleMenuItems"
+      mat-button
+      class="menu-item"
+      [class.active]="isRouteActive(item.route)"
+      (click)="navigateTo(item.route)"
+    >
+      <mat-icon>{{ item.icon }}</mat-icon>
+      <span>{{ item.label }}</span>
+    </button>
+  </nav>
+
+  <!-- ===== BOTÓN CERRAR SESIÓN ===== -->
+  <div class="sidebar-footer">
+    <mat-divider></mat-divider>
+    <button mat-button class="menu-item logout-btn" (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      <span>Cerrar sesión</span>
+    </button>
+  </div>
+
+</div>

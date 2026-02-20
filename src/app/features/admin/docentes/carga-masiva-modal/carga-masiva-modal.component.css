@@ -1,0 +1,455 @@
+.modal-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== HEADER ===== */
+h2[mat-dialog-title] {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #d32f2f;
+  margin: 0 0 1rem 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+h2[mat-dialog-title] mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+/* ===== PROGRAMA INFO ===== */
+.programa-info {
+  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  font-weight: 600;
+  color: #666;
+  min-width: 90px;
+}
+
+.value {
+  color: #333;
+  font-weight: 500;
+}
+
+/* ===== CONTENT ===== */
+mat-dialog-content {
+  flex: 1;
+  padding: 0 1.5rem;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* ===== DROPZONE ===== */
+.dropzone {
+  border: 3px dashed #ccc;
+  border-radius: 12px;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+.dropzone:hover:not(.disabled) {
+  border-color: #2196f3;
+  background: #e3f2fd;
+}
+
+.dropzone.dragging {
+  border-color: #4caf50;
+  background: #e8f5e9;
+}
+
+.dropzone.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dropzone-icon {
+  font-size: 80px;
+  width: 80px;
+  height: 80px;
+  color: #999;
+  margin: 0 auto 1.5rem auto;
+}
+
+.dropzone h3 {
+  margin: 0 0 0.75rem 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.dropzone p {
+  margin: 0 0 1.5rem 0;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.dropzone-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #999;
+  font-size: 1rem;
+}
+
+.dropzone-hint mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* ===== FILES SECTION ===== */
+.files-section {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem 0;
+  font-size: 1.3rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.section-title mat-icon {
+  color: #d32f2f;
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.section-title.success {
+  color: #4caf50;
+}
+
+.section-title.success mat-icon {
+  color: #4caf50;
+}
+
+.files-list {
+  padding: 0;
+  background: #f9f9f9;
+  border-radius: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.files-list mat-list-item {
+  height: auto !important;
+  padding: 0 !important;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  width: 100%;
+}
+
+.file-icon {
+  color: #d32f2f;
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-weight: 500;
+  color: #333;
+  word-break: break-all;
+  font-size: 1rem;
+}
+
+.file-size {
+  color: #999;
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
+}
+
+/* ===== PROGRESS ===== */
+.progress-section {
+  margin: 1.5rem 0;
+}
+
+.progress-text {
+  margin: 0.75rem 0 0 0;
+  text-align: center;
+  color: #666;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* ===== RESULT SECTION ===== */
+.result-section {
+  margin-top: 1.5rem;
+}
+
+.result-summary {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 1.1rem;
+}
+
+.summary-item:last-child {
+  border-bottom: none;
+}
+
+.summary-label {
+  font-weight: 500;
+  color: #666;
+}
+
+.summary-value {
+  font-weight: 600;
+  color: #333;
+  font-size: 1.3rem;
+}
+
+.summary-item.success .summary-value {
+  color: #4caf50;
+}
+
+.summary-item.info .summary-value {
+  color: #2196f3;
+}
+
+.summary-item.warning .summary-value {
+  color: #ff9800;
+}
+
+.summary-item.error .summary-value {
+  color: #f44336;
+}
+
+/* ===== SUCCESS / ERROR LISTS ===== */
+.success-list,
+.error-list {
+  margin-top: 1.5rem;
+}
+
+.success-list h4,
+.error-list h4 {
+  margin: 0 0 1rem 0;
+  color: #666;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* ===== CHIPS DE RESULTADO ===== */
+
+/* Verde - Materia nueva */
+.success-chip {
+  background-color: #4caf50 !important;
+  color: white !important;
+  margin: 0.25rem;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+}
+
+/* Azul - Materia reactivada */
+.reactivated-chip {
+  background-color: #2196f3 !important;
+  color: white !important;
+  margin: 0.25rem;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+}
+
+/* Gris - Materia existente */
+.existing-chip {
+  background-color: #9e9e9e !important;
+  color: white !important;
+  margin: 0.25rem;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+}
+
+.chip-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  margin-left: 0.25rem;
+}
+
+/* ===== LEYENDA ===== */
+.legend {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.legend-item:last-child {
+  margin-bottom: 0;
+}
+
+.legend-item mat-chip {
+  margin: 0;
+}
+
+.legend-item span {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* ===== ERROR LIST ===== */
+.error-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+}
+
+.error-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.error-file {
+  font-weight: 500;
+  color: #333;
+  font-size: 1rem;
+}
+
+.error-message {
+  font-size: 0.95rem;
+  color: #f44336;
+}
+
+/* ===== MESSAGES ===== */
+.message {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-size: 1.05rem;
+}
+
+.message mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef5350;
+}
+
+.error-message mat-icon {
+  color: #d32f2f;
+}
+
+/* ===== ACTIONS ===== */
+mat-dialog-actions {
+  padding: 1.5rem;
+  gap: 1rem;
+}
+
+mat-dialog-actions button {
+  font-size: 1.1rem;
+  padding: 0.75rem 2rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  h2[mat-dialog-title] {
+    font-size: 1.5rem;
+  }
+
+  .dropzone {
+    padding: 3rem 1.5rem;
+  }
+
+  .dropzone-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+  }
+
+  .dropzone h3 {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-container {
+    width: 100%;
+  }
+
+  .dropzone {
+    padding: 2rem 1rem;
+  }
+
+  .dropzone-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .dropzone h3 {
+    font-size: 1.1rem;
+  }
+
+  .file-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .info-row {
+    font-size: 1rem;
+  }
+}

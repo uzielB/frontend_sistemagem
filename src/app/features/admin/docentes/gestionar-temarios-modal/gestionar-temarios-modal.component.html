@@ -1,0 +1,248 @@
+<div class="modal-container">
+  
+  <!-- HEADER -->
+  <h2 mat-dialog-title>
+    <mat-icon>folder_open</mat-icon>
+    Gestionar Temarios
+  </h2>
+
+  <!-- INFO DE LA MATERIA -->
+  <div class="materia-info">
+    <div class="info-row">
+      <span class="label">Programa:</span>
+      <span class="value">{{ data.programaNombre }}</span>
+    </div>
+    <div class="info-row">
+      <span class="label">Materia:</span>
+      <span class="value">{{ data.materia.nombre }}</span>
+    </div>
+    <div class="info-row">
+      <span class="label">Código:</span>
+      <span class="value">{{ data.materia.codigo }}</span>
+    </div>
+    <div class="info-row">
+      <span class="label">Archivos:</span>
+      <span class="value">
+        <mat-chip-set>
+          <mat-chip class="archivos-badge">
+            <mat-icon>folder</mat-icon>
+            {{ archivos.length }} PDFs
+          </mat-chip>
+        </mat-chip-set>
+      </span>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <mat-dialog-content>
+    
+    <!-- LOADING -->
+    <div *ngIf="isLoading" class="loading-section">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Cargando archivos...</p>
+    </div>
+
+    <!-- LISTA DE ARCHIVOS -->
+    <div *ngIf="!isLoading" class="archivos-section">
+      
+      <h3 class="section-title">
+        <mat-icon>description</mat-icon>
+        Archivos Existentes ({{ archivos.length }})
+      </h3>
+
+      <mat-list *ngIf="archivos.length > 0" class="archivos-list">
+        <mat-list-item *ngFor="let archivo of archivos; let i = index">
+          
+          <div class="archivo-item">
+            
+            <!-- Orden -->
+            <div class="archivo-orden">
+              <span class="orden-badge">{{ archivo.orden }}</span>
+            </div>
+
+            <!-- Icono -->
+            <mat-icon class="archivo-icon">picture_as_pdf</mat-icon>
+
+            <!-- Info -->
+            <div class="archivo-info">
+              <div class="archivo-titulo">{{ archivo.titulo }}</div>
+              <div class="archivo-meta">
+                <span class="archivo-nombre">{{ archivo.nombreOriginal }}</span>
+                <span class="separator">•</span>
+                <span class="archivo-size">{{ archivo.tamanoMb }} MB</span>
+                <span class="separator">•</span>
+                <mat-chip-set>
+                  <mat-chip [class]="'tipo-chip tipo-' + archivo.tipo.toLowerCase()">
+                    {{ archivo.tipo }}
+                  </mat-chip>
+                </mat-chip-set>
+              </div>
+              <div *ngIf="archivo.descripcion" class="archivo-descripcion">
+                {{ archivo.descripcion }}
+              </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="archivo-actions">
+              <button 
+                mat-icon-button 
+                color="primary"
+                (click)="verPDF(archivo)"
+                matTooltip="Ver PDF"
+              >
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button 
+                mat-icon-button 
+                color="warn"
+                (click)="deleteArchivo(archivo)"
+                matTooltip="Eliminar"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+
+          </div>
+
+          <mat-divider *ngIf="i < archivos.length - 1"></mat-divider>
+
+        </mat-list-item>
+      </mat-list>
+
+      <div *ngIf="archivos.length === 0" class="empty-archivos">
+        <mat-icon>cloud_upload</mat-icon>
+        <p>No hay archivos subidos</p>
+        <span>Comienza subiendo tu primer PDF</span>
+      </div>
+
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- FORMULARIO DE SUBIDA -->
+    <div class="upload-section">
+      
+      <h3 class="section-title">
+        <mat-icon>add_circle</mat-icon>
+        Agregar Nuevo Archivo
+      </h3>
+
+      <!-- Selector de archivo -->
+      <div class="file-input-section">
+        <input 
+          type="file" 
+          #fileInput 
+          (change)="onFileSelected($event)"
+          accept=".pdf"
+          style="display: none;"
+        />
+        
+        <button 
+          mat-raised-button 
+          color="primary"
+          (click)="fileInput.click()"
+          [disabled]="isUploading"
+        >
+          <mat-icon>attach_file</mat-icon>
+          Seleccionar PDF
+        </button>
+
+        <div *ngIf="selectedFile" class="file-info">
+          <mat-icon>picture_as_pdf</mat-icon>
+          <div class="file-details">
+            <span class="file-name">{{ fileName }}</span>
+            <span class="file-size">{{ fileSize }}</span>
+          </div>
+          <button 
+            mat-icon-button 
+            (click)="selectedFile = null; fileName = ''; fileSize = ''"
+            [disabled]="isUploading"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Título -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Título del archivo</mat-label>
+        <input 
+          matInput 
+          [(ngModel)]="titulo"
+          placeholder="Ej: Tema 1 - Introducción"
+          [disabled]="isUploading"
+          required
+        />
+        <mat-icon matPrefix>title</mat-icon>
+      </mat-form-field>
+
+      <!-- Descripción -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descripción (opcional)</mat-label>
+        <textarea 
+          matInput 
+          [(ngModel)]="descripcion"
+          rows="2"
+          placeholder="Descripción breve del contenido..."
+          [disabled]="isUploading"
+        ></textarea>
+        <mat-icon matPrefix>description</mat-icon>
+      </mat-form-field>
+
+      <!-- Tipo -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tipo de contenido</mat-label>
+        <mat-select [(ngModel)]="tipo" [disabled]="isUploading">
+          <mat-option value="GENERAL">General</mat-option>
+          <mat-option value="BIBLIOGRAFIA">Bibliografía</mat-option>
+          <mat-option value="ACTIVIDADES">Actividades</mat-option>
+          <mat-option value="EVALUACION">Evaluación</mat-option>
+        </mat-select>
+        <mat-icon matPrefix>label</mat-icon>
+      </mat-form-field>
+
+      <!-- Botón de subir -->
+      <button 
+        mat-raised-button 
+        color="accent"
+        (click)="uploadArchivo()"
+        [disabled]="!selectedFile || !titulo || isUploading"
+        class="upload-button"
+      >
+        <mat-icon>cloud_upload</mat-icon>
+        {{ isUploading ? 'Subiendo...' : 'Subir Archivo' }}
+      </button>
+
+    </div>
+
+    <!-- Progress Bar -->
+    <div *ngIf="isUploading" class="progress-section">
+      <mat-progress-bar mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+      <p class="progress-text">Subiendo... {{ uploadProgress }}%</p>
+    </div>
+
+    <!-- Mensajes -->
+    <div *ngIf="errorMessage" class="message error-message">
+      <mat-icon>error</mat-icon>
+      <span>{{ errorMessage }}</span>
+    </div>
+
+    <div *ngIf="successMessage" class="message success-message">
+      <mat-icon>check_circle</mat-icon>
+      <span>{{ successMessage }}</span>
+    </div>
+
+  </mat-dialog-content>
+
+  <!-- ACTIONS -->
+  <mat-dialog-actions align="end">
+    <button 
+      mat-button 
+      (click)="close()"
+      [disabled]="isUploading"
+    >
+      Cerrar
+    </button>
+  </mat-dialog-actions>
+
+</div>

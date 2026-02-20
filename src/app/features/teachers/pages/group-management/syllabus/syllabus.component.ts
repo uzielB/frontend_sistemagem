@@ -124,8 +124,7 @@ export class SyllabusComponent implements OnInit {
         console.error('❌ Error al cargar temarios:', error);
         this.errorMessage = 'Error al cargar temarios. Usando datos de demostración.';
         
-        // Fallback a datos mock
-        this.useMockData();
+
       }
     });
   }
@@ -152,20 +151,27 @@ export class SyllabusComponent implements OnInit {
   /**
    * Transformar temarios a formato UI
    */
-  transformSyllabusesToUI(): void {
-    this.temarios = this.syllabuses.map(s => ({
-      id: s.id,
-      materia: s.titulo || 'Sin título',
-      nombreArchivo: s.nombreOriginal,
-      fechaSubida: s.fechaSubida,
-      tamano: s.tamanoMb,
-      estado: 'Disponible'
-    }));
+transformSyllabusesToUI(): void {
+  this.temarios = this.syllabuses.map(s => ({
+    id: s.id,
+    materia: s.titulo || 'Sin título',
+    nombreArchivo: s.nombreOriginal,
+    fechaSubida: s.fechaSubida,
+    tamano: s.tamanoMb,
+    estado: 'Disponible',
+    programa: s.subject?.programa?.nombre || 'Sin carrera'  // ✅ NUEVO
+  }));
 
-    // Extraer materias únicas para filtro
-    const materiasSet = new Set(this.temarios.map(t => t.materia));
-    this.materias = ['TODOS', ...Array.from(materiasSet)];
-  }
+  // ✅ Filtro por CARRERAS en lugar de materias individuales
+  const programasSet = new Set(
+    this.temarios
+      .map(t => (t as any).programa)
+      .filter(p => p && p !== 'Sin carrera')
+  );
+  this.materias = ['TODOS', ...Array.from(programasSet)];
+}
+
+
 
   /**
    * Transformar planeaciones a formato UI
@@ -183,43 +189,6 @@ export class SyllabusComponent implements OnInit {
     }));
   }
 
-  /**
-   * Fallback: Usar datos mock
-   */
-  useMockData(): void {
-    this.temarios = [
-      {
-        id: 1,
-        materia: 'Anatomía Humana',
-        nombreArchivo: 'Temario_Anatomia_2025-1.pdf',
-        fechaSubida: '2025-01-15T10:00:00Z',
-        tamano: 2.3,
-        estado: 'Disponible'
-      },
-      {
-        id: 2,
-        materia: 'Fisiología',
-        nombreArchivo: 'Temario_Fisiologia_2025-1.pdf',
-        fechaSubida: '2025-01-15T11:00:00Z',
-        tamano: 1.8,
-        estado: 'Disponible'
-      }
-    ];
-
-    this.planeaciones = [
-      {
-        id: 1,
-        temarioId: 1,
-        materia: 'Anatomía Humana',
-        nombreArchivo: 'Planeacion_Anatomia_Grupo1A.pdf',
-        fechaSubida: '2025-01-20T10:00:00Z',
-        estatus: 'Aprobada',
-        version: 1
-      }
-    ];
-
-    this.materias = ['TODOS', 'Anatomía Humana', 'Fisiología'];
-  }
 
   // ============================================
   // DESCARGAR TEMARIOS (Solo lectura)
@@ -458,15 +427,11 @@ export class SyllabusComponent implements OnInit {
   /**
    * Obtener temarios filtrados
    */
-  get temariosFiltrados(): Temario[] {
-    const materiaSeleccionada = this.materiaControl.value;
-    
-    if (materiaSeleccionada === 'TODOS') {
-      return this.temarios;
-    }
-    
-    return this.temarios.filter(t => t.materia === materiaSeleccionada);
-  }
+get temariosFiltrados(): Temario[] {
+  const seleccionado = this.materiaControl.value;
+  if (seleccionado === 'TODOS') return this.temarios;
+  return this.temarios.filter(t => (t as any).programa === seleccionado);
+}
 
   /**
    * Formatear fecha

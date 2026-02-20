@@ -1,0 +1,222 @@
+.materias-container {
+  padding: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* ===== HEADER ===== */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.back-button {
+  flex-shrink: 0;
+}
+
+.title-section h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 0.5rem 0 0 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+/* ===== LOADING ===== */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  gap: 1rem;
+}
+
+.loading-container p {
+  color: #666;
+  font-size: 1rem;
+}
+
+/* ===== ERROR ===== */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  gap: 1rem;
+  background: #ffebee;
+  border-radius: 12px;
+  border: 1px solid #ef5350;
+}
+
+.error-container mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.error-container p {
+  color: #c62828;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* ===== TABLA ===== */
+.table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.materias-table {
+  width: 100%;
+}
+
+.materias-table th {
+  background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 1rem;
+}
+
+.materias-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.materias-table tr:hover {
+  background: #f5f5f5;
+}
+
+/* ===== CHIPS ===== */
+.semestre-chip {
+  background-color: #fffdfd9b !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+.no-temario-chip {
+  background-color: #ff7300db !important;
+  color: rgb(213, 0, 0) !important;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.no-temario-chip mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* ===== TEMARIO CELL ===== */
+.temario-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pdf-icon {
+  color: #d32f2f;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.pdf-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.pdf-size {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+/* ===== ACCIONES ===== */
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.action-buttons button {
+  white-space: nowrap;
+}
+
+.delete-button {
+  flex-shrink: 0;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: #f5f5f5;
+}
+
+.empty-state mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #999;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  margin: 0 0 0.5rem 0;
+  color: #666;
+  font-weight: 500;
+}
+
+.empty-state p {
+  margin: 0;
+  color: #999;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+  .action-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .action-buttons button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .materias-container {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .title-section h1 {
+    font-size: 1.5rem;
+  }
+
+  .materias-table {
+    font-size: 0.9rem;
+  }
+
+  .materias-table th,
+  .materias-table td {
+    padding: 0.75rem 0.5rem;
+  }
+}

@@ -33,4 +33,9 @@ export class AppComponent {
     return url.startsWith('/teachers') || 
            url.startsWith('/docente');
   }
+ 
+  isAdminRoute(): boolean {
+    return this.router.url.startsWith('/admin') || 
+           this.router.url.startsWith('/teachers');
+  }
 }
