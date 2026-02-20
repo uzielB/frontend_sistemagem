@@ -22,6 +22,16 @@ export interface Syllabus {
     nombre: string;
     apellidoPaterno: string;
   };
+  subject?: {
+    id: number;
+    nombre: string;
+    codigo: string;
+    programa?: {
+      id: number;
+      nombre: string;
+      codigo: string;
+    };
+  };
 }
 
 export interface LessonPlan {
@@ -71,9 +81,9 @@ export class SyllabusesService {
   /**
    * Obtener temarios de las materias asignadas al docente
    */
-  getMySyllabuses(): Observable<Syllabus[]> {
-    return this.http.get<Syllabus[]>(`${this.apiUrl}/syllabuses`);
-  }
+getMySyllabuses(): Observable<Syllabus[]> {
+  return this.http.get<Syllabus[]>(this.apiUrl);
+}
 
   /**
    * Obtener un temario por ID
