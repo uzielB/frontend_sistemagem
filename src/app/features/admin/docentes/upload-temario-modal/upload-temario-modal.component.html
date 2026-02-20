@@ -1,0 +1,144 @@
+<div class="modal-container">
+  
+  <!-- HEADER -->
+  <h2 mat-dialog-title>
+    <mat-icon>upload_file</mat-icon>
+    Subir Temario
+  </h2>
+
+  <!-- CONTENT -->
+  <mat-dialog-content>
+    
+    <!-- INFO DE LA MATERIA -->
+    <div class="materia-info">
+      <div class="info-row">
+        <span class="label">Programa:</span>
+        <span class="value">{{ data.programaNombre }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Materia:</span>
+        <span class="value">{{ data.materia.nombre }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Código:</span>
+        <span class="value">{{ data.materia.codigo }}</span>
+      </div>
+    </div>
+
+    <!-- FORMULARIO -->
+    <div class="form-section">
+      
+      <!-- SELECTOR DE ARCHIVO -->
+      <div class="file-input-section">
+        <input 
+          type="file" 
+          #fileInput 
+          (change)="onFileSelected($event)"
+          accept=".pdf"
+          style="display: none;"
+        />
+        
+        <button 
+          mat-raised-button 
+          color="primary"
+          (click)="fileInput.click()"
+          [disabled]="isUploading"
+        >
+          <mat-icon>attach_file</mat-icon>
+          Seleccionar PDF
+        </button>
+
+        <div *ngIf="selectedFile" class="file-info">
+          <mat-icon>picture_as_pdf</mat-icon>
+          <div class="file-details">
+            <span class="file-name">{{ fileName }}</span>
+            <span class="file-size">{{ fileSize }}</span>
+          </div>
+          <button 
+            mat-icon-button 
+            (click)="selectedFile = null; fileName = ''; fileSize = ''"
+            [disabled]="isUploading"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- TÍTULO -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Título del temario</mat-label>
+        <input 
+          matInput 
+          [(ngModel)]="titulo"
+          placeholder="Ej: Temario Anatomía I"
+          [disabled]="isUploading"
+        />
+        <mat-icon matPrefix>title</mat-icon>
+      </mat-form-field>
+
+      <!-- DESCRIPCIÓN -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descripción (opcional)</mat-label>
+        <textarea 
+          matInput 
+          [(ngModel)]="descripcion"
+          rows="3"
+          placeholder="Descripción breve del temario..."
+          [disabled]="isUploading"
+        ></textarea>
+        <mat-icon matPrefix>description</mat-icon>
+      </mat-form-field>
+
+      <!-- PERIODO ESCOLAR -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Periodo Escolar</mat-label>
+        <mat-select [(ngModel)]="periodoEscolarId" [disabled]="isUploading">
+          <mat-option [value]="1">Enero - Junio 2025</mat-option>
+          <mat-option [value]="2">Julio - Diciembre 2025</mat-option>
+        </mat-select>
+        <mat-icon matPrefix>event</mat-icon>
+      </mat-form-field>
+
+    </div>
+
+    <!-- PROGRESS BAR -->
+    <div *ngIf="isUploading" class="progress-section">
+      <mat-progress-bar mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+      <p class="progress-text">Subiendo... {{ uploadProgress }}%</p>
+    </div>
+
+    <!-- ERROR MESSAGE -->
+    <div *ngIf="errorMessage" class="message error-message">
+      <mat-icon>error</mat-icon>
+      <span>{{ errorMessage }}</span>
+    </div>
+
+    <!-- SUCCESS MESSAGE -->
+    <div *ngIf="successMessage" class="message success-message">
+      <mat-icon>check_circle</mat-icon>
+      <span>{{ successMessage }}</span>
+    </div>
+
+  </mat-dialog-content>
+
+  <!-- ACTIONS -->
+  <mat-dialog-actions align="end">
+    <button 
+      mat-button 
+      (click)="cancel()"
+      [disabled]="isUploading"
+    >
+      Cancelar
+    </button>
+    <button 
+      mat-raised-button 
+      color="primary"
+      (click)="uploadTemario()"
+      [disabled]="!selectedFile || isUploading"
+    >
+      <mat-icon>cloud_upload</mat-icon>
+      {{ isUploading ? 'Subiendo...' : 'Subir Temario' }}
+    </button>
+  </mat-dialog-actions>
+
+</div>
