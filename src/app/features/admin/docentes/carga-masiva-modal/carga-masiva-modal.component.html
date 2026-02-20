@@ -1,0 +1,219 @@
+<div class="modal-container">
+  
+  <!-- HEADER -->
+  <h2 mat-dialog-title>
+    <mat-icon>cloud_upload</mat-icon>
+    Subir Materias
+  </h2>
+
+  <!-- INFO DEL PROGRAMA -->
+  <div class="programa-info">
+    <div class="info-row">
+      <span class="label">Programa:</span>
+      <span class="value">{{ data.programa.nombre }}</span>
+    </div>
+    <div class="info-row">
+      <span class="label">Código:</span>
+      <span class="value">{{ data.programa.codigo }}</span>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <mat-dialog-content>
+    
+    <!-- ZONA DE DRAG & DROP -->
+    <div 
+      class="dropzone"
+      [class.dragging]="isDragging"
+      [class.disabled]="isUploading"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      (click)="!isUploading && fileInput.click()"
+    >
+      <input 
+        type="file" 
+        #fileInput 
+        (change)="onFileSelected($event)"
+        accept=".pdf"
+        multiple
+        style="display: none;"
+      />
+
+      <mat-icon class="dropzone-icon">cloud_upload</mat-icon>
+      <h3>Arrastra aquí los PDFs de las materias</h3>
+      <p>o haz click para seleccionar archivos</p>
+      <div class="dropzone-hint">
+        <mat-icon>info</mat-icon>
+        <span>Puedes subir hasta 100 archivos PDF a la vez (máx 10MB c/u)</span>
+      </div>
+    </div>
+
+    <!-- LISTA DE ARCHIVOS SELECCIONADOS -->
+    <div *ngIf="selectedFiles.length > 0 && !result" class="files-section">
+      
+      <h3 class="section-title">
+        <mat-icon>description</mat-icon>
+        Archivos Seleccionados ({{ selectedFiles.length }})
+      </h3>
+
+      <mat-list class="files-list">
+        <mat-list-item *ngFor="let file of selectedFiles; let i = index">
+          
+          <div class="file-item">
+            
+            <!-- Icono -->
+            <mat-icon class="file-icon">picture_as_pdf</mat-icon>
+
+            <!-- Info -->
+            <div class="file-info">
+              <div class="file-name">{{ file.name }}</div>
+              <div class="file-size">{{ formatFileSize(file.size) }}</div>
+            </div>
+
+            <!-- Acción -->
+            <button 
+              mat-icon-button 
+              color="warn"
+              (click)="removeFile(i)"
+              [disabled]="isUploading"
+              matTooltip="Eliminar"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+
+          </div>
+
+          <mat-divider *ngIf="i < selectedFiles.length - 1"></mat-divider>
+
+        </mat-list-item>
+      </mat-list>
+
+    </div>
+
+    <!-- PROGRESS BAR -->
+    <div *ngIf="isUploading" class="progress-section">
+      <mat-progress-bar mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+      <p class="progress-text">Subiendo archivos... {{ uploadProgress }}%</p>
+    </div>
+
+    <!-- RESULTADO -->
+    <div *ngIf="result && !isUploading" class="result-section">
+      
+      <h3 class="section-title success">
+        <mat-icon>check_circle</mat-icon>
+        Resultado de la Carga
+      </h3>
+
+      <!-- Resumen -->
+      <div class="result-summary">
+        <div class="summary-item">
+          <span class="summary-label">Total procesados:</span>
+          <span class="summary-value">{{ result.total }}</span>
+        </div>
+        <div class="summary-item success">
+          <span class="summary-label">Materias creadas:</span>
+          <span class="summary-value">{{ result.created }}</span>
+        </div>
+        <!-- Reactivadas -->
+        <div class="summary-item info" *ngIf="result.reactivated > 0">
+          <span class="summary-label">Materias reactivadas:</span>
+          <span class="summary-value">{{ result.reactivated }}</span>
+        </div>
+        <div class="summary-item warning" *ngIf="result.existing > 0">
+          <span class="summary-label">Ya existían (activas):</span>
+          <span class="summary-value">{{ result.existing }}</span>
+        </div>
+        <div class="summary-item error" *ngIf="result.failed > 0">
+          <span class="summary-label">Errores:</span>
+          <span class="summary-value">{{ result.failed }}</span>
+        </div>
+      </div>
+
+      <!-- Lista de éxitos -->
+      <div *ngIf="result.success.length > 0" class="success-list">
+        <h4>Materias Subidas:</h4>
+        <mat-chip-set>
+          <mat-chip 
+            *ngFor="let item of result.success" 
+            [class.success-chip]="item.created"
+            [class.reactivated-chip]="item.reactivated"
+            [class.existing-chip]="!item.created && !item.reactivated"
+          >
+            {{ item.materiaCodigo }}
+            <mat-icon *ngIf="item.created" class="chip-icon">fiber_new</mat-icon>
+            <mat-icon *ngIf="item.reactivated" class="chip-icon">refresh</mat-icon>
+          </mat-chip>
+        </mat-chip-set>
+
+        <!-- Leyenda -->
+        <div class="legend">
+          <div class="legend-item" *ngIf="result.created > 0">
+            <mat-chip class="success-chip">
+              <mat-icon class="chip-icon">fiber_new</mat-icon>
+              Nueva
+            </mat-chip>
+            <span>= Materia creada</span>
+          </div>
+          <div class="legend-item" *ngIf="result.reactivated > 0">
+            <mat-chip class="reactivated-chip">
+              <mat-icon class="chip-icon">refresh</mat-icon>
+              Reactivada
+            </mat-chip>
+            <span>= Materia que estaba eliminada</span>
+          </div>
+          <div class="legend-item" *ngIf="result.existing > 0">
+            <mat-chip class="existing-chip">Existente</mat-chip>
+            <span>= Ya existía activa</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de errores -->
+      <div *ngIf="result.errors.length > 0" class="error-list">
+        <h4>Archivos con Error:</h4>
+        <mat-list>
+          <mat-list-item *ngFor="let error of result.errors">
+            <div class="error-item">
+              <mat-icon color="warn">error</mat-icon>
+              <div class="error-info">
+                <span class="error-file">{{ error.filename }}</span>
+                <span class="error-message">{{ error.error }}</span>
+              </div>
+            </div>
+          </mat-list-item>
+        </mat-list>
+      </div>
+
+    </div>
+
+    <!-- MENSAJE DE ERROR -->
+    <div *ngIf="errorMessage" class="message error-message">
+      <mat-icon>error</mat-icon>
+      <span>{{ errorMessage }}</span>
+    </div>
+
+  </mat-dialog-content>
+
+  <!-- ACTIONS -->
+  <mat-dialog-actions align="end">
+    <button 
+      mat-button 
+      (click)="close()"
+      [disabled]="isUploading"
+    >
+      {{ result ? 'Cerrar' : 'Cancelar' }}
+    </button>
+    <button 
+      mat-raised-button 
+      color="primary"
+      (click)="uploadAll()"
+      [disabled]="selectedFiles.length === 0 || isUploading"
+      *ngIf="!result"
+    >
+      <mat-icon>cloud_upload</mat-icon>
+      Subir {{ selectedFiles.length }} Archivo{{ selectedFiles.length !== 1 ? 's' : '' }}
+    </button>
+  </mat-dialog-actions>
+
+</div>
