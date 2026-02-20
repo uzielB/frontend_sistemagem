@@ -1,0 +1,139 @@
+<div class="materias-container">
+  
+  <!-- HEADER -->
+  <div class="header">
+    <button mat-icon-button class="back-button" routerLink="/admin/docentes">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="title-section">
+      <h1>{{ programaNombre }}</h1>
+      <p class="subtitle">Código: {{ programaCodigo }}</p>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando materias...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="errorMessage && !isLoading" class="error-container">
+    <mat-icon color="warn">error</mat-icon>
+    <p>{{ errorMessage }}</p>
+    <button mat-raised-button color="primary" (click)="loadProgramaDetail()">
+      <mat-icon>refresh</mat-icon>
+      Reintentar
+    </button>
+  </div>
+
+  <!-- TABLA DE MATERIAS -->
+  <div *ngIf="!isLoading && !errorMessage" class="table-container">
+    
+    <table mat-table [dataSource]="materiasConArchivos" class="materias-table">
+
+      <!-- Columna: Semestre -->
+      <ng-container matColumnDef="semestre">
+        <th mat-header-cell *matHeaderCellDef>Semestre</th>
+        <td mat-cell *matCellDef="let materia">
+          <mat-chip-set>
+            <mat-chip class="semestre-chip">{{ materia.semestre }}</mat-chip>
+          </mat-chip-set>
+        </td>
+      </ng-container>
+
+      <!-- Columna: Código -->
+      <ng-container matColumnDef="codigo">
+        <th mat-header-cell *matHeaderCellDef>Código</th>
+        <td mat-cell *matCellDef="let materia">
+          <strong>{{ materia.codigo }}</strong>
+        </td>
+      </ng-container>
+
+      <!-- Columna: Nombre de Materia -->
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Materia</th>
+        <td mat-cell *matCellDef="let materia">
+          {{ materia.nombre }}
+        </td>
+      </ng-container>
+
+      <!-- ✅ COLUMNA CORREGIDA: Temario (PDF) -->
+      <ng-container matColumnDef="temario">
+        <th mat-header-cell *matHeaderCellDef>Temario Oficial</th>
+        <td mat-cell *matCellDef="let materia">
+          <div class="temario-cell">
+            <ng-container *ngIf="materia.archivoTemario; else sinTemario">
+              <mat-icon class="pdf-icon">picture_as_pdf</mat-icon>
+              <span class="pdf-name">{{ materia.archivoTemario.nombreOriginal }}</span>
+              <span class="pdf-size">({{ materia.archivoTemario.tamanoMb | number:'1.2-2' }} MB)</span>
+            </ng-container>
+            <ng-template #sinTemario>
+              <mat-chip class="no-temario-chip">
+                <mat-icon>warning</mat-icon>
+                Sin temario
+              </mat-chip>
+            </ng-template>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- ✅ COLUMNA CORREGIDA: Acciones -->
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef>Acciones</th>
+        <td mat-cell *matCellDef="let materia">
+          <div class="action-buttons">
+            
+            <!-- Botón: Ver Temario -->
+            <button 
+              mat-raised-button
+              color="primary"
+              (click)="verTemario(materia)"
+              [disabled]="!materia.archivoTemario"
+              matTooltip="Ver PDF del temario oficial"
+            >
+              <mat-icon>visibility</mat-icon>
+              Ver Temario
+            </button>
+
+            <!-- Botón: Ver Planeaciones -->
+            <button 
+              mat-raised-button
+              color="accent"
+              (click)="verPlaneaciones(materia)"
+              matTooltip="Ver planeaciones de docentes"
+            >
+              <mat-icon>assignment</mat-icon>
+              Planeaciones
+            </button>
+
+            <!-- Botón: Eliminar -->
+            <button 
+              mat-icon-button
+              color="warn"
+              (click)="deleteMateria(materia)"
+              matTooltip="Eliminar materia"
+              class="delete-button"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Header y Rows -->
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+    </table>
+
+    <!-- MENSAJE SI NO HAY MATERIAS -->
+    <div *ngIf="materiasConArchivos.length === 0" class="empty-state">
+      <mat-icon>inbox</mat-icon>
+      <h3>No hay materias registradas</h3>
+      <p>Sube materias usando el botón "Subir Materias" en la lista de programas</p>
+    </div>
+
+  </div>
+
+</div>
