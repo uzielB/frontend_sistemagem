@@ -1,0 +1,26 @@
+.admin-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 220px; /* Ancho del sidebar */
+  min-height: 100vh;
+  padding: 0; /* El contenido interno manejará su padding */
+  overflow-x: hidden;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+}
