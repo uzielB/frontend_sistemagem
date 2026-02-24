@@ -173,8 +173,8 @@ export class AdminDocentesService {
     return this.http.post<ArchivoTemarioBase>(url, formData, { headers });
   }
 
- getArchivosTemariosBase(materiaId: number, periodoEscolarId: number): Observable<ArchivoTemarioBase[]> {
-  const url = `${this.apiUrl}/syllabuses/materia/${materiaId}?periodoEscolarId=${periodoEscolarId}`;
+getArchivosTemariosBase(materiaId: number, periodoEscolarId: number): Observable<ArchivoTemarioBase[]> {
+  const url = `${this.apiUrl}/admin/syllabuses/materia/${materiaId}?periodoEscolarId=${periodoEscolarId}`;
   
   return this.http.get<ArchivoTemarioBase[]>(url, {
     headers: this.getHeaders()
