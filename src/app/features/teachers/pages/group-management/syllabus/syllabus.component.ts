@@ -23,6 +23,9 @@ import {
 interface Temario {
   id: number;
   materia: string;
+  codigoMateria: string;  // ✅ NUEVO: ARQ-101, LTS-201, etc.
+  semestre: number;       // ✅ NUEVO: 1-9
+  programa: string;
   nombreArchivo: string;
   fechaSubida: string;
   tamano: number;
@@ -79,12 +82,14 @@ export class SyllabusComponent implements OnInit {
   // Temario seleccionado para subir planeación
   temarioSeleccionadoId: number | null = null;
   
-  // Formulario de filtro
+  // ✅ CONTROLES DE FILTRO ACTUALIZADOS
   materiaControl = new FormControl('TODOS');
+  semestreControl = new FormControl('TODOS');  // ✅ NUEVO
   
-  // Datos de TEMARIOS (solo lectura)
+  // ✅ DATOS PARA FILTROS
   temarios: Temario[] = [];
-  materias: string[] = ['TODOS'];
+  materias: string[] = ['TODOS'];  // Nombres de carreras
+  semestres: string[] = ['TODOS', '1', '2', '3', '4', '5', '6', '7', '8', '9'];  // ✅ NUEVO
   
   // Datos de PLANEACIONES (subidas por el docente)
   planeaciones: Planeacion[] = [];
@@ -114,6 +119,7 @@ export class SyllabusComponent implements OnInit {
     // Cargar TEMARIOS (subidos por Admin)
     this.syllabusesService.getMySyllabuses().subscribe({
       next: (syllabuses) => {
+        console.log('📚 Temarios recibidos del backend:', syllabuses);
         this.syllabuses = syllabuses;
         this.transformSyllabusesToUI();
         
@@ -122,9 +128,7 @@ export class SyllabusComponent implements OnInit {
       },
       error: (error) => {
         console.error('❌ Error al cargar temarios:', error);
-        this.errorMessage = 'Error al cargar temarios. Usando datos de demostración.';
-        
-
+        this.errorMessage = 'Error al cargar temarios.';
       }
     });
   }
@@ -149,29 +153,36 @@ export class SyllabusComponent implements OnInit {
   }
 
   /**
-   * Transformar temarios a formato UI
+   * ✅ Transformar temarios a formato UI
    */
-transformSyllabusesToUI(): void {
-  this.temarios = this.syllabuses.map(s => ({
-    id: s.id,
-    materia: s.titulo || 'Sin título',
-    nombreArchivo: s.nombreOriginal,
-    fechaSubida: s.fechaSubida,
-    tamano: s.tamanoMb,
-    estado: 'Disponible',
-    programa: s.subject?.programa?.nombre || 'Sin carrera'  // ✅ NUEVO
-  }));
+  transformSyllabusesToUI(): void {
+    this.temarios = this.syllabuses.map(s => ({
+      id: s.id,
+      materia: s.subject?.nombre || s.titulo || 'Sin título',
+      codigoMateria: s.subject?.codigo || '',  // ARQ-101, LTS-201, etc.
+      semestre: s.subject?.semestre || 0,      // 1-9
+      programa: s.subject?.programa?.nombre || 'Sin carrera',
+      nombreArchivo: s.nombreOriginal,
+      fechaSubida: s.fechaSubida,
+      tamano: s.tamanoMb,
+      estado: 'Disponible'
+    }));
 
-  // ✅ Filtro por CARRERAS en lugar de materias individuales
-  const programasSet = new Set(
-    this.temarios
-      .map(t => (t as any).programa)
-      .filter(p => p && p !== 'Sin carrera')
-  );
-  this.materias = ['TODOS', ...Array.from(programasSet)];
-}
+    console.log('📄 Temarios transformados:', this.temarios);
 
+    // ✅ CORREGIDO: Extraer CARRERAS únicas para filtro
+    const carrerasSet = new Set(
+      this.temarios
+        .map(t => t.programa)
+        .filter(p => p && p !== 'Sin carrera')
+        .sort()
+    );
+    this.materias = ['TODOS', ...Array.from(carrerasSet)];
 
+    console.log('🔍 Filtros disponibles:');
+    console.log('  - Carreras:', this.materias);
+    console.log('  - Semestres:', this.semestres);
+  }
 
   /**
    * Transformar planeaciones a formato UI
@@ -188,7 +199,6 @@ transformSyllabusesToUI(): void {
       observaciones: p.observaciones
     }));
   }
-
 
   // ============================================
   // DESCARGAR TEMARIOS (Solo lectura)
@@ -421,17 +431,30 @@ transformSyllabusesToUI(): void {
   }
 
   // ============================================
-  // FILTROS Y HELPERS
+  // ✅ FILTROS Y HELPERS
   // ============================================
 
   /**
-   * Obtener temarios filtrados
+   * ✅ Obtener temarios filtrados por carrera Y semestre
    */
-get temariosFiltrados(): Temario[] {
-  const seleccionado = this.materiaControl.value;
-  if (seleccionado === 'TODOS') return this.temarios;
-  return this.temarios.filter(t => (t as any).programa === seleccionado);
-}
+  get temariosFiltrados(): Temario[] {
+    let filtrados = this.temarios;
+
+    // Filtrar por carrera
+    const carreraSeleccionada = this.materiaControl.value;
+    if (carreraSeleccionada && carreraSeleccionada !== 'TODOS') {
+      filtrados = filtrados.filter(t => t.programa === carreraSeleccionada);
+    }
+
+    // Filtrar por semestre
+    const semestreSeleccionado = this.semestreControl.value;
+    if (semestreSeleccionado && semestreSeleccionado !== 'TODOS') {
+      const semestre = parseInt(semestreSeleccionado);
+      filtrados = filtrados.filter(t => t.semestre === semestre);
+    }
+
+    return filtrados;
+  }
 
   /**
    * Formatear fecha
@@ -472,8 +495,4 @@ get temariosFiltrados(): Temario[] {
     };
     return statusMap[estatus] || 'status-pending';
   }
-
-  // NOTA: deleteTemario NO existe aquí porque el docente NO puede eliminar temarios
-  // Solo puede VER y DESCARGAR temarios
-  // Y puede SUBIR planeaciones
 }

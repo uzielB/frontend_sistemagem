@@ -26,6 +26,7 @@ export interface Syllabus {
     id: number;
     nombre: string;
     codigo: string;
+    semestre: number;  // ✅ AGREGADO
     programa?: {
       id: number;
       nombre: string;
@@ -81,9 +82,9 @@ export class SyllabusesService {
   /**
    * Obtener temarios de las materias asignadas al docente
    */
-getMySyllabuses(): Observable<Syllabus[]> {
-  return this.http.get<Syllabus[]>(this.apiUrl);
-}
+  getMySyllabuses(): Observable<Syllabus[]> {
+    return this.http.get<Syllabus[]>(`${this.apiUrl}/syllabuses`);
+  }
 
   /**
    * Obtener un temario por ID

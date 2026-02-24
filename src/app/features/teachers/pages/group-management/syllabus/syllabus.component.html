@@ -26,17 +26,30 @@
     <p>Los temarios son subidos por el administrador. Puedes descargarlos y basarte en ellos para crear tu planeación.</p>
   </div>
 
-  <!-- FILTRO POR MATERIA -->
+  <!-- ✅ FILTROS ACTUALIZADOS: CARRERA Y SEMESTRE -->
   <div class="filter-section">
+    <!-- Filtro por Carrera -->
     <mat-form-field appearance="outline">
-      <mat-label>Filtrar por Materia</mat-label>
+      <mat-label>Filtrar por Carrera</mat-label>
       <mat-select [formControl]="materiaControl">
+        <mat-option value="TODOS">Todas las carreras</mat-option>
         <mat-option *ngFor="let materia of materias" [value]="materia">
           {{ materia }}
         </mat-option>
       </mat-select>
     </mat-form-field>
 
+    <!-- ✅ NUEVO: Filtro por Semestre -->
+    <mat-form-field appearance="outline">
+      <mat-label>Filtrar por Semestre</mat-label>
+      <mat-select [formControl]="semestreControl">
+        <mat-option *ngFor="let semestre of semestres" [value]="semestre">
+          {{ semestre === 'TODOS' ? 'Todos los semestres' : 'Semestre ' + semestre }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Contador de resultados -->
     <div class="count-info">
       <mat-icon>folder</mat-icon>
       <span>{{ temariosFiltrados.length }} temario(s) disponible(s)</span>
@@ -52,14 +65,25 @@
         <div mat-card-avatar class="pdf-icon">
           <mat-icon>picture_as_pdf</mat-icon>
         </div>
-        <mat-card-title>{{ temario.nombreArchivo }}</mat-card-title>
+        <mat-card-title>{{ temario.codigoMateria }}</mat-card-title>
         <mat-card-subtitle>
-          <mat-chip class="materia-chip">{{ temario.materia }}</mat-chip>
+          {{ temario.materia }}
         </mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content>
         <div class="temario-info">
+          <!-- ✅ Chips con info clave -->
+          <div class="chips-row">
+            <mat-chip class="semestre-chip">Semestre {{ temario.semestre }}</mat-chip>
+            <mat-chip class="programa-chip">{{ temario.programa }}</mat-chip>
+          </div>
+
+          <!-- Info adicional -->
+          <div class="info-row">
+            <mat-icon>description</mat-icon>
+            <span class="filename">{{ temario.nombreArchivo }}</span>
+          </div>
           <div class="info-row">
             <mat-icon>event</mat-icon>
             <span>{{ formatDate(temario.fechaSubida) }}</span>
@@ -78,14 +102,14 @@
           color="primary"
           (click)="downloadTemario(temario)">
           <mat-icon>download</mat-icon>
-          Descargar Temario
+          Descargar
         </button>
         
         <!-- ✅ NUEVO: Subir planeación basada en este temario -->
         <button 
           mat-button 
           color="accent"
-          (click)="uploadPlaneacion(temario.id, temario.materia)">
+          (click)="uploadPlaneacion(temario.id, temario.codigoMateria)">
           <mat-icon>upload_file</mat-icon>
           Subir Planeación
         </button>
@@ -97,8 +121,13 @@
   <!-- MENSAJE SI NO HAY TEMARIOS -->
   <div *ngIf="temariosFiltrados.length === 0" class="no-temarios">
     <mat-icon>folder_open</mat-icon>
-    <p>No hay temarios disponibles</p>
-    <p class="hint">El administrador aún no ha subido temarios para tus materias</p>
+    <p>No hay temarios disponibles con los filtros seleccionados</p>
+    <p class="hint" *ngIf="materiaControl.value !== 'TODOS' || semestreControl.value !== 'TODOS'">
+      Intenta cambiar los filtros para ver más resultados
+    </p>
+    <p class="hint" *ngIf="materiaControl.value === 'TODOS' && semestreControl.value === 'TODOS'">
+      El administrador aún no ha subido temarios para tus materias
+    </p>
   </div>
 
   <!-- ===================================== -->
@@ -196,6 +225,7 @@
   <div class="instructions-card">
     <h3>📚 Instrucciones:</h3>
     <ul>
+      <li><strong>Filtrar Temarios:</strong> Usa los filtros de Carrera y Semestre para encontrar temarios específicos</li>
       <li><strong>Ver Temarios:</strong> Los temarios son documentos base subidos por el administrador</li>
       <li><strong>Descargar Temario:</strong> Descarga el temario para basarte en él</li>
       <li><strong>Subir Planeación:</strong> Haz clic en "Subir Planeación" en cualquier temario</li>
