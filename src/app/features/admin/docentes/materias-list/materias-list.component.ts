@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,6 +14,7 @@ import { AdminDocentesService, Materia, ArchivoTemarioBase } from '../admin-doce
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     MatTableModule,
     MatButtonModule,
     MatIconModule,
@@ -78,7 +79,7 @@ export class MateriasListComponent implements OnInit {
    * ✅ CORREGIDO: Cargar archivos de temario base de cada materia
    */
   loadArchivosTemario(): void {
-    const periodoEscolarId = 1; // ID del periodo actual (ajustar según tu lógica)
+    const periodoEscolarId = 5;
     
     // Crear array de promesas para cargar archivos de todas las materias
     const requests = this.materias.map(materia => {
@@ -215,6 +216,6 @@ export class MateriasListComponent implements OnInit {
    * Volver a la lista de programas
    */
   goBack(): void {
-    this.router.navigate(['/admin/docentes/programas']);
+    this.router.navigate(['/admin/docentes']);
   }
 }
