@@ -340,3 +340,72 @@
     height: 30px;
   }
 }
+
+
+.menu-item-disponibilidad {
+  position: relative;
+}
+
+.menu-item-disponibilidad::after {
+  content: 'NUEVO';
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #d32f2f;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* Banner disponibilidad en dashboard */
+.disponibilidad-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+  border: 1.5px solid #f5c6c6;
+  border-left: 5px solid #d32f2f;
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  margin-top: 1.25rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.15s;
+}
+
+.disponibilidad-banner:hover {
+  box-shadow: 0 4px 16px rgba(211,47,47,0.15);
+  transform: translateY(-1px);
+}
+
+.banner-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.banner-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.banner-text strong {
+  font-size: 0.95rem;
+  color: #b71c1c;
+}
+
+.banner-text span {
+  font-size: 0.82rem;
+  color: #888;
+  line-height: 1.4;
+}
+
+.banner-arrow {
+  color: #d32f2f;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
