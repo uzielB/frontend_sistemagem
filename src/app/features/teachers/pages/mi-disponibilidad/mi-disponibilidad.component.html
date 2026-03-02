@@ -1,0 +1,260 @@
+<div class="disp-container">
+
+  <!-- HEADER -->
+  <div class="disp-header">
+    <button class="btn-back" (click)="volver()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div>
+      <h1>Mi Disponibilidad de Horario</h1>
+      <p class="header-sub" *ngIf="periodoActual">
+        Periodo: <strong>{{ periodoActual.nombre }}</strong>
+      </p>
+    </div>
+  </div>
+
+  <!-- LOADING CATÁLOGO -->
+  <div *ngIf="isLoadingCatalogo" class="loading-box">
+    <mat-spinner diameter="40" color="warn"></mat-spinner>
+    <p>Cargando catálogo de módulos...</p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       VISTA: ya envió disponibilidad
+  ══════════════════════════════════════════════════════ -->
+  <div *ngIf="!isLoadingCatalogo && yaEnvio && disponibilidadExistente" class="ya-envio-card">
+
+    <div class="ya-envio-icon">✅</div>
+    <h2>Disponibilidad registrada</h2>
+    <p class="estatus-badge" [class.est-pendiente]="disponibilidadExistente.estatus==='PENDIENTE'"
+       [class.est-revisada]="disponibilidadExistente.estatus==='REVISADA'"
+       [class.est-asignada]="disponibilidadExistente.estatus==='ASIGNADA'">
+      {{ getEstatusLabel(disponibilidadExistente.estatus) }}
+    </p>
+
+    <!-- Resumen -->
+    <div class="resumen-grid">
+
+      <div class="resumen-card">
+        <div class="rc-title">🎓 Modalidades</div>
+        <div class="rc-body">
+          <span *ngFor="let s of disponibilidadExistente.sistemasDisponibles" class="pill pill-sistema">
+            {{ s === 'ESCOLARIZADO' ? '📅 Escolarizado' : '📆 Sabatino' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="resumen-card" *ngIf="disponibilidadExistente.modulosEscolarizado?.length">
+        <div class="rc-title">📅 Módulos Escolarizado</div>
+        <div class="rc-body">
+          <div *ngFor="let m of disponibilidadExistente.modulosEscolarizado" class="modulo-row">
+            <span class="mod-num">M{{ m.numeroModulo }}</span>
+            <span>{{ m.horaInicio?.substring(0,5) }} – {{ m.horaFin?.substring(0,5) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="resumen-card" *ngIf="disponibilidadExistente.modulosSabatino?.length">
+        <div class="rc-title">📆 Módulos Sabatino</div>
+        <div class="rc-body">
+          <div *ngFor="let m of disponibilidadExistente.modulosSabatino" class="modulo-row">
+            <span class="mod-num">M{{ m.numeroModulo }}</span>
+            <span>{{ m.horaInicio?.substring(0,5) }} – {{ m.horaFin?.substring(0,5) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="resumen-card">
+        <div class="rc-title">📊 Carga máxima</div>
+        <div class="rc-body">
+          <span class="pill pill-carga">{{ disponibilidadExistente.modulosMaximosSemana }} módulo(s) por semana</span>
+        </div>
+      </div>
+
+    </div>
+
+    <button class="btn-editar" (click)="editarDisponibilidad()">
+      <mat-icon>edit</mat-icon> Actualizar disponibilidad
+    </button>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       FORMULARIO STEPPER (cuando no ha enviado aún)
+  ══════════════════════════════════════════════════════ -->
+  <div *ngIf="!isLoadingCatalogo && !yaEnvio" class="stepper-container">
+
+    <!-- BARRA DE PROGRESO -->
+    <div class="progress-bar-wrap">
+      <div class="progress-steps">
+        <div *ngFor="let n of [1,2,3]" class="step-dot"
+             [class.active]="pasoActual >= n" [class.current]="pasoActual === n">
+          <span>{{ n }}</span>
+        </div>
+        <div class="progress-line">
+          <div class="progress-fill" [style.width]="progresoWidth"></div>
+        </div>
+      </div>
+      <div class="step-labels">
+        <span [class.lbl-active]="pasoActual >= 1">Modalidad</span>
+        <span [class.lbl-active]="pasoActual >= 2">Módulos</span>
+        <span [class.lbl-active]="pasoActual >= 3">Confirmar</span>
+      </div>
+    </div>
+
+    <!-- ─── PASO 1: MODALIDAD ─── -->
+    <div *ngIf="pasoActual === 1" class="paso-card">
+      <h2 class="paso-title">¿En qué modalidad puedes impartir clases?</h2>
+      <p class="paso-sub">Selecciona una o ambas modalidades.</p>
+
+      <div class="modalidad-grid">
+
+        <div class="modalidad-card" [class.selected]="isSistemaSelected('ESCOLARIZADO')"
+             (click)="toggleSistema('ESCOLARIZADO')">
+          <div class="mc-check" [class.checked]="isSistemaSelected('ESCOLARIZADO')">
+            <mat-icon>{{ isSistemaSelected('ESCOLARIZADO') ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+          </div>
+          <div class="mc-icon">📅</div>
+          <div class="mc-name">Escolarizado</div>
+          <div class="mc-desc">Lunes a Jueves<br>4 módulos diarios</div>
+        </div>
+
+        <div class="modalidad-card" [class.selected]="isSistemaSelected('SABATINO')"
+             (click)="toggleSistema('SABATINO')">
+          <div class="mc-check" [class.checked]="isSistemaSelected('SABATINO')">
+            <mat-icon>{{ isSistemaSelected('SABATINO') ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+          </div>
+          <div class="mc-icon">📆</div>
+          <div class="mc-name">Sabatino</div>
+          <div class="mc-desc">Solo Sábados<br>3 módulos</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─── PASO 2: MÓDULOS ─── -->
+    <div *ngIf="pasoActual === 2" class="paso-card">
+      <h2 class="paso-title">Selecciona tus módulos disponibles</h2>
+      <p class="paso-sub">Marca los horarios en los que puedes impartir clases.</p>
+
+      <!-- ESCOLARIZADO -->
+      <div *ngIf="tieneEscolarizado()" class="sistema-section">
+        <div class="sistema-header esc">
+          <mat-icon>calendar_view_week</mat-icon>
+          Sistema Escolarizado — Lunes a Jueves
+        </div>
+        <div class="modulos-grid">
+          <div *ngFor="let m of modulosEscolarizado" class="modulo-card"
+               [class.selected]="isModuloEscSelected(m.id)"
+               (click)="toggleModuloEsc(m.id)">
+            <div class="mod-check">
+              <mat-icon>{{ isModuloEscSelected(m.id) ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+            </div>
+            <div class="mod-numero">Módulo {{ m.numeroModulo }}</div>
+            <div class="mod-hora">{{ m.horaInicio.substring(0,5) }} – {{ m.horaFin.substring(0,5) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SABATINO -->
+      <div *ngIf="tieneSabatino()" class="sistema-section" style="margin-top:1.5rem;">
+        <div class="sistema-header sab">
+          <mat-icon>calendar_today</mat-icon>
+          Sistema Sabatino — Sábados
+        </div>
+        <div class="modulos-grid">
+          <div *ngFor="let m of modulosSabatino" class="modulo-card"
+               [class.selected]="isModuloSabSelected(m.id)"
+               (click)="toggleModuloSab(m.id)">
+            <div class="mod-check">
+              <mat-icon>{{ isModuloSabSelected(m.id) ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+            </div>
+            <div class="mod-numero">Módulo {{ m.numeroModulo }}</div>
+            <div class="mod-hora">{{ m.horaInicio.substring(0,5) }} – {{ m.horaFin.substring(0,5) }}</div>
+            <div *ngIf="m.descripcion?.includes('Trabajo Social')" class="mod-nota">
+              ⚠️ Solo Trabajo Social
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── PASO 3: CONFIRMAR ─── -->
+    <div *ngIf="pasoActual === 3" class="paso-card">
+      <h2 class="paso-title">Confirma tu disponibilidad</h2>
+
+      <!-- Máximo módulos -->
+      <div class="config-row">
+        <label class="config-label">
+          <mat-icon>tune</mat-icon>
+          Máximo de módulos que puedes cubrir por semana:
+        </label>
+        <div class="modulos-max-selector">
+          <button *ngFor="let n of [1,2,3,4]" class="btn-num"
+                  [class.active]="modulosMaximos === n"
+                  (click)="modulosMaximos = n">{{ n }}</button>
+        </div>
+      </div>
+
+      <!-- Próximo periodo -->
+      <div class="config-row">
+        <label class="config-label">
+          <mat-icon>update</mat-icon>
+          ¿Tienes disponibilidad para el próximo periodo también?
+        </label>
+        <div class="toggle-buttons">
+          <button class="btn-toggle" [class.active]="disponibilidadProximoPeriodo"
+                  (click)="disponibilidadProximoPeriodo = true">Sí</button>
+          <button class="btn-toggle" [class.active]="!disponibilidadProximoPeriodo"
+                  (click)="disponibilidadProximoPeriodo = false">No</button>
+        </div>
+      </div>
+
+      <!-- Resumen final -->
+      <div class="resumen-final">
+        <h3>Resumen de tu disponibilidad:</h3>
+
+        <div class="rf-row">
+          <span class="rf-label">Periodo:</span>
+          <span>{{ periodoActual?.nombre || 'Periodo actual' }}</span>
+        </div>
+        <div class="rf-row">
+          <span class="rf-label">Modalidad(es):</span>
+          <span>{{ sistemasSeleccionados.join(' y ') }}</span>
+        </div>
+        <div class="rf-row" *ngIf="tieneEscolarizado() && modulosEscSeleccionados.length">
+          <span class="rf-label">Módulos Esc.:</span>
+          <span>{{ modulosEscSeleccionados.length }} seleccionado(s)</span>
+        </div>
+        <div class="rf-row" *ngIf="tieneSabatino() && modulosSabSeleccionados.length">
+          <span class="rf-label">Módulos Sab.:</span>
+          <span>{{ modulosSabSeleccionados.length }} seleccionado(s)</span>
+        </div>
+        <div class="rf-row">
+          <span class="rf-label">Máx./semana:</span>
+          <span>{{ modulosMaximos }} módulo(s)</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTONES DE NAVEGACIÓN -->
+    <div class="nav-buttons">
+      <button *ngIf="pasoActual > 1" class="btn-anterior" (click)="anteriorPaso()">
+        <mat-icon>arrow_back</mat-icon> Anterior
+      </button>
+      <div style="flex:1"></div>
+      <button *ngIf="pasoActual < totalPasos" class="btn-siguiente" (click)="siguientePaso()">
+        Siguiente <mat-icon>arrow_forward</mat-icon>
+      </button>
+      <button *ngIf="pasoActual === totalPasos" class="btn-enviar"
+              (click)="enviarDisponibilidad()" [disabled]="isGuardando">
+        <mat-spinner *ngIf="isGuardando" diameter="18" color="accent" style="display:inline-block;margin-right:0.5rem;"></mat-spinner>
+        <mat-icon *ngIf="!isGuardando">send</mat-icon>
+        {{ isGuardando ? 'Guardando...' : 'Enviar disponibilidad' }}
+      </button>
+    </div>
+
+  </div>
+
+</div>
