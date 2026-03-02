@@ -12,37 +12,9 @@ import { UserRole } from './core/models/user.model';
 import { AdminLayoutComponent } from './shared/components/admin-layout/admin-layout.component';
 import { ProgramasListComponent } from './features/admin/docentes/programas-list/programas-list.component';
 import { MateriasListComponent } from './features/admin/docentes/materias-list/materias-list.component';
-<<<<<<< HEAD
-import { ProspectosComponent } from './features/admin/prospectos/prospectos.component';
-
-
-export const routes: Routes = [
-  // ===== RUTAS PÚBLICAS =====
-  {
-    path: '',
-    component: HomeComponent,
-    canActivate: [publicGuard]
-  },
-  {
-    path: 'login',
-    component: LoginComponent
-  },
-  {
-    path: 'home',
-    redirectTo: '',
-    pathMatch: 'full'
-  },
-  {
-    path: 'mantenimiento',
-    component: MaintenanceComponent
-  },
-  {
-    path: 'prospectos',
-    component: ProspectosComponent
-  },
-=======
 import { DocenteListComponent }   from './features/admin/docentes/docentes-list/docente-list.component';
 import { DocenteDetailComponent } from './features/admin/docentes/docente-detail/docente-detail.component';
+import { ProspectosComponent } from './features/admin/prospectos/prospectos.component';
 
 export const routes: Routes = [
   // ── PÚBLICAS ──
@@ -50,7 +22,6 @@ export const routes: Routes = [
   { path: 'login',     component: LoginComponent },
   { path: 'home',      redirectTo: '', pathMatch: 'full' },
   { path: 'mantenimiento', component: MaintenanceComponent },
->>>>>>> 3ed3d2b80d95d249c58930c056c2a3c6b32d7d0b
 
   // ── ADMIN ──
   {
