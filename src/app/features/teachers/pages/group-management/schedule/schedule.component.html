@@ -6,8 +6,46 @@
     <p>Cargando tu horario semanal...</p>
   </div>
 
+  <!-- ===== SIN ASIGNACIONES (estado especial con CTA) ===== -->
+  <div *ngIf="!isLoading && sinAsignaciones" class="sin-asignaciones-state">
+    <div class="sa-icon">🗓️</div>
+    <h3>Aún no tienes clases asignadas</h3>
+    <p>El administrador te asignará materias una vez que registres tu disponibilidad de horario.</p>
+
+    <div class="sa-steps">
+      <div class="sa-step">
+        <div class="sa-step-num">1</div>
+        <div class="sa-step-text">
+          <strong>Registra tu disponibilidad</strong>
+          <span>Indica en qué módulos y modalidad puedes impartir clases.</span>
+        </div>
+      </div>
+      <div class="sa-arrow">→</div>
+      <div class="sa-step">
+        <div class="sa-step-num">2</div>
+        <div class="sa-step-text">
+          <strong>El admin revisa</strong>
+          <span>El administrador asigna materias y grupos según tu disponibilidad.</span>
+        </div>
+      </div>
+      <div class="sa-arrow">→</div>
+      <div class="sa-step">
+        <div class="sa-step-num">3</div>
+        <div class="sa-step-text">
+          <strong>Tu horario aparece aquí</strong>
+          <span>Verás tus clases en esta tabla automáticamente.</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-ir-disponibilidad" (click)="irADisponibilidad()">
+      <mat-icon>edit_calendar</mat-icon>
+      Registrar mi disponibilidad
+    </button>
+  </div>
+
   <!-- ===== ESTADO DE ERROR ===== -->
-  <div *ngIf="errorMessage && !isLoading" class="error-state">
+  <div *ngIf="errorMessage && !isLoading && !sinAsignaciones" class="error-state">
     <mat-icon>event_busy</mat-icon>
     <p>{{ errorMessage }}</p>
     <button mat-raised-button color="primary" (click)="reloadSchedule()">
@@ -17,7 +55,7 @@
   </div>
 
   <!-- ===== CONTENIDO PRINCIPAL ===== -->
-  <div *ngIf="!isLoading && !errorMessage">
+  <div *ngIf="!isLoading && !errorMessage && !sinAsignaciones">
     
     <!-- RESUMEN -->
     <div class="summary-section">
@@ -28,7 +66,6 @@
           <span class="summary-value">{{ horarios.length }}</span>
         </div>
       </div>
-
       <div class="summary-card">
         <mat-icon>schedule</mat-icon>
         <div>
@@ -36,7 +73,6 @@
           <span class="summary-value">{{ getTotalHoras() }} hrs</span>
         </div>
       </div>
-
       <div class="summary-card">
         <mat-icon>school</mat-icon>
         <div>
@@ -49,38 +85,27 @@
     <!-- CALENDARIO SEMANAL -->
     <div class="calendar-container">
       <table class="schedule-table">
-        
-        <!-- ENCABEZADO: Días de la semana -->
         <thead>
           <tr>
             <th class="time-column">Módulo / Horario</th>
             <th *ngFor="let dia of dias">{{ dia }}</th>
           </tr>
         </thead>
-
-        <!-- CUERPO: Módulos y clases -->
         <tbody>
           <tr *ngFor="let modulo of modulos">
-            
-            <!-- Columna de hora -->
             <td class="time-cell">
               <div class="time-info">
                 <span class="modulo-number">Módulo {{ modulo.numero }}</span>
                 <span class="time-range">{{ modulo.hora }}</span>
               </div>
             </td>
-
-            <!-- Celdas de cada día -->
             <td *ngFor="let dia of dias" [class.has-class]="hasClase(dia, modulo.numero)">
-              
-              <!-- Si hay clase en este slot -->
               <div *ngIf="hasClase(dia, modulo.numero)" class="class-card" 
                    [ngClass]="getSistemaClass(getClase(dia, modulo.numero)!.sistema)">
                 <div class="class-header">
                   <mat-icon class="class-icon">book</mat-icon>
                   <span class="class-materia">{{ getClase(dia, modulo.numero)!.materia }}</span>
                 </div>
-                
                 <div class="class-details">
                   <div class="detail-row">
                     <mat-icon>groups</mat-icon>
@@ -95,21 +120,16 @@
                     <span>{{ getClase(dia, modulo.numero)!.horaInicio }} - {{ getClase(dia, modulo.numero)!.horaFin }}</span>
                   </div>
                 </div>
-
                 <mat-chip class="sistema-chip" [ngClass]="getSistemaClass(getClase(dia, modulo.numero)!.sistema)">
                   {{ getClase(dia, modulo.numero)!.sistema }}
                 </mat-chip>
               </div>
-
-              <!-- Si NO hay clase -->
               <div *ngIf="!hasClase(dia, modulo.numero)" class="empty-slot">
                 <mat-icon>remove</mat-icon>
               </div>
-
             </td>
           </tr>
         </tbody>
-
       </table>
     </div>
 

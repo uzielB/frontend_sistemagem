@@ -1,0 +1,355 @@
+<div class="detail-container">
+
+  <!-- HEADER -->
+  <div class="detail-header">
+    <button mat-icon-button class="back-btn" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+
+    <div *ngIf="isLoadingDocente" style="padding:0.5rem;">
+      <mat-spinner diameter="36" color="warn"></mat-spinner>
+    </div>
+
+    <ng-container *ngIf="!isLoadingDocente && docente">
+      <div class="header-avatar">{{ getInicial() }}</div>
+      <div class="header-info">
+        <h1>{{ getNombreCompleto() }}</h1>
+        <div class="header-meta">
+          <span class="meta-pill" *ngIf="docente.numeroEmpleado">
+            <mat-icon>badge</mat-icon> {{ docente.numeroEmpleado }}
+          </span>
+          <span class="meta-pill" *ngIf="docente.especialidad">
+            <mat-icon>school</mat-icon> {{ docente.especialidad }}
+          </span>
+          <span class="meta-pill" *ngIf="docente.departamento">
+            <mat-icon>business</mat-icon> {{ docente.departamento }}
+          </span>
+          <span class="status-badge" [class.active]="docente.estaActivo">
+            {{ docente.estaActivo ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- TABS -->
+  <mat-tab-group class="detail-tabs" animationDuration="200ms" color="warn">
+
+    <!-- TAB 1: PERFIL -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">person</mat-icon> Perfil
+      </ng-template>
+
+      <div class="tab-content" *ngIf="!isLoadingDocente && docente">
+        <div class="info-grid">
+
+          <div class="info-card">
+            <h3 class="info-card-title"><mat-icon>account_circle</mat-icon> Datos Personales</h3>
+            <div class="info-rows">
+              <div class="info-row">
+                <span class="info-label">Nombre</span>
+                <span class="info-value">{{ getNombreCompleto() }}</span>
+              </div>
+              <div class="info-row" *ngIf="docente.usuario?.curp">
+                <span class="info-label">CURP</span>
+                <span class="info-value mono">{{ docente.usuario?.curp }}</span>
+              </div>
+              <div class="info-row" *ngIf="docente.usuario?.correo">
+                <span class="info-label">Correo</span>
+                <span class="info-value">{{ docente.usuario?.correo }}</span>
+              </div>
+              <div class="info-row" *ngIf="docente.usuario?.telefono">
+                <span class="info-label">Teléfono</span>
+                <span class="info-value">{{ docente.usuario?.telefono }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h3 class="info-card-title"><mat-icon>work</mat-icon> Datos Laborales</h3>
+            <div class="info-rows">
+              <div class="info-row" *ngIf="docente.numeroEmpleado">
+                <span class="info-label">N° Empleado</span>
+                <span class="info-value mono">{{ docente.numeroEmpleado }}</span>
+              </div>
+              <div class="info-row" *ngIf="docente.especialidad">
+                <span class="info-label">Especialidad</span>
+                <span class="info-value">{{ docente.especialidad }}</span>
+              </div>
+              <div class="info-row" *ngIf="docente.departamento">
+                <span class="info-label">Departamento</span>
+                <span class="info-value">{{ docente.departamento }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h3 class="info-card-title"><mat-icon>checklist</mat-icon> Estado del Expediente</h3>
+            <div class="checklist">
+              <div class="check-item" [class.done]="docente.haCompletadoFormulario">
+                <mat-icon>{{ docente.haCompletadoFormulario ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                Formulario completado
+              </div>
+              <div class="check-item" [class.done]="docente.haSubidoDocumentos">
+                <mat-icon>{{ docente.haSubidoDocumentos ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                Documentos subidos
+              </div>
+              <div class="check-item" [class.done]="docente.haProporcionadoDatosBancarios">
+                <mat-icon>{{ docente.haProporcionadoDatosBancarios ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                Datos bancarios proporcionados
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div *ngIf="isLoadingDocente" class="tab-loading"><mat-spinner diameter="40" color="warn"></mat-spinner></div>
+      <div *ngIf="errorDocente" class="tab-error">
+        <mat-icon>error_outline</mat-icon>
+        <p>{{ errorDocente }}</p>
+        <button mat-raised-button color="warn" (click)="loadDocente()">Reintentar</button>
+      </div>
+    </mat-tab>
+
+    <!-- TAB 2: DISPONIBILIDAD HORARICA DE DOCENTE -->
+<mat-tab>
+  <ng-template mat-tab-label>
+    <mat-icon class="tab-icon">schedule</mat-icon>
+    Disponibilidad
+    <span class="tab-count tab-count-disp"
+          *ngIf="disponibilidad?.estatus === 'PENDIENTE'">!</span>
+  </ng-template>
+
+  <div class="tab-content">
+
+    <div *ngIf="isLoadingDisp" class="tab-loading">
+      <mat-spinner diameter="36" color="warn"></mat-spinner>
+    </div>
+
+    <!-- Sin disponibilidad -->
+    <div *ngIf="!isLoadingDisp && !disponibilidad" class="empty-disp">
+      <mat-icon>event_busy</mat-icon>
+      <h3>Sin disponibilidad registrada</h3>
+      <p>El docente aún no ha enviado su disponibilidad de horario.</p>
+    </div>
+
+    <!-- Con disponibilidad -->
+    <div *ngIf="!isLoadingDisp && disponibilidad" class="disp-admin-view">
+
+      <!-- Badge estatus -->
+      <div class="disp-status-row">
+        <span class="disp-badge"
+              [class.db-pendiente]="disponibilidad.estatus === 'PENDIENTE'"
+              [class.db-revisada]="disponibilidad.estatus === 'REVISADA'"
+              [class.db-asignada]="disponibilidad.estatus === 'ASIGNADA'">
+          <ng-container [ngSwitch]="disponibilidad.estatus">
+            <span *ngSwitchCase="'PENDIENTE'">⏳ Pendiente de revisión</span>
+            <span *ngSwitchCase="'REVISADA'">✅ Revisada</span>
+            <span *ngSwitchCase="'ASIGNADA'">🎓 Asignada</span>
+          </ng-container>
+        </span>
+        <button *ngIf="disponibilidad.estatus === 'PENDIENTE'"
+                mat-stroked-button class="btn-revisar" (click)="marcarRevisada()">
+          <mat-icon>check</mat-icon> Marcar como revisada
+        </button>
+      </div>
+
+      <!-- Info general -->
+      <div class="disp-info-grid">
+
+        <div class="disp-info-card">
+          <div class="dic-title">🎓 Modalidad(es)</div>
+          <div class="dic-body">
+            <span *ngFor="let s of disponibilidad.sistemasDisponibles" class="disp-pill pill-mod">
+              {{ s === 'ESCOLARIZADO' ? '📅 Escolarizado' : '📆 Sabatino' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="disp-info-card">
+          <div class="dic-title">📊 Carga máxima</div>
+          <div class="dic-body">
+            <span class="disp-pill pill-carga">{{ disponibilidad.modulosMaximosSemana }} módulo(s)/semana</span>
+          </div>
+        </div>
+
+        <div class="disp-info-card">
+          <div class="dic-title">🔄 Próximo periodo</div>
+          <div class="dic-body">
+            <span class="disp-pill" [class.pill-si]="disponibilidad.disponibilidadProximoPeriodo" [class.pill-no]="!disponibilidad.disponibilidadProximoPeriodo">
+              {{ disponibilidad.disponibilidadProximoPeriodo ? 'Sí disponible' : 'No disponible' }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Módulos Escolarizado -->
+      <div *ngIf="disponibilidad.modulosEscolarizado?.length" class="disp-modulos-section">
+        <div class="dms-header esc">
+          <mat-icon>calendar_view_week</mat-icon>
+          Módulos Escolarizado disponibles
+        </div>
+        <div class="modulos-chips">
+          <div *ngFor="let m of disponibilidad.modulosEscolarizado" class="modulo-chip esc">
+            <span class="mc-num">M{{ m.numeroModulo }}</span>
+            <span class="mc-hora">{{ getModuloLabel(m) }}</span>
+            <span class="mc-dias">Lun–Jue</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Módulos Sabatino -->
+      <div *ngIf="disponibilidad.modulosSabatino?.length" class="disp-modulos-section" style="margin-top:1rem;">
+        <div class="dms-header sab">
+          <mat-icon>calendar_today</mat-icon>
+          Módulos Sabatino disponibles
+        </div>
+        <div class="modulos-chips">
+          <div *ngFor="let m of disponibilidad.modulosSabatino" class="modulo-chip sab">
+            <span class="mc-num">M{{ m.numeroModulo }}</span>
+            <span class="mc-hora">{{ getModuloLabel(m) }}</span>
+            <span class="mc-dias">Sábado</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón asignar (requiere módulo grupos) -->
+      <div class="asignar-cta">
+        <div class="cta-nota">
+          <mat-icon>info</mat-icon>
+          Para crear la asignación formal (materia + grupo + módulo), primero
+          crea los grupos en el módulo <strong>Grupos</strong>.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</mat-tab>
+
+
+
+    <!-- TAB 3: MATERIAS ASIGNADAS + PLANEACIONES -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">menu_book</mat-icon>
+        Materias Asignadas
+        <span class="tab-count" *ngIf="getTotalMaterias() > 0">{{ getTotalMaterias() }}</span>
+      </ng-template>
+
+      <div class="tab-content">
+
+        <!-- Toolbar -->
+        <div class="materias-toolbar">
+          <div class="toolbar-info">
+            <span *ngIf="grupos.length > 0">
+              <strong>{{ getTotalMaterias() }}</strong> materia{{ getTotalMaterias() !== 1 ? 's' : '' }}
+              en <strong>{{ grupos.length }}</strong> carrera{{ grupos.length !== 1 ? 's' : '' }}
+            </span>
+            <span *ngIf="grupos.length === 0 && !isLoadingMaterias" class="no-materias-msg">Sin materias asignadas</span>
+          </div>
+          <button mat-flat-button class="btn-agregar" (click)="agregarMaterias()">
+            <mat-icon>add</mat-icon> Agregar Materias
+          </button>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="isLoadingMaterias" class="tab-loading"><mat-spinner diameter="40" color="warn"></mat-spinner></div>
+
+        <!-- Error -->
+        <div *ngIf="errorMaterias && !isLoadingMaterias" class="tab-error">
+          <mat-icon>error_outline</mat-icon>
+          <p>{{ errorMaterias }}</p>
+          <button mat-raised-button color="warn" (click)="loadMaterias()">Reintentar</button>
+        </div>
+
+        <!-- Grupos por carrera -->
+        <div *ngIf="!isLoadingMaterias && !errorMaterias" class="grupos-list">
+
+          <div *ngFor="let grupo of grupos" class="grupo-card">
+
+            <div class="grupo-header" (click)="toggleGrupo(grupo.programaId)">
+              <div class="grupo-header-left">
+                <mat-icon class="grupo-icon">school</mat-icon>
+                <div>
+                  <div class="grupo-nombre">{{ grupo.programaNombre }}</div>
+                  <div class="grupo-codigo">{{ grupo.programaCodigo }}</div>
+                </div>
+              </div>
+              <div class="grupo-header-right">
+                <span class="grupo-count">{{ grupo.materias.length }} materia{{ grupo.materias.length !== 1 ? 's' : '' }}</span>
+                <mat-icon class="toggle-icon" [class.rotated]="gruposExpanded[grupo.programaId]">expand_more</mat-icon>
+              </div>
+            </div>
+
+            <div class="grupo-body" [class.expanded]="gruposExpanded[grupo.programaId]">
+              <div class="materias-tabla">
+
+                <ng-container *ngFor="let sem of [1,2,3,4,5,6,7,8,9,10]">
+                  <ng-container *ngIf="grupo.materias | materiasBySem:sem as matsDeEsteSem">
+                    <ng-container *ngIf="matsDeEsteSem.length > 0">
+
+                      <div class="sem-divider">
+                        <span class="sem-label">Semestre {{ sem }}</span>
+                      </div>
+
+                      <div *ngFor="let mat of matsDeEsteSem" class="materia-row">
+                        <div class="materia-info">
+                          <span class="materia-codigo">{{ mat.codigo }}</span>
+                          <span class="materia-nombre">{{ mat.nombre }}</span>
+                        </div>
+                        <div class="materia-actions">
+                          <!-- Badge de estatus de planeación -->
+                          <ng-container [ngSwitch]="getEstatusLatest(mat.materiaId)">
+                            <span *ngSwitchCase="'APROBADA'"           class="plan-badge pb-aprobada">✅ Aprobada</span>
+                            <span *ngSwitchCase="'PENDIENTE_REVISION'" class="plan-badge pb-pendiente">⏳ Pendiente</span>
+                            <span *ngSwitchCase="'RECHAZADA'"          class="plan-badge pb-rechazada">❌ Rechazada</span>
+                            <span *ngSwitchCase="'CON_OBSERVACIONES'"  class="plan-badge pb-obs">💬 Con Obs.</span>
+                            <span *ngSwitchCase="'EN_REVISION'"        class="plan-badge pb-revision">🔍 En Revisión</span>
+                            <span *ngSwitchDefault                      class="plan-badge pb-none">Sin planeación</span>
+                          </ng-container>
+
+                          <!-- Botón ver planeaciones -->
+                          <button mat-stroked-button class="btn-plan"
+                            (click)="verPlaneacionesDeMateria(mat)"
+                            matTooltip="Ver planeaciones">
+                            <mat-icon>assignment</mat-icon>
+                            Planeaciones
+                          </button>
+
+                          <!-- Botón quitar -->
+                          <button mat-icon-button class="btn-quitar"
+                            (click)="quitarMateria(mat.materiaId, mat.nombre)"
+                            matTooltip="Quitar materia">
+                            <mat-icon>remove_circle_outline</mat-icon>
+                          </button>
+                        </div>
+                      </div>
+
+                    </ng-container>
+                  </ng-container>
+                </ng-container>
+
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Empty state -->
+          <div *ngIf="grupos.length === 0 && !isLoadingMaterias" class="empty-materias">
+            <mat-icon>menu_book</mat-icon>
+            <h3>Sin materias asignadas</h3>
+            <p>Usa <strong>"Agregar Materias"</strong> para asignarle materias a este docente.</p>
+          </div>
+
+        </div>
+      </div>
+    </mat-tab>
+
+    
+
+  </mat-tab-group>
+
+</div>

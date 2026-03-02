@@ -1,21 +1,15 @@
 <div class="syllabus-content">
-  
-  <!-- MENSAJES -->
-  <div *ngIf="successMessage" class="success-message">
-    <mat-icon>check_circle</mat-icon>
-    <p>{{ successMessage }}</p>
-  </div>
 
+  <!-- ERROR -->
   <div *ngIf="errorMessage" class="error-message">
     <mat-icon>error</mat-icon>
     <p>{{ errorMessage }}</p>
   </div>
 
-  <!-- ===================================== -->
-  <!-- SECCIÓN 1: TEMARIOS (Solo lectura)   -->
-  <!-- ===================================== -->
-  
-  <!-- HEADER DE TEMARIOS -->
+  <!-- ============================= -->
+  <!-- SECCIÓN 1: TEMARIOS          -->
+  <!-- ============================= -->
+
   <div class="section-header">
     <mat-icon>description</mat-icon>
     <h2>Temarios Disponibles</h2>
@@ -23,218 +17,107 @@
 
   <div class="info-banner">
     <mat-icon>info</mat-icon>
-    <p>Los temarios son subidos por el administrador. Puedes descargarlos y basarte en ellos para crear tu planeación.</p>
+    <p>Descarga el temario oficial y súbelo como base de tu planeación. El administrador revisará y aprobará cada planeación.</p>
   </div>
 
-  <!-- ✅ FILTROS ACTUALIZADOS: CARRERA Y SEMESTRE -->
+  <!-- FILTROS -->
   <div class="filter-section">
-    <!-- Filtro por Carrera -->
     <mat-form-field appearance="outline">
       <mat-label>Filtrar por Carrera</mat-label>
       <mat-select [formControl]="materiaControl">
         <mat-option value="TODOS">Todas las carreras</mat-option>
-        <mat-option *ngFor="let materia of materias" [value]="materia">
-          {{ materia }}
-        </mat-option>
+        <mat-option *ngFor="let m of materias" [value]="m">{{ m }}</mat-option>
       </mat-select>
     </mat-form-field>
 
-    <!-- ✅ NUEVO: Filtro por Semestre -->
     <mat-form-field appearance="outline">
       <mat-label>Filtrar por Semestre</mat-label>
       <mat-select [formControl]="semestreControl">
-        <mat-option *ngFor="let semestre of semestres" [value]="semestre">
-          {{ semestre === 'TODOS' ? 'Todos los semestres' : 'Semestre ' + semestre }}
+        <mat-option *ngFor="let s of semestres" [value]="s">
+          {{ s === 'TODOS' ? 'Todos los semestres' : 'Semestre ' + s }}
         </mat-option>
       </mat-select>
     </mat-form-field>
 
-    <!-- Contador de resultados -->
     <div class="count-info">
       <mat-icon>folder</mat-icon>
-      <span>{{ temariosFiltrados.length }} temario(s) disponible(s)</span>
+      <span>{{ temariosFiltrados.length }} temario(s)</span>
     </div>
   </div>
 
-  <!-- LISTA DE TEMARIOS -->
-  <div class="temarios-grid">
-    
-    <!-- CARD POR CADA TEMARIO -->
+  <!-- LOADING -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-progress-spinner mode="indeterminate" diameter="48" color="warn"></mat-progress-spinner>
+    <p>Cargando temarios...</p>
+  </div>
+
+  <!-- GRID DE TEMARIOS -->
+  <div class="temarios-grid" *ngIf="!isLoading">
     <mat-card *ngFor="let temario of temariosFiltrados" class="temario-card">
       <mat-card-header>
         <div mat-card-avatar class="pdf-icon">
           <mat-icon>picture_as_pdf</mat-icon>
         </div>
         <mat-card-title>{{ temario.codigoMateria }}</mat-card-title>
-        <mat-card-subtitle>
-          {{ temario.materia }}
-        </mat-card-subtitle>
+        <mat-card-subtitle>{{ temario.materia }}</mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content>
-        <div class="temario-info">
-          <!-- ✅ Chips con info clave -->
-          <div class="chips-row">
-            <mat-chip class="semestre-chip">Semestre {{ temario.semestre }}</mat-chip>
-            <mat-chip class="programa-chip">{{ temario.programa }}</mat-chip>
-          </div>
+        <div class="chips-row">
+          <span class="chip semestre-chip">Sem. {{ temario.semestre }}</span>
+          <span class="chip programa-chip">{{ temario.programa }}</span>
+          <!-- ✅ Badge de planeaciones existentes -->
+          <span 
+            *ngIf="countPlaneaciones(temario.id) > 0"
+            class="chip"
+            [ngClass]="{
+              'planeacion-aprobada':  getUltimoEstatus(temario.id) === 'APROBADA',
+              'planeacion-pendiente': getUltimoEstatus(temario.id) === 'PENDIENTE_REVISION',
+              'planeacion-rechazada': getUltimoEstatus(temario.id) === 'RECHAZADA',
+              'planeacion-revision':  getUltimoEstatus(temario.id) === 'EN_REVISION',
+              'planeacion-obs':       getUltimoEstatus(temario.id) === 'CON_OBSERVACIONES'
+            }">
+            {{ countPlaneaciones(temario.id) }} planeación(es)
+          </span>
+        </div>
 
-          <!-- Info adicional -->
-          <div class="info-row">
-            <mat-icon>description</mat-icon>
-            <span class="filename">{{ temario.nombreArchivo }}</span>
-          </div>
-          <div class="info-row">
-            <mat-icon>event</mat-icon>
-            <span>{{ formatDate(temario.fechaSubida) }}</span>
-          </div>
-          <div class="info-row">
-            <mat-icon>storage</mat-icon>
-            <span>{{ temario.tamano }} MB</span>
-          </div>
+        <div class="info-row">
+          <mat-icon>description</mat-icon>
+          <span class="filename">{{ temario.nombreArchivo }}</span>
+        </div>
+        <div class="info-row">
+          <mat-icon>event</mat-icon>
+          <span>{{ formatDate(temario.fechaSubida) }}</span>
+        </div>
+        <div class="info-row">
+          <mat-icon>storage</mat-icon>
+          <span>{{ temario.tamano }} MB</span>
         </div>
       </mat-card-content>
 
       <mat-card-actions>
-        <!-- ✅ SOLO DESCARGAR (docente NO puede eliminar temarios) -->
-        <button 
-          mat-button 
-          color="primary"
-          (click)="downloadTemario(temario)">
-          <mat-icon>download</mat-icon>
-          Descargar
+        <!-- Ver PDF del temario oficial -->
+        <button mat-stroked-button color="primary" (click)="viewTemario(temario)">
+          <mat-icon>picture_as_pdf</mat-icon> Ver Temario
         </button>
-        
-        <!-- ✅ NUEVO: Subir planeación basada en este temario -->
-        <button 
-          mat-button 
-          color="accent"
-          (click)="uploadPlaneacion(temario.id, temario.codigoMateria)">
-          <mat-icon>upload_file</mat-icon>
-          Subir Planeación
+
+        <!-- Ver mis planeaciones para este temario -->
+        <button mat-stroked-button (click)="verPlaneaciones(temario)" class="btn-planeaciones">
+          <mat-icon>assignment</mat-icon>
+          Planeaciones
+          <span *ngIf="countPlaneaciones(temario.id) > 0" class="badge-count">
+            {{ countPlaneaciones(temario.id) }}
+          </span>
         </button>
       </mat-card-actions>
     </mat-card>
-
   </div>
 
-  <!-- MENSAJE SI NO HAY TEMARIOS -->
-  <div *ngIf="temariosFiltrados.length === 0" class="no-temarios">
+  <!-- SIN TEMARIOS -->
+  <div *ngIf="!isLoading && temariosFiltrados.length === 0" class="no-data">
     <mat-icon>folder_open</mat-icon>
     <p>No hay temarios disponibles con los filtros seleccionados</p>
-    <p class="hint" *ngIf="materiaControl.value !== 'TODOS' || semestreControl.value !== 'TODOS'">
-      Intenta cambiar los filtros para ver más resultados
-    </p>
-    <p class="hint" *ngIf="materiaControl.value === 'TODOS' && semestreControl.value === 'TODOS'">
-      El administrador aún no ha subido temarios para tus materias
-    </p>
-  </div>
-
-  <!-- ===================================== -->
-  <!-- SECCIÓN 2: MIS PLANEACIONES          -->
-  <!-- ===================================== -->
-
-  <div class="divider"></div>
-
-  <div class="section-header">
-    <mat-icon>assignment</mat-icon>
-    <h2>Mis Planeaciones</h2>
-  </div>
-
-  <!-- INPUT PARA SELECCIONAR ARCHIVO DE PLANEACIÓN (oculto) -->
-  <input 
-    type="file" 
-    accept=".pdf"
-    #fileInput
-    (change)="onFileSelected($event)"
-    style="display: none;">
-
-  <!-- BARRA DE PROGRESO (Solo se muestra al subir) -->
-  <div *ngIf="isUploading" class="upload-progress">
-    <mat-progress-spinner 
-      mode="determinate" 
-      [value]="uploadProgress"
-      diameter="50">
-    </mat-progress-spinner>
-    <span class="progress-text">Subiendo planeación... {{ uploadProgress }}%</span>
-  </div>
-
-  <!-- LISTA DE MIS PLANEACIONES -->
-  <div class="planeaciones-grid" *ngIf="planeaciones.length > 0">
-    
-    <mat-card *ngFor="let planeacion of planeaciones" class="planeacion-card">
-      <mat-card-header>
-        <div mat-card-avatar class="planeacion-icon">
-          <mat-icon>assignment_turned_in</mat-icon>
-        </div>
-        <mat-card-title>{{ planeacion.nombreArchivo }}</mat-card-title>
-        <mat-card-subtitle>
-          <mat-chip class="materia-chip">{{ planeacion.materia }}</mat-chip>
-        </mat-card-subtitle>
-      </mat-card-header>
-
-      <mat-card-content>
-        <div class="planeacion-info">
-          <div class="info-row">
-            <mat-icon>event</mat-icon>
-            <span>{{ formatDate(planeacion.fechaSubida) }}</span>
-          </div>
-          <div class="info-row">
-            <mat-icon>numbers</mat-icon>
-            <span>Versión {{ planeacion.version }}</span>
-          </div>
-          <div class="info-row">
-            <mat-icon>flag</mat-icon>
-            <mat-chip [class]="getEstatusClass(planeacion.estatus)" class="status-chip">
-              {{ planeacion.estatus }}
-            </mat-chip>
-          </div>
-        </div>
-      </mat-card-content>
-
-      <mat-card-actions>
-        <button 
-          mat-button 
-          color="primary"
-          (click)="downloadPlaneacion(planeacion)">
-          <mat-icon>download</mat-icon>
-          Descargar
-        </button>
-        
-        <button 
-          mat-button 
-          color="accent"
-          *ngIf="planeacion.observaciones"
-          (click)="verObservaciones(planeacion)">
-          <mat-icon>comment</mat-icon>
-          Ver Observaciones
-        </button>
-      </mat-card-actions>
-    </mat-card>
-
-  </div>
-
-  <!-- MENSAJE SI NO HAY PLANEACIONES -->
-  <div *ngIf="planeaciones.length === 0" class="no-planeaciones">
-    <mat-icon>assignment</mat-icon>
-    <p>Aún no has subido ninguna planeación</p>
-    <p class="hint">Selecciona un temario arriba y haz clic en "Subir Planeación"</p>
-  </div>
-
-  <!-- INSTRUCCIONES -->
-  <div class="instructions-card">
-    <h3>📚 Instrucciones:</h3>
-    <ul>
-      <li><strong>Filtrar Temarios:</strong> Usa los filtros de Carrera y Semestre para encontrar temarios específicos</li>
-      <li><strong>Ver Temarios:</strong> Los temarios son documentos base subidos por el administrador</li>
-      <li><strong>Descargar Temario:</strong> Descarga el temario para basarte en él</li>
-      <li><strong>Subir Planeación:</strong> Haz clic en "Subir Planeación" en cualquier temario</li>
-      <li>Selecciona tu archivo PDF de planeación (máximo 10MB)</li>
-      <li><strong>Estatus:</strong> Tu planeación quedará como "Pendiente de Revisión"</li>
-      <li>El administrador revisará y aprobará/rechazará tu planeación</li>
-      <li><strong>Observaciones:</strong> Si hay comentarios, podrás verlos haciendo clic en "Ver Observaciones"</li>
-      <li>Puedes resubir una planeación si fue rechazada (incrementa la versión)</li>
-    </ul>
+    <p class="hint">El administrador aún no ha subido temarios</p>
   </div>
 
 </div>

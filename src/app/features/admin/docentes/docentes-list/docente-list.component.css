@@ -1,0 +1,184 @@
+.docentes-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+.header-text h1 { margin: 0; font-size: 1.75rem; font-weight: 700; color: #1a1a1a; }
+.subtitle { margin: 0.3rem 0 0; color: #888; font-size: 0.9rem; }
+
+.header-stats { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f5f5f5;
+  border-radius: 20px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #555;
+}
+.stat-pill mat-icon { font-size: 16px; width: 16px; height: 16px; color: #d32f2f; }
+.pill-green mat-icon { color: #2e7d32; }
+
+/* ── BUSCADOR ── */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  transition: border-color 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.search-bar:focus-within { border-color: #d32f2f; }
+
+.search-icon { color: #bbb; font-size: 20px; }
+.search-input { border: none; outline: none; flex: 1; font-size: 0.95rem; color: #333; background: transparent; }
+
+.btn-clear-search { background: none; border: none; cursor: pointer; color: #bbb; display: flex; align-items: center; }
+.btn-clear-search:hover { color: #d32f2f; }
+
+/* ── LOADING / ERROR ── */
+.loading-box {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 1rem; padding: 5rem; background: white; border-radius: 12px;
+}
+.loading-box p { color: #888; }
+
+.error-box {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 1rem; padding: 3rem; background: #ffebee;
+  border-radius: 12px; border: 1px solid #ef5350; color: #c62828;
+}
+.error-box mat-icon { font-size: 48px; width: 48px; height: 48px; }
+
+/* ── GRID ── */
+.docentes-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+
+/* ── CARD ── */
+.docente-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+  border: 1.5px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  transition: box-shadow 0.18s, border-color 0.18s;
+}
+.docente-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-color: #e0e0e0; }
+
+/* ── AVATAR ── */
+.avatar {
+  flex-shrink: 0;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d32f2f, #b71c1c);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 1.2rem;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.avatar:hover { transform: scale(1.05); }
+.avatar.inactive { background: linear-gradient(135deg, #9e9e9e, #757575); }
+
+/* ── CARD MAIN ── */
+.card-main { flex: 1; display: flex; align-items: center; gap: 1rem; cursor: pointer; min-width: 0; }
+.info { flex: 1; min-width: 0; }
+
+.nombre { font-weight: 700; font-size: 0.95rem; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.meta { display: flex; gap: 0.75rem; margin-top: 0.25rem; flex-wrap: wrap; }
+.meta-item { display: flex; align-items: center; gap: 0.25rem; font-size: 0.78rem; color: #888; }
+.meta-icon { font-size: 13px; width: 13px; height: 13px; color: #bbb; }
+
+.badges { display: flex; gap: 0.4rem; margin-top: 0.4rem; flex-wrap: wrap; }
+.badge {
+  display: inline-flex; align-items: center; gap: 0.2rem;
+  padding: 0.15rem 0.6rem; border-radius: 10px; font-size: 0.73rem; font-weight: 600;
+}
+.badge-active      { background: #e8f5e9; color: #2e7d32; }
+.badge-inactive    { background: #f5f5f5; color: #9e9e9e; }
+.badge-materias    { background: #e3f2fd; color: #1565c0; }
+.badge-sin-materias{ background: #fff3e0; color: #e65100; }
+.badge-icon { font-size: 12px; width: 12px; height: 12px; }
+
+/* ── ACCIONES ── */
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.btn-detalle {
+  color: #555 !important;
+  border-color: #ddd !important;
+  font-size: 0.82rem !important;
+  height: 36px !important;
+}
+.btn-detalle:hover { border-color: #d32f2f !important; color: #d32f2f !important; }
+
+.btn-asignar {
+  background: #d32f2f !important;
+  color: white !important;
+  font-size: 0.82rem !important;
+  height: 36px !important;
+}
+.btn-asignar:hover { background: #b71c1c !important; }
+
+/* ✅ Botón eliminar todas las materias */
+.btn-limpiar {
+  color: #bdbdbd !important;
+  transition: color 0.2s, background 0.2s !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+.btn-limpiar:hover {
+  color: #c62828 !important;
+  background: #ffebee !important;
+}
+.btn-limpiar mat-icon { font-size: 20px; }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align: center; padding: 5rem 2rem; background: white; border-radius: 12px; }
+.empty-state mat-icon { font-size: 60px; width: 60px; height: 60px; color: #ddd; margin-bottom: 1rem; }
+.empty-state h3 { color: #888; margin: 0 0 0.5rem; }
+.empty-state p  { color: #bbb; font-size: 0.9rem; }
+
+.btn-link {
+  background: none; border: none; color: #d32f2f;
+  cursor: pointer; text-decoration: underline; font-size: inherit; padding: 0; margin-left: 0.25rem;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .docentes-container { padding: 1rem; }
+  .page-header { flex-direction: column; }
+  .card-actions { flex-wrap: wrap; }
+  .docente-card { flex-direction: column; align-items: flex-start; }
+  .card-main { width: 100%; }
+}

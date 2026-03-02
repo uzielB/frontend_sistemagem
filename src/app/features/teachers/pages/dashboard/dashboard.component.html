@@ -1,10 +1,12 @@
 <div class="dashboard-container">
+
+  <!-- ═══ SIDEBAR ═══ -->
   <aside class="sidebar">
+
     <div class="sidebar-header">
       <div class="gem-logo">
         <span class="logo-text">GEM</span>
         <p class="logo-subtitle">GRUPO EDUCATIVO DE MÉXICO</p>
-
         <div class="docente-info">
           <mat-icon>person</mat-icon>
           <p>DOCENTE</p>
@@ -29,13 +31,19 @@
         <span>Capturar Asistencias</span>
       </button>
 
-      <button class="menu-item" (click)="navigateTo('/teachers/gestion-grupal')"> 
+      <button class="menu-item" (click)="navigateTo('/teachers/gestion-grupal')">
         <mat-icon>groups</mat-icon>
         <span>Gestión Grupal/Clase</span>
       </button>
-      
+
+      <!-- ✅ Mi Disponibilidad -->
+      <button class="menu-item menu-item-disponibilidad" (click)="navigateTo('/teachers/mi-disponibilidad')">
+        <mat-icon>edit_calendar</mat-icon>
+        <span>Mi Disponibilidad</span>
+      </button>
+
       <div class="sidebar-divider"></div>
-      
+
       <button class="menu-item" (click)="navigateTo('/teachers/cambiar-contrasena')">
         <mat-icon>lock</mat-icon>
         <span>Cambiar Contraseña</span>
@@ -47,46 +55,46 @@
       </button>
 
     </nav>
+
   </aside>
 
-  <!-- CONTENIDO PRINCIPAL -->
+  <!-- ═══ CONTENIDO PRINCIPAL ═══ -->
   <main class="main-content">
-    <!-- ÁREA DE TRABAJO -->
     <div class="content-body">
+
       <div class="welcome-card">
         <h2>Bienvenido(a) Docente, {{ getUserName() }}</h2>
         <div class="user-data">
           <p class="user-curp"><strong>CURP:</strong> {{ currentUser?.curp }}</p>
           <p class="user-email"><strong>Correo:</strong> {{ currentUser?.correo }}</p>
-        </div>  
+        </div>
       </div>
 
       <div class="stats-grid">
-
         <div class="stat-card">
           <mat-icon>school</mat-icon>
           <p class="stat-title">Mis Grupos</p>
           <p class="stat-value">5</p>
         </div>
-
         <div class="stat-card">
           <mat-icon>groups</mat-icon>
           <p class="stat-title">Total Alumnos</p>
           <p class="stat-value">142</p>
         </div>
-
         <div class="stat-card">
           <mat-icon>assignment_turned_in</mat-icon>
           <p class="stat-title">Calificaciones Pendientes</p>
           <p class="stat-value">23</p>
         </div>
-
         <div class="stat-card">
           <mat-icon>calendar_today</mat-icon>
           <p class="stat-title">Clases Esta Semana</p>
           <p class="stat-value">12</p>
         </div>
       </div>
+
+
     </div>
   </main>
+
 </div>
