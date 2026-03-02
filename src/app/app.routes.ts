@@ -12,6 +12,8 @@ import { UserRole } from './core/models/user.model';
 import { AdminLayoutComponent } from './shared/components/admin-layout/admin-layout.component';
 import { ProgramasListComponent } from './features/admin/docentes/programas-list/programas-list.component';
 import { MateriasListComponent } from './features/admin/docentes/materias-list/materias-list.component';
+import { ProspectosComponent } from './features/admin/prospectos/prospectos.component';
+
 
 export const routes: Routes = [
   // ===== RUTAS PÚBLICAS =====
@@ -32,6 +34,10 @@ export const routes: Routes = [
   {
     path: 'mantenimiento',
     component: MaintenanceComponent
+  },
+  {
+    path: 'prospectos',
+    component: ProspectosComponent
   },
 
   // ===== RUTAS ADMIN / SUPER ADMIN =====
@@ -81,6 +87,7 @@ export const routes: Routes = [
         path: 'docentes',
         component: ProgramasListComponent // Crear después (solo SuperAdmin)
       },
+      { path: 'prospectos', component: ProspectosComponent },  
       {
         path: 'docentes/programas/:id/materias',
         component: MateriasListComponent

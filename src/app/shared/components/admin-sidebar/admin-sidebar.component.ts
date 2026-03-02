@@ -77,9 +77,9 @@ export class AdminSidebarComponent implements OnInit {
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN]
     },
     {
-      label: 'Alumnos',
+      label: 'Prospectos',
       icon: 'groups',
-      route: '/admin/alumnos',
+      route: '/admin/prospectos',
       roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN]
     },
     {

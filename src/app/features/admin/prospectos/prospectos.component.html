@@ -1,0 +1,163 @@
+<div class="prospectos-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h2><i class="bi bi-person-lines-fill"></i> Prospectos</h2>
+      <p class="subtitle">Gestión de formularios de preinscripción recibidos</p>
+    </div>
+    <button class="btn-refresh" (click)="cargarTodo()" [disabled]="cargando">
+      <i class="bi bi-arrow-clockwise" [class.spin]="cargando"></i> Actualizar
+    </button>
+  </div>
+
+  <!-- Stats cards -->
+  <div class="stats-row" *ngIf="stats">
+    <div class="stat-card">
+      <i class="bi bi-hourglass-split"></i>
+      <div>
+        <span class="stat-num">{{ stats.pendientes }}</span>
+        <span class="stat-label">Pendientes</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <i class="bi bi-eye"></i>
+      <div>
+        <span class="stat-num">{{ stats.enRevision }}</span>
+        <span class="stat-label">En revisión</span>
+      </div>
+    </div>
+    <div class="stat-card aceptada">
+      <i class="bi bi-check-circle"></i>
+      <div>
+        <span class="stat-num">{{ stats.aceptadas }}</span>
+        <span class="stat-label">Aceptadas</span>
+      </div>
+    </div>
+    <div class="stat-card inscrita">
+      <i class="bi bi-mortarboard"></i>
+      <div>
+        <span class="stat-num">{{ stats.inscritas }}</span>
+        <span class="stat-label">Inscritas</span>
+      </div>
+    </div>
+    <div class="stat-card rechazada">
+      <i class="bi bi-x-circle"></i>
+      <div>
+        <span class="stat-num">{{ stats.rechazadas }}</span>
+        <span class="stat-label">Rechazadas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-bar">
+    <button
+      class="tab-btn"
+      [class.active]="tabActiva === 'PENDIENTES'"
+      (click)="cambiarTab('PENDIENTES')">
+      Pendientes
+      <span class="tab-badge">{{ totalPendientes }}</span>
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="tabActiva === 'ATENDIDOS'"
+      (click)="cambiarTab('ATENDIDOS')">
+      Atendidos
+      <span class="tab-badge atendidos">{{ totalAtendidos }}</span>
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros-bar">
+    <div class="search-wrap">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        placeholder="Buscar por nombre o CURP..."
+        [(ngModel)]="busqueda"
+        (ngModelChange)="aplicarFiltros()" />
+      <button *ngIf="busqueda" class="btn-clear" (click)="busqueda=''; aplicarFiltros()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <select [(ngModel)]="carreraFiltro" (ngModelChange)="aplicarFiltros()" class="select-carrera">
+      <option value="">Todas las carreras</option>
+      <option *ngFor="let c of carreras" [value]="c">{{ c }}</option>
+    </select>
+
+    <select [(ngModel)]="porPagina" (ngModelChange)="pagina = 1" class="select-paginacion">
+      <option [value]="10">10 filas</option>
+      <option [value]="20">20 filas</option>
+      <option [value]="50">50 filas</option>
+    </select>
+  </div>
+
+  <!-- Paginación info -->
+  <div class="paginacion-info">
+    <span>Página {{ pagina }} de {{ totalPaginas || 1 }} | {{ filtrados.length }} registros</span>
+    <div class="paginacion-btns">
+      <button (click)="pagina = pagina - 1" [disabled]="pagina <= 1">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <button class="pag-num active">{{ pagina }}</button>
+      <button (click)="pagina = pagina + 1" [disabled]="pagina >= totalPaginas">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="cargando">
+    <i class="bi bi-hourglass-split"></i> Cargando prospectos...
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="!cargando && filtrados.length === 0">
+    <i class="bi bi-inbox"></i>
+    <p>No hay prospectos {{ tabActiva === 'PENDIENTES' ? 'pendientes' : 'atendidos' }} que coincidan.</p>
+    <button class="btn-link" (click)="limpiarFiltros()">Limpiar filtros</button>
+  </div>
+
+  <!-- Lista -->
+  <div class="lista" *ngIf="!cargando && filtrados.length > 0">
+    <div class="prospecto-card" *ngFor="let p of paginados">
+      <div class="card-main">
+        <div class="avatar">{{ p.nombre[0] }}{{ p.apellidoPaterno[0] }}</div>
+        <div class="card-info">
+          <div class="card-nombre">{{ nombreCompleto(p) }}</div>
+          <div class="card-sub">
+            <span class="badge-modalidad">{{ p.modalidad }}</span>
+            <span>{{ p.carreraInteres }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-contacto">
+        <div><i class="bi bi-telephone"></i> {{ p.telefonoCelular }}</div>
+        <div *ngIf="p.correoElectronico"><i class="bi bi-envelope"></i> {{ p.correoElectronico }}</div>
+      </div>
+
+      <div class="card-meta">
+        <span [class]="'badge-estatus ' + claseEstatus(p.estatus)">{{ etiquetaEstatus(p.estatus) }}</span>
+        <div class="card-fecha">Registro<br>{{ formatFecha(p.createdAt) }}</div>
+      </div>
+
+      <div class="card-acciones" *ngIf="tabActiva === 'PENDIENTES'">
+        <button class="btn-inscribir" (click)="abrirInscribir(p)">
+          <i class="bi bi-person-check"></i> Inscribir
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal Inscribir -->
+<app-inscribir-modal
+  *ngIf="mostrarModal && prospectoSeleccionado"
+  [prospecto]="prospectoSeleccionado"
+  (cerrar)="alCerrarModal()"
+  (inscritoExitoso)="alInscritoExitoso($event)">
+</app-inscribir-modal>

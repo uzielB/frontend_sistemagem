@@ -1,0 +1,195 @@
+<!-- OVERLAY -->
+<div class="modal-overlay" (click)="cerrar.emit()"></div>
+
+<!-- MODAL -->
+<div class="modal-container">
+  <!-- Header -->
+  <div class="modal-header">
+    <div class="modal-title-block">
+      <i class="bi bi-person-check-fill"></i>
+      <div>
+        <h5>Inscribir Prospecto</h5>
+        <small>{{ nombreCompleto }}</small>
+      </div>
+    </div>
+    <button class="btn-close-modal" (click)="cerrar.emit()" [disabled]="cargando">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <div class="modal-body" [formGroup]="form">
+
+    <!-- ===== ÉXITO ===== -->
+    <div *ngIf="exito" class="exito-container">
+      <div class="exito-icon"><i class="bi bi-check-circle-fill"></i></div>
+      <h5>¡Alumno inscrito exitosamente!</h5>
+      <div *ngIf="resultadoInscripcion" class="credenciales">
+        <div class="credencial-item">
+          <span class="cred-label">Matrícula</span>
+          <span class="cred-valor">{{ resultadoInscripcion.matricula }}</span>
+        </div>
+        <div class="credencial-item" *ngIf="resultadoInscripcion.contrasenaTemp">
+          <span class="cred-label">Contraseña temporal</span>
+          <span class="cred-valor">{{ resultadoInscripcion.contrasenaTemp }}</span>
+        </div>
+        <div class="credencial-item" *ngIf="resultadoInscripcion.correo">
+          <span class="cred-label">Correo</span>
+          <span class="cred-valor">{{ resultadoInscripcion.correo }}</span>
+        </div>
+      </div>
+      <p class="exito-nota">Se han generado las credenciales de acceso del alumno.</p>
+      <button class="btn-gem" (click)="cerrar.emit()">Cerrar</button>
+    </div>
+
+    <!-- ===== FORMULARIO ===== -->
+    <ng-container *ngIf="!exito">
+
+      <!-- SECCIÓN: Datos del prospecto -->
+      <div class="seccion">
+        <div class="seccion-titulo">
+          <span class="seccion-dot"></span> Datos del prospecto
+        </div>
+        <div class="datos-grid">
+          <div class="dato-item">
+            <span class="dato-label">Nombre completo</span>
+            <span class="dato-valor">{{ nombreCompleto }}</span>
+          </div>
+          <div class="dato-item">
+            <span class="dato-label">CURP</span>
+            <span class="dato-valor">{{ prospecto?.curp }}</span>
+          </div>
+          <div class="dato-item">
+            <span class="dato-label">Teléfono</span>
+            <span class="dato-valor">{{ prospecto?.telefonoCelular }}</span>
+          </div>
+          <div class="dato-item">
+            <span class="dato-label">Correo</span>
+            <span class="dato-valor">{{ prospecto?.correoElectronico || '—' }}</span>
+          </div>
+          <div class="dato-item">
+            <span class="dato-label">Carrera de interés</span>
+            <span class="dato-valor">{{ prospecto?.carreraInteres }}</span>
+          </div>
+          <div class="dato-item">
+            <span class="dato-label">Promedio</span>
+            <span class="dato-valor">{{ prospecto?.promedio }}</span>
+          </div>
+          <div class="dato-item">
+            <span class="dato-label">Escuela de procedencia</span>
+            <span class="dato-valor">{{ prospecto?.escuelaProcedencia }}</span>
+          </div>
+          <div class="dato-item">
+            <span class="dato-label">Tutor</span>
+            <span class="dato-valor">{{ prospecto?.nombreTutor }} — {{ prospecto?.telefonoTutor }}</span>
+          </div>
+          <div class="dato-item">
+            <span class="dato-label">Domicilio</span>
+            <span class="dato-valor">{{ prospecto?.domicilio }}, {{ prospecto?.estado }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: Programa seleccionado -->
+      <div class="seccion">
+        <div class="seccion-titulo">
+          <span class="seccion-dot"></span> Programa seleccionado
+        </div>
+        <div class="form-row-3">
+          <div class="campo">
+            <label>Periodo escolar *</label>
+            <select formControlName="periodoEscolarId" [class.is-invalid]="isInvalid('periodoEscolarId')">
+              <option [value]="null">Selecciona...</option>
+              <option *ngFor="let p of periodos" [value]="p.id">{{ p.nombre }}</option>
+            </select>
+            <div class="invalid-feedback" *ngIf="isInvalid('periodoEscolarId')">Campo obligatorio</div>
+          </div>
+          <div class="campo">
+            <label>Sistema *</label>
+            <select formControlName="modalidad" [class.is-invalid]="isInvalid('modalidad')">
+              <option value="Escolarizado">Escolarizado</option>
+              <option value="Sabatino">Sabatino</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Semestre *</label>
+            <select formControlName="semestre" [class.is-invalid]="isInvalid('semestre')">
+              <option *ngFor="let s of SEMESTRES" [value]="s.value">{{ s.label }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="campo" style="margin-top: 12px;">
+          <label>Carrera *</label>
+          <select formControlName="programaId" [class.is-invalid]="isInvalid('programaId')">
+            <option [value]="null">Selecciona una carrera...</option>
+            <option *ngFor="let p of programasFiltrados" [value]="p.id">{{ p.nombre }}</option>
+          </select>
+          <div class="invalid-feedback" *ngIf="isInvalid('programaId')">Debes seleccionar una carrera</div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: No. de pagos -->
+      <div class="seccion">
+        <div class="seccion-titulo">
+          <span class="seccion-dot"></span> No. de pagos
+        </div>
+        <div class="campo">
+          <label>Número de pagos *</label>
+          <select formControlName="numeroPagos" [class.is-invalid]="isInvalid('numeroPagos')">
+            <option [value]="null">Selecciona...</option>
+            <option *ngFor="let n of NUMERO_PAGOS" [value]="n.value">{{ n.label }}</option>
+          </select>
+          <div class="invalid-feedback" *ngIf="isInvalid('numeroPagos')">Campo obligatorio</div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: Beca de promoción -->
+      <div class="seccion">
+        <div class="seccion-titulo">
+          <span class="seccion-dot"></span> Configurar beca de promoción
+        </div>
+        <div class="campo">
+          <label>Promoción</label>
+          <select formControlName="becaPromocionPorcentaje">
+            <option *ngFor="let b of BECAS_PORCENTAJE" [value]="b.value">{{ b.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: Beca por condición -->
+      <div class="seccion">
+        <div class="seccion-titulo">
+          <span class="seccion-dot"></span> Configurar beca por condición
+        </div>
+        <div class="form-row-2">
+          <div class="campo">
+            <label>Tipo de beca</label>
+            <select formControlName="becaCondicionTipo">
+              <option *ngFor="let b of BECAS_CONDICION" [value]="b.value">{{ b.label }}</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Porcentaje</label>
+            <select formControlName="becaCondicionPorcentaje">
+              <option *ngFor="let b of BECAS_PORCENTAJE" [value]="b.value">{{ b.label }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ERROR -->
+      <div class="alert-error" *ngIf="error">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ error }}
+      </div>
+
+    </ng-container>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="modal-footer" *ngIf="!exito">
+    <button class="btn-cancelar" (click)="cerrar.emit()" [disabled]="cargando">Cancelar</button>
+    <button class="btn-inscribir" (click)="onSubmit()" [disabled]="cargando">
+      <span *ngIf="!cargando"><i class="bi bi-person-check"></i> Inscribir alumno</span>
+      <span *ngIf="cargando"><i class="bi bi-hourglass-split"></i> Procesando...</span>
+    </button>
+  </div>
+</div>

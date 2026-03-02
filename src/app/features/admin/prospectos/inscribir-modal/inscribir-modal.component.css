@@ -1,0 +1,136 @@
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1050;
+}
+.modal-container {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(760px, 95vw);
+  max-height: 90vh;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  z-index: 1051;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+/* Header */
+.modal-header {
+  background: #9b1c1c;
+  color: #fff;
+  padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.modal-title-block { display: flex; align-items: center; gap: 12px; }
+.modal-title-block i { font-size: 1.6rem; }
+.modal-title-block h5 { margin: 0; font-size: 1rem; font-weight: 700; }
+.modal-title-block small { font-size: 0.8rem; opacity: 0.85; }
+.btn-close-modal {
+  background: rgba(255,255,255,0.15); border: none; color: #fff;
+  width: 32px; height: 32px; border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.btn-close-modal:hover { background: rgba(255,255,255,0.3); }
+
+/* Body */
+.modal-body {
+  padding: 20px; overflow-y: auto; flex: 1;
+}
+/* Secciones */
+.seccion { margin-bottom: 20px; }
+.seccion-titulo {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.9rem; font-weight: 700; color: #1e3a5f;
+  margin-bottom: 12px; padding-bottom: 6px;
+  border-bottom: 2px solid #e8f0fe;
+}
+.seccion-dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #1e88e5; display: flex; align-items: center; justify-content: center;
+}
+
+/* Datos grid */
+.datos-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;
+}
+.dato-item {
+  background: #f8f9fa; border-radius: 8px;
+  padding: 8px 12px; display: flex; flex-direction: column; gap: 2px;
+}
+.dato-label { font-size: 0.72rem; color: #888; text-transform: uppercase; letter-spacing: 0.4px; }
+.dato-valor { font-size: 0.88rem; font-weight: 600; color: #333; }
+
+/* Campos de formulario */
+.campo { display: flex; flex-direction: column; gap: 4px; }
+.campo label { font-size: 0.82rem; font-weight: 600; color: #444; }
+.campo select {
+  padding: 8px 12px; border: 1.5px solid #dde;
+  border-radius: 8px; font-size: 0.88rem; background: #fff;
+  color: #333; transition: border-color 0.2s; outline: none;
+}
+.campo select:focus { border-color: #9b1c1c; }
+.campo select.is-invalid { border-color: #dc3545; }
+.invalid-feedback { font-size: 0.78rem; color: #dc3545; }
+
+.form-row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.form-row-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+/* Footer */
+.modal-footer {
+  padding: 14px 20px; background: #f8f9fa;
+  border-top: 1px solid #eee;
+  display: flex; justify-content: flex-end; gap: 10px;
+  flex-shrink: 0;
+}
+.btn-cancelar {
+  padding: 8px 20px; border: 1.5px solid #ccc;
+  background: #fff; color: #555; border-radius: 8px;
+  cursor: pointer; font-size: 0.88rem; transition: all 0.2s;
+}
+.btn-cancelar:hover { background: #f0f0f0; }
+.btn-inscribir {
+  padding: 8px 22px; background: #9b1c1c;
+  color: #fff; border: none; border-radius: 8px;
+  cursor: pointer; font-size: 0.88rem; font-weight: 600;
+  display: flex; align-items: center; gap: 6px; transition: background 0.2s;
+}
+.btn-inscribir:hover:not(:disabled) { background: #7b1414; }
+.btn-inscribir:disabled, .btn-cancelar:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Éxito */
+.exito-container { text-align: center; padding: 30px 20px; }
+.exito-icon { font-size: 4rem; color: #28a745; margin-bottom: 12px; }
+.exito-container h5 { font-size: 1.2rem; color: #28a745; margin-bottom: 16px; }
+.credenciales {
+  background: #f0fff4; border: 1.5px solid #28a745;
+  border-radius: 10px; padding: 16px; margin: 16px auto;
+  max-width: 350px; text-align: left;
+}
+.credencial-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #c3e6cb; }
+.credencial-item:last-child { border-bottom: none; }
+.cred-label { font-size: 0.8rem; color: #555; }
+.cred-valor { font-weight: 700; color: #1a4731; }
+.exito-nota { font-size: 0.82rem; color: #666; margin: 12px 0 20px; }
+.btn-gem {
+  padding: 10px 28px; background: #9b1c1c; color: #fff;
+  border: none; border-radius: 8px; font-weight: 600;
+  cursor: pointer; font-size: 0.9rem; transition: background 0.2s;
+}
+.btn-gem:hover { background: #7b1414; }
+
+/* Alert error */
+.alert-error {
+  background: #fde8e8; border: 1px solid #f5c6c6;
+  color: #9b1c1c; border-radius: 8px; padding: 10px 14px;
+  font-size: 0.88rem; display: flex; gap: 8px; align-items: center;
+  margin-top: 12px;
+}
+
+@media (max-width: 600px) {
+  .form-row-3, .form-row-2 { grid-template-columns: 1fr; }
+  .datos-grid { grid-template-columns: 1fr; }
+}
