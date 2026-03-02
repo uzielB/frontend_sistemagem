@@ -93,7 +93,7 @@ export class AdminSidebarComponent implements OnInit {
       icon: 'settings',
       route: '/admin/configuracion',
       roles: [UserRole.SUPER_ADMIN] // Solo SuperAdmin
-    }
+    },
   ];
 
   // Menú filtrado según el rol del usuario
