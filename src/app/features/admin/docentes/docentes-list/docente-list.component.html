@@ -1,0 +1,132 @@
+<div class="docentes-container">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-text">
+      <h1>Docentes</h1>
+      <p class="subtitle">Gestiona y asigna materias a cada docente</p>
+    </div>
+    <div class="header-stats" *ngIf="!isLoading && docentes.length > 0">
+      <div class="stat-pill">
+        <mat-icon>people</mat-icon>
+        <span>{{ docentes.length }} docentes</span>
+      </div>
+      <div class="stat-pill pill-green">
+        <mat-icon>check_circle</mat-icon>
+        <span>{{ docentes.length }} activos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUSCADOR -->
+  <div class="search-bar" *ngIf="!isLoading">
+    <mat-icon class="search-icon">search</mat-icon>
+    <input
+      [(ngModel)]="busqueda"
+      (ngModelChange)="filtrar()"
+      placeholder="Buscar por nombre, CURP, N° empleado o correo…"
+      class="search-input"
+    />
+    <button *ngIf="busqueda" class="btn-clear-search" (click)="busqueda=''; filtrar()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="isLoading" class="loading-box">
+    <mat-spinner diameter="48" color="warn"></mat-spinner>
+    <p>Cargando docentes…</p>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="errorMessage && !isLoading" class="error-box">
+    <mat-icon>error_outline</mat-icon>
+    <p>{{ errorMessage }}</p>
+    <button mat-raised-button color="warn" (click)="loadDocentes()">
+      <mat-icon>refresh</mat-icon> Reintentar
+    </button>
+  </div>
+
+  <!-- LISTA -->
+  <div *ngIf="!isLoading && !errorMessage" class="docentes-grid">
+
+    <div *ngFor="let docente of docentesFiltrados" class="docente-card">
+
+      <!-- Avatar + Info (clickable → detalle) -->
+      <div class="card-main" (click)="verDetalle(docente.id)" matTooltip="Ver detalle del docente">
+        <div class="avatar" [class.inactive]="!docente.estaActivo">
+          {{ getInicial(docente) }}
+        </div>
+
+        <div class="info">
+          <div class="nombre">{{ getNombreCompleto(docente) }}</div>
+          <div class="meta">
+            <span class="meta-item" *ngIf="docente.numeroEmpleado">
+              <mat-icon class="meta-icon">badge</mat-icon> {{ docente.numeroEmpleado }}
+            </span>
+            <span class="meta-item" *ngIf="docente.usuario?.curp">
+              <mat-icon class="meta-icon">fingerprint</mat-icon> {{ docente.usuario?.curp }}
+            </span>
+            <span class="meta-item" *ngIf="docente.usuario?.correo">
+              <mat-icon class="meta-icon">email</mat-icon> {{ docente.usuario?.correo }}
+            </span>
+          </div>
+
+          <div class="badges">
+            <span class="badge" [class.badge-active]="docente.estaActivo" [class.badge-inactive]="!docente.estaActivo">
+              {{ docente.estaActivo ? 'Activo' : 'Inactivo' }}
+            </span>
+            <span class="badge badge-materias" *ngIf="docente.totalMateriasAsignadas > 0">
+              <mat-icon class="badge-icon">menu_book</mat-icon>
+              {{ docente.totalMateriasAsignadas }} materia{{ docente.totalMateriasAsignadas !== 1 ? 's' : '' }}
+            </span>
+            <span class="badge badge-sin-materias" *ngIf="docente.totalMateriasAsignadas === 0">
+              Sin materias asignadas
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCIONES -->
+      <div class="card-actions">
+
+        <!-- Detalle -->
+        <button mat-stroked-button class="btn-detalle"
+          (click)="verDetalle(docente.id)"
+          matTooltip="Ver perfil y materias asignadas">
+          <mat-icon>person</mat-icon>
+          Detalle
+        </button>
+
+        <!-- Asignar / editar materias -->
+        <button mat-flat-button class="btn-asignar"
+          (click)="abrirModalAsignacion(docente)"
+          matTooltip="Asignar o editar materias">
+          <mat-icon>library_add</mat-icon>
+          Asignar Materias
+        </button>
+
+        <!-- ✅ NUEVO: Eliminar todas — solo visible si tiene materias -->
+        <button mat-icon-button class="btn-limpiar"
+          *ngIf="docente.totalMateriasAsignadas > 0"
+          (click)="limpiarMaterias(docente)"
+          matTooltip="Eliminar todas las materias asignadas">
+          <mat-icon>delete_sweep</mat-icon>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div *ngIf="docentesFiltrados.length === 0" class="empty-state">
+      <mat-icon>{{ busqueda ? 'search_off' : 'people_outline' }}</mat-icon>
+      <h3>{{ busqueda ? 'Sin resultados' : 'No hay docentes registrados' }}</h3>
+      <p *ngIf="busqueda">
+        No coincide ningún docente con "<strong>{{ busqueda }}</strong>".
+        <button class="btn-link" (click)="busqueda=''; filtrar()">Limpiar búsqueda</button>
+      </p>
+    </div>
+
+  </div>
+
+</div>
