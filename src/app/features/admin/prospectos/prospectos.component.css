@@ -1,9 +1,10 @@
 .prospectos-page { padding: 20px; max-width: 1200px; }
 
-/* Header */
+/* ── HEADER ──────────────────────────────────────────── */
 .page-header {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+  display: flex; align-items: flex-start;
+  justify-content: space-between; margin-bottom: 20px;
+  flex-wrap: wrap; gap: 12px;
 }
 .page-header h2 {
   font-size: 1.5rem; font-weight: 700; color: #1a1a2e;
@@ -14,69 +15,93 @@
 .btn-refresh {
   padding: 8px 16px; background: #fff; border: 1.5px solid #dde;
   border-radius: 8px; cursor: pointer; font-size: 0.85rem;
-  color: #555; display: flex; align-items: center; gap: 6px;
-  transition: all 0.2s;
+  color: #555; display: flex; align-items: center; gap: 6px; transition: all 0.2s;
 }
 .btn-refresh:hover { border-color: #9b1c1c; color: #9b1c1c; }
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Stats */
+/* ── STATS (2 cards) ─────────────────────────────────── */
 .stats-row {
-  display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
+  display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;
 }
-.stat-card {
-  flex: 1; min-width: 120px; background: #fff;
-  border: 1.5px solid #e8e8e8; border-radius: 10px;
-  padding: 12px 16px; display: flex; align-items: center; gap: 12px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-}
-.stat-card i { font-size: 1.5rem; color: #9b1c1c; }
-.stat-card.aceptada i { color: #28a745; }
-.stat-card.inscrita i { color: #1e88e5; }
-.stat-card.rechazada i { color: #dc3545; }
-.stat-num { display: block; font-size: 1.4rem; font-weight: 700; color: #1a1a2e; }
-.stat-label { font-size: 0.75rem; color: #888; }
 
-/* Tabs */
+.stat-card {
+  flex: 1; min-width: 200px; background: #fff;
+  border: 2px solid #e8e8e8; border-radius: 14px;
+  padding: 18px 20px;
+  display: flex; align-items: center; gap: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: all 0.2s;
+}
+.stat-card.clickable { cursor: pointer; }
+.stat-card.clickable:hover {
+  box-shadow: 0 6px 20px rgba(16,185,129,0.15);
+  transform: translateY(-2px);
+  border-color: #10b981;
+}
+.stat-card.rechazada { border-color: #fee2e2; }
+
+.stat-icon-wrap {
+  width: 52px; height: 52px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; flex-shrink: 0;
+}
+.stat-icon-wrap.inscrita  { background: #d1fae5; color: #059669; }
+.stat-icon-wrap.rechazada { background: #fee2e2; color: #dc2626; }
+
+.stat-body { flex: 1; }
+.stat-num {
+  display: block; font-size: 2rem; font-weight: 800; color: #1a1a2e; line-height: 1;
+}
+.stat-label { font-size: 0.78rem; color: #888; font-weight: 600; text-transform: uppercase; }
+
+.stat-arrow {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  color: #10b981; font-size: 0.7rem; font-weight: 700;
+}
+.stat-arrow i { font-size: 1.3rem; }
+
+/* ── TABS ─────────────────────────────────────────────── */
 .tabs-bar {
   display: flex; gap: 0; margin-bottom: 16px;
   border-bottom: 2px solid #e8e8e8;
 }
 .tab-btn {
-  padding: 10px 20px; background: none; border: none;
+  padding: 10px 22px; background: none; border: none;
   cursor: pointer; font-size: 0.9rem; color: #888;
   display: flex; align-items: center; gap: 8px;
   border-bottom: 3px solid transparent; margin-bottom: -2px;
-  transition: all 0.2s;
+  transition: all 0.2s; font-weight: 500;
 }
+.tab-btn i { font-size: 0.95rem; }
 .tab-btn.active { color: #9b1c1c; border-bottom-color: #9b1c1c; font-weight: 700; }
 .tab-badge {
-  background: #f0f0f0; color: #555;
-  padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;
+  background: #f0f0f0; color: #666;
+  padding: 2px 9px; border-radius: 12px;
+  font-size: 0.75rem; font-weight: 700;
 }
-.tab-badge.atendidos { background: #e8f5e9; color: #2e7d32; }
-.tab-btn.active .tab-badge { background: #fde8e8; color: #9b1c1c; }
+.tab-badge.active   { background: #fde8e8; color: #9b1c1c; }
+.tab-badge.inscrita { background: #d1fae5; color: #065f46; }
 
-/* Filtros */
+/* ── FILTROS ──────────────────────────────────────────── */
 .filtros-bar {
   display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;
 }
 .search-wrap {
   flex: 1; min-width: 200px; position: relative;
   display: flex; align-items: center;
-  background: #fff; border: 1.5px solid #dde; border-radius: 8px;
-  padding: 0 12px;
+  background: #fff; border: 1.5px solid #dde;
+  border-radius: 8px; padding: 0 12px;
+  transition: border-color 0.2s;
 }
+.search-wrap:focus-within { border-color: #9b1c1c; }
 .search-wrap i { color: #aaa; margin-right: 8px; }
 .search-wrap input {
   flex: 1; border: none; outline: none;
   font-size: 0.88rem; padding: 8px 0; background: transparent;
 }
-.btn-clear {
-  background: none; border: none; color: #aaa; cursor: pointer;
-  padding: 0; font-size: 1rem;
-}
+.btn-clear { background: none; border: none; color: #aaa; cursor: pointer; padding: 0; }
 .select-carrera, .select-paginacion {
   padding: 8px 12px; border: 1.5px solid #dde;
   border-radius: 8px; font-size: 0.88rem; background: #fff;
@@ -84,7 +109,7 @@
 }
 .select-carrera { min-width: 200px; }
 
-/* Paginación info */
+/* ── PAGINACIÓN ───────────────────────────────────────── */
 .paginacion-info {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 10px; font-size: 0.82rem; color: #666;
@@ -95,20 +120,17 @@
   background: #fff; border-radius: 6px; cursor: pointer;
   font-size: 0.8rem; display: flex; align-items: center; justify-content: center;
 }
-.paginacion-btns button.pag-num.active {
-  background: #9b1c1c; color: #fff; border-color: #9b1c1c;
-}
+.paginacion-btns button.pag-num.active { background: #9b1c1c; color: #fff; border-color: #9b1c1c; }
 .paginacion-btns button:disabled { opacity: 0.4; cursor: default; }
 
-/* Loading / Empty */
+/* ── LOADING / EMPTY ──────────────────────────────────── */
 .loading-state, .empty-state {
   text-align: center; padding: 60px 20px; color: #aaa; font-size: 0.9rem;
 }
 .loading-state i, .empty-state i { font-size: 2.5rem; display: block; margin-bottom: 12px; }
-.empty-state p { margin-bottom: 12px; }
-.btn-link { background: none; border: none; color: #9b1c1c; cursor: pointer; text-decoration: underline; font-size: 0.85rem; }
+.btn-link { background: none; border: none; color: #9b1c1c; cursor: pointer; text-decoration: underline; }
 
-/* Tarjetas de prospecto */
+/* ── LISTA PENDIENTES ────────────────────────────────── */
 .lista { display: flex; flex-direction: column; gap: 8px; }
 .prospecto-card {
   background: #fff; border: 1.5px solid #e8e8e8;
@@ -125,43 +147,99 @@
   display: flex; align-items: center; justify-content: center;
   font-size: 1rem; font-weight: 700; flex-shrink: 0;
 }
-.card-nombre { font-weight: 700; font-size: 0.95rem; color: #1a1a2e; }
-.card-sub { font-size: 0.8rem; color: #666; display: flex; gap: 8px; align-items: center; margin-top: 2px; }
+.card-nombre  { font-weight: 700; font-size: 0.95rem; color: #1a1a2e; }
+.card-sub     { font-size: 0.8rem; color: #666; display: flex; gap: 8px; align-items: center; margin-top: 2px; }
 .badge-modalidad {
   background: #f0f4ff; color: #1e4fd0;
   padding: 1px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;
 }
-
-.card-contacto { flex: 1; min-width: 160px; font-size: 0.82rem; color: #555; display: flex; flex-direction: column; gap: 3px; }
+.card-contacto {
+  flex: 1; min-width: 160px;
+  font-size: 0.82rem; color: #555;
+  display: flex; flex-direction: column; gap: 3px;
+}
 .card-contacto i { margin-right: 4px; color: #aaa; }
-
-.card-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.card-meta  { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .card-fecha { font-size: 0.75rem; color: #999; text-align: right; }
 
-/* Badges de estatus */
-.badge-estatus {
-  padding: 3px 10px; border-radius: 12px;
-  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-}
-.badge-pendiente { background: #fff3cd; color: #856404; }
-.badge-revision { background: #cce5ff; color: #004085; }
-.badge-aceptada { background: #d4edda; color: #155724; }
-.badge-rechazada { background: #f8d7da; color: #721c24; }
-.badge-inscrita { background: #d1ecf1; color: #0c5460; }
-
-/* Botón inscribir en card */
 .btn-inscribir {
-  padding: 7px 16px; background: #9b1c1c;
-  color: #fff; border: none; border-radius: 8px;
-  cursor: pointer; font-size: 0.82rem; font-weight: 600;
+  padding: 7px 16px; background: #9b1c1c; color: #fff;
+  border: none; border-radius: 8px; cursor: pointer;
+  font-size: 0.82rem; font-weight: 600;
   display: flex; align-items: center; gap: 6px;
   transition: background 0.2s; white-space: nowrap;
 }
 .btn-inscribir:hover { background: #7b1414; }
 
+/* ── LISTA INSCRITOS ─────────────────────────────────── */
+.lista-inscritos { display: flex; flex-direction: column; gap: 10px; }
+
+.inscrito-card {
+  background: #fff;
+  border: 1.5px solid #a7f3d0;
+  border-left: 5px solid #10b981;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 16px;
+  flex-wrap: wrap;
+  transition: box-shadow 0.2s;
+}
+.inscrito-card:hover { box-shadow: 0 4px 16px rgba(16,185,129,0.12); }
+
+.inscrito-avatar {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; font-weight: 800; flex-shrink: 0;
+}
+
+.inscrito-info { flex: 2; min-width: 200px; display: flex; flex-direction: column; gap: 6px; }
+.inscrito-nombre { font-weight: 700; font-size: 0.95rem; color: #1a1a2e; }
+.inscrito-detalles { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 10px; border-radius: 20px;
+  font-size: 0.72rem; font-weight: 600;
+}
+.chip i { font-size: 0.7rem; }
+.chip.carrera  { background: #ede9fe; color: #6d28d9; }
+.chip.modalidad{ background: #e0f2fe; color: #0369a1; }
+.chip.curp     { background: #f0fdf4; color: #15803d; font-family: monospace; letter-spacing: 0.5px; }
+
+.inscrito-contacto {
+  flex: 1; min-width: 160px;
+  font-size: 0.82rem; color: #555;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.inscrito-contacto i { margin-right: 4px; color: #aaa; }
+
+.inscrito-fecha {
+  display: flex; flex-direction: column; gap: 2px;
+  align-items: flex-end;
+}
+.fecha-label { font-size: 0.7rem; color: #aaa; text-transform: uppercase; font-weight: 600; }
+.fecha-val   { font-size: 0.82rem; color: #555; font-weight: 500; }
+
+/* ── BADGES ───────────────────────────────────────────── */
+.badge-estatus {
+  padding: 4px 12px; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 700;
+  text-transform: uppercase; display: inline-flex;
+  align-items: center; gap: 4px;
+}
+.badge-pendiente { background: #fff3cd; color: #856404; }
+.badge-revision  { background: #cce5ff; color: #004085; }
+.badge-aceptada  { background: #d4edda; color: #155724; }
+.badge-rechazada { background: #f8d7da; color: #721c24; }
+.badge-inscrita  { background: #d1fae5; color: #065f46; }
+
+/* ── RESPONSIVE ─────────────────────────────────────── */
 @media (max-width: 700px) {
-  .prospecto-card { flex-direction: column; align-items: flex-start; }
-  .card-meta { align-items: flex-start; }
+  .prospecto-card, .inscrito-card { flex-direction: column; align-items: flex-start; }
+  .card-meta, .inscrito-fecha { align-items: flex-start; }
   .card-acciones { width: 100%; }
   .btn-inscribir { width: 100%; justify-content: center; }
+  .stats-row { flex-direction: column; }
 }

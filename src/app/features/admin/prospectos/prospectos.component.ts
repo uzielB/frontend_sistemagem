@@ -18,29 +18,27 @@ import { InscribirModalComponent } from './inscribir-modal/inscribir-modal.compo
 export class ProspectosComponent implements OnInit {
   private svc = inject(PreinscripcionesService);
 
-  // Datos
-  todos: Preinscripcion[] = [];
-  filtrados: Preinscripcion[] = [];
+  todos: Preinscripcion[]       = [];
+  filtrados: Preinscripcion[]   = [];
   stats: PreinscripcionStats | null = null;
-  carreras: string[] = [];
+  carreras: string[]            = [];
 
-  // Filtros
-  tabActiva: 'PENDIENTES' | 'ATENDIDOS' = 'PENDIENTES';
-  busqueda = '';
+  // Tabs: PENDIENTES | INSCRITOS
+  tabActiva: 'PENDIENTES' | 'INSCRITOS' = 'PENDIENTES';
+  busqueda     = '';
   carreraFiltro = '';
 
-  // Paginación
-  pagina = 1;
+  pagina    = 1;
   porPagina = 20;
 
-  // Estado UI
-  cargando = false;
+  cargando              = false;
   prospectoSeleccionado: Preinscripcion | null = null;
-  mostrarModal = false;
+  mostrarModal          = false;
 
-  ngOnInit(): void {
-    this.cargarTodo();
-  }
+  // Vista de inscritos desde card stat
+  verInscritos = false;
+
+  ngOnInit(): void { this.cargarTodo(); }
 
   cargarTodo(): void {
     this.cargando = true;
@@ -68,11 +66,11 @@ export class ProspectosComponent implements OnInit {
   aplicarFiltros(): void {
     const esPendiente = (p: Preinscripcion) =>
       p.estatus === 'PENDIENTE' || p.estatus === 'EN_REVISION';
-    const esAtendido = (p: Preinscripcion) =>
-      p.estatus === 'ACEPTADA' || p.estatus === 'RECHAZADA' || p.estatus === 'INSCRITA';
+    const esInscrito = (p: Preinscripcion) =>
+      p.estatus === 'INSCRITA' || p.estatus === 'INSCRITO' as any;
 
     let resultado = this.todos.filter(p =>
-      this.tabActiva === 'PENDIENTES' ? esPendiente(p) : esAtendido(p)
+      this.tabActiva === 'PENDIENTES' ? esPendiente(p) : esInscrito(p)
     );
 
     if (this.busqueda.trim()) {
@@ -89,11 +87,19 @@ export class ProspectosComponent implements OnInit {
     }
 
     this.filtrados = resultado;
-    this.pagina = 1;
+    this.pagina    = 1;
   }
 
-  cambiarTab(tab: 'PENDIENTES' | 'ATENDIDOS'): void {
-    this.tabActiva = tab;
+  cambiarTab(tab: 'PENDIENTES' | 'INSCRITOS'): void {
+    this.tabActiva   = tab;
+    this.verInscritos = false;
+    this.aplicarFiltros();
+  }
+
+  // Click en card de Inscritos → ir directo a tab inscritos
+  irAInscritos(): void {
+    this.tabActiva    = 'INSCRITOS';
+    this.verInscritos = true;
     this.aplicarFiltros();
   }
 
@@ -107,41 +113,52 @@ export class ProspectosComponent implements OnInit {
   }
 
   get totalPendientes(): number {
-    return this.todos.filter(p => p.estatus === 'PENDIENTE' || p.estatus === 'EN_REVISION').length;
+    return this.todos.filter(p =>
+      p.estatus === 'PENDIENTE' || p.estatus === 'EN_REVISION'
+    ).length;
   }
 
-  get totalAtendidos(): number {
-    return this.todos.filter(p => p.estatus === 'ACEPTADA' || p.estatus === 'RECHAZADA' || p.estatus === 'INSCRITA').length;
+  get totalInscritos(): number {
+    return this.todos.filter(p =>
+      p.estatus === 'INSCRITA' || p.estatus === 'INSCRITO' as any
+    ).length;
+  }
+
+  get totalRechazados(): number {
+    return this.todos.filter(p => p.estatus === 'RECHAZADA').length;
   }
 
   nombreCompleto(p: Preinscripcion): string {
-    return `${p.nombre} ${p.apellidoPaterno} ${p.apellidoMaterno}`.trim();
+    return `${p.nombre} ${p.apellidoPaterno} ${p.apellidoMaterno || ''}`.trim();
   }
 
   formatFecha(fecha?: string): string {
     if (!fecha) return '—';
-    const d = new Date(fecha);
-    return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return new Date(fecha).toLocaleDateString('es-MX', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    });
   }
 
   etiquetaEstatus(estatus: string): string {
     const map: Record<string, string> = {
-      PENDIENTE: 'Pendiente',
+      PENDIENTE:   'Pendiente',
       EN_REVISION: 'En revisión',
-      ACEPTADA: 'Aceptada',
-      RECHAZADA: 'Rechazada',
-      INSCRITA: 'Inscrita',
+      ACEPTADA:    'Aceptada',
+      RECHAZADA:   'Rechazada',
+      INSCRITA:    'Inscrito',
+      INSCRITO:    'Inscrito',
     };
     return map[estatus] || estatus;
   }
 
   claseEstatus(estatus: string): string {
     const map: Record<string, string> = {
-      PENDIENTE: 'badge-pendiente',
+      PENDIENTE:   'badge-pendiente',
       EN_REVISION: 'badge-revision',
-      ACEPTADA: 'badge-aceptada',
-      RECHAZADA: 'badge-rechazada',
-      INSCRITA: 'badge-inscrita',
+      ACEPTADA:    'badge-aceptada',
+      RECHAZADA:   'badge-rechazada',
+      INSCRITA:    'badge-inscrita',
+      INSCRITO:    'badge-inscrita',
     };
     return map[estatus] || '';
   }
@@ -152,19 +169,16 @@ export class ProspectosComponent implements OnInit {
   }
 
   alCerrarModal(): void {
-    this.mostrarModal = false;
+    this.mostrarModal          = false;
     this.prospectoSeleccionado = null;
   }
 
   alInscritoExitoso(resultado: any): void {
-    setTimeout(() => {
-      this.alCerrarModal();
-      this.cargarTodo();
-    }, 2500);
+    this.cargarTodo(); 
   }
 
   limpiarFiltros(): void {
-    this.busqueda = '';
+    this.busqueda      = '';
     this.carreraFiltro = '';
     this.aplicarFiltros();
   }

@@ -1,6 +1,6 @@
 <div class="prospectos-page">
 
-  <!-- Header -->
+  <!-- HEADER -->
   <div class="page-header">
     <div class="header-left">
       <h2><i class="bi bi-person-lines-fill"></i> Prospectos</h2>
@@ -11,72 +11,67 @@
     </button>
   </div>
 
-  <!-- Stats cards -->
+  <!-- STATS: solo 2 cards -->
   <div class="stats-row" *ngIf="stats">
-    <div class="stat-card">
-      <i class="bi bi-hourglass-split"></i>
-      <div>
-        <span class="stat-num">{{ stats.pendientes }}</span>
-        <span class="stat-label">Pendientes</span>
+
+    <!-- Inscritos — clickeable -->
+    <div class="stat-card inscrita clickable" (click)="irAInscritos()">
+      <div class="stat-icon-wrap inscrita">
+        <i class="bi bi-mortarboard-fill"></i>
+      </div>
+      <div class="stat-body">
+        <span class="stat-num">{{ totalInscritos }}</span>
+        <span class="stat-label">Alumnos Inscritos</span>
+      </div>
+      <div class="stat-arrow">
+        <i class="bi bi-arrow-right-circle"></i>
+        <span>Ver lista</span>
       </div>
     </div>
-    <div class="stat-card">
-      <i class="bi bi-eye"></i>
-      <div>
-        <span class="stat-num">{{ stats.enRevision }}</span>
-        <span class="stat-label">En revisión</span>
-      </div>
-    </div>
-    <div class="stat-card aceptada">
-      <i class="bi bi-check-circle"></i>
-      <div>
-        <span class="stat-num">{{ stats.aceptadas }}</span>
-        <span class="stat-label">Aceptadas</span>
-      </div>
-    </div>
-    <div class="stat-card inscrita">
-      <i class="bi bi-mortarboard"></i>
-      <div>
-        <span class="stat-num">{{ stats.inscritas }}</span>
-        <span class="stat-label">Inscritas</span>
-      </div>
-    </div>
+
+    <!-- Rechazados -->
     <div class="stat-card rechazada">
-      <i class="bi bi-x-circle"></i>
-      <div>
-        <span class="stat-num">{{ stats.rechazadas }}</span>
-        <span class="stat-label">Rechazadas</span>
+      <div class="stat-icon-wrap rechazada">
+        <i class="bi bi-x-circle-fill"></i>
+      </div>
+      <div class="stat-body">
+        <span class="stat-num">{{ totalRechazados }}</span>
+        <span class="stat-label">Rechazados</span>
       </div>
     </div>
+
   </div>
 
-  <!-- Tabs -->
+  <!-- TABS -->
   <div class="tabs-bar">
-    <button
-      class="tab-btn"
-      [class.active]="tabActiva === 'PENDIENTES'"
-      (click)="cambiarTab('PENDIENTES')">
+    <button class="tab-btn"
+            [class.active]="tabActiva === 'PENDIENTES'"
+            (click)="cambiarTab('PENDIENTES')">
+      <i class="bi bi-hourglass-split"></i>
       Pendientes
-      <span class="tab-badge">{{ totalPendientes }}</span>
+      <span class="tab-badge" [class.active]="tabActiva === 'PENDIENTES'">
+        {{ totalPendientes }}
+      </span>
     </button>
-    <button
-      class="tab-btn"
-      [class.active]="tabActiva === 'ATENDIDOS'"
-      (click)="cambiarTab('ATENDIDOS')">
-      Atendidos
-      <span class="tab-badge atendidos">{{ totalAtendidos }}</span>
+    <button class="tab-btn"
+            [class.active]="tabActiva === 'INSCRITOS'"
+            (click)="cambiarTab('INSCRITOS')">
+      <i class="bi bi-mortarboard"></i>
+      Inscritos
+      <span class="tab-badge inscrita" [class.active]="tabActiva === 'INSCRITOS'">
+        {{ totalInscritos }}
+      </span>
     </button>
   </div>
 
-  <!-- Filtros -->
+  <!-- FILTROS -->
   <div class="filtros-bar">
     <div class="search-wrap">
       <i class="bi bi-search"></i>
-      <input
-        type="text"
-        placeholder="Buscar por nombre o CURP..."
-        [(ngModel)]="busqueda"
-        (ngModelChange)="aplicarFiltros()" />
+      <input type="text"
+             placeholder="Buscar por nombre o CURP..."
+             [(ngModel)]="busqueda"
+             (ngModelChange)="aplicarFiltros()" />
       <button *ngIf="busqueda" class="btn-clear" (click)="busqueda=''; aplicarFiltros()">
         <i class="bi bi-x"></i>
       </button>
@@ -94,7 +89,7 @@
     </select>
   </div>
 
-  <!-- Paginación info -->
+  <!-- PAGINACIÓN INFO -->
   <div class="paginacion-info">
     <span>Página {{ pagina }} de {{ totalPaginas || 1 }} | {{ filtrados.length }} registros</span>
     <div class="paginacion-btns">
@@ -108,20 +103,20 @@
     </div>
   </div>
 
-  <!-- Loading -->
+  <!-- LOADING -->
   <div class="loading-state" *ngIf="cargando">
     <i class="bi bi-hourglass-split"></i> Cargando prospectos...
   </div>
 
-  <!-- Empty state -->
+  <!-- EMPTY STATE -->
   <div class="empty-state" *ngIf="!cargando && filtrados.length === 0">
-    <i class="bi bi-inbox"></i>
-    <p>No hay prospectos {{ tabActiva === 'PENDIENTES' ? 'pendientes' : 'atendidos' }} que coincidan.</p>
+    <i class="bi {{ tabActiva === 'PENDIENTES' ? 'bi-inbox' : 'bi-mortarboard' }}"></i>
+    <p>No hay {{ tabActiva === 'PENDIENTES' ? 'prospectos pendientes' : 'alumnos inscritos' }} que coincidan.</p>
     <button class="btn-link" (click)="limpiarFiltros()">Limpiar filtros</button>
   </div>
 
-  <!-- Lista -->
-  <div class="lista" *ngIf="!cargando && filtrados.length > 0">
+  <!-- LISTA PENDIENTES -->
+  <div class="lista" *ngIf="!cargando && filtrados.length > 0 && tabActiva === 'PENDIENTES'">
     <div class="prospecto-card" *ngFor="let p of paginados">
       <div class="card-main">
         <div class="avatar">{{ p.nombre[0] }}{{ p.apellidoPaterno[0] }}</div>
@@ -141,14 +136,50 @@
 
       <div class="card-meta">
         <span [class]="'badge-estatus ' + claseEstatus(p.estatus)">{{ etiquetaEstatus(p.estatus) }}</span>
-        <div class="card-fecha">Registro<br>{{ formatFecha(p.createdAt) }}</div>
+        <div class="card-fecha">{{ formatFecha(p.createdAt) }}</div>
       </div>
 
-      <div class="card-acciones" *ngIf="tabActiva === 'PENDIENTES'">
+      <div class="card-acciones">
         <button class="btn-inscribir" (click)="abrirInscribir(p)">
           <i class="bi bi-person-check"></i> Inscribir
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- LISTA INSCRITOS — tabla con más detalle -->
+  <div class="lista-inscritos" *ngIf="!cargando && filtrados.length > 0 && tabActiva === 'INSCRITOS'">
+    <div class="inscrito-card" *ngFor="let p of paginados">
+      <div class="inscrito-avatar">{{ p.nombre[0] }}{{ p.apellidoPaterno[0] }}</div>
+
+      <div class="inscrito-info">
+        <span class="inscrito-nombre">{{ nombreCompleto(p) }}</span>
+        <div class="inscrito-detalles">
+          <span class="chip carrera">
+            <i class="bi bi-book"></i> {{ p.carreraInteres }}
+          </span>
+          <span class="chip modalidad">
+            <i class="bi bi-laptop"></i> {{ p.modalidad }}
+          </span>
+          <span class="chip curp">
+            <i class="bi bi-person-badge"></i> {{ p.curp }}
+          </span>
+        </div>
+      </div>
+
+      <div class="inscrito-contacto">
+        <div><i class="bi bi-telephone"></i> {{ p.telefonoCelular }}</div>
+        <div *ngIf="p.correoElectronico"><i class="bi bi-envelope"></i> {{ p.correoElectronico }}</div>
+      </div>
+
+      <div class="inscrito-fecha">
+        <span class="fecha-label">Fecha registro</span>
+        <span class="fecha-val">{{ formatFecha(p.createdAt) }}</span>
+      </div>
+
+      <span class="badge-estatus badge-inscrita">
+        <i class="bi bi-check-circle-fill"></i> Inscrito
+      </span>
     </div>
   </div>
 
