@@ -1,19 +1,23 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpInterceptorFn, HttpRequest, HttpHandlerFn } from '@angular/common/http';
 
 /**
  * UBICACIÓN: src/app/core/interceptors/auth.interceptor.ts
  *
  * Agrega el token JWT a todas las peticiones HTTP automáticamente.
- * Busca el token en las claves más comunes de localStorage.
+ * Busca en las claves más comunes de localStorage.
  */
-export const authInterceptor: HttpInterceptorFn = (req, next) => {
-
+export const authInterceptor: HttpInterceptorFn = (
+  req: HttpRequest<unknown>,
+  next: HttpHandlerFn
+) => {
   const token = getToken();
 
-  // Si no hay token o es una ruta pública, pasar sin modificar
-  if (!token) return next(req);
+  // Si no hay token o es una petición pública, continuar sin modificar
+  if (!token) {
+    return next(req);
+  }
 
-  // Clonar la petición agregando el header de autorización
+  // Clonar la petición agregando el header Authorization
   const authReq = req.clone({
     setHeaders: {
       Authorization: `Bearer ${token}`
@@ -24,34 +28,35 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 };
 
 /**
- * Busca el JWT en localStorage probando las claves más comunes
- * y como fallback busca cualquier valor que parezca un JWT (empieza con 'eyJ')
+ * Busca el token JWT en localStorage probando las claves más comunes.
+ * También hace un fallback escaneando todas las keys que contengan un JWT.
  */
-function getToken(): string {
-  // Claves comunes usadas en proyectos NestJS + Angular
-  const clavesComunes = [
+function getToken(): string | null {
+  // Claves comunes — ajusta si usas una diferente
+  const claves = [
     'token',
     'auth_token',
     'access_token',
-    'accessToken',
     'authToken',
+    'jwt',
     'jwt_token',
-    'jwtToken',
     'gem_token',
+    'bearerToken',
   ];
 
-  for (const clave of clavesComunes) {
-    const val = localStorage.getItem(clave);
-    if (val && val.startsWith('eyJ')) return val;
+  for (const clave of claves) {
+    const valor = localStorage.getItem(clave);
+    if (valor) return valor;
   }
 
-  // Fallback: buscar cualquier JWT en localStorage
+  // Fallback: escanear todas las keys buscando un JWT (empieza con "eyJ")
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (!key) continue;
-    const val = localStorage.getItem(key) || '';
-    if (val.startsWith('eyJ')) return val;
+    if (key) {
+      const valor = localStorage.getItem(key);
+      if (valor && valor.startsWith('eyJ')) return valor;
+    }
   }
 
-  return '';
+  return null;
 }
