@@ -1,297 +1,331 @@
-<div class="modal-header">
-  <h2 mat-dialog-title>Preinscripción</h2>
-  <button mat-icon-button class="close-button" (click)="cerrarModal()">
-    <mat-icon>close</mat-icon>
-  </button>
+<!-- UBICACIÓN: src/app/features/home/preinscripcion-modal/preinscripcion-modal.component.html -->
+
+<div class="modal-wrapper">
+
+  <!-- ══ HEADER ══════════════════════════════════════════ -->
+  <div class="modal-header">
+    <div class="header-brand">
+      <div class="header-icon">
+        <mat-icon>school</mat-icon>
+      </div>
+      <div>
+        <h2>Preinscripción</h2>
+        <p>Grupo Educativo de México</p>
+      </div>
+    </div>
+    <button class="btn-close" (click)="cerrarModal()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- ══ STEPPER ═════════════════════════════════════════ -->
+  <div class="stepper-bar">
+    <div class="step-item" *ngFor="let paso of PASOS; let i = index" [class.active]="pasoActual === i"
+      [class.done]="pasoActual > i">
+      <div class="step-circle">
+        <mat-icon *ngIf="pasoActual > i">check</mat-icon>
+        <mat-icon *ngIf="pasoActual <= i">{{ paso.icono }}</mat-icon>
+      </div>
+      <span class="step-label">{{ paso.titulo }}</span>
+    </div>
+    <!-- Línea de progreso -->
+    <div class="progress-track">
+      <div class="progress-fill" [style.width.%]="progreso"></div>
+    </div>
+  </div>
+
+  <!-- ══ CONTENIDO POR PASO ═══════════════════════════════ -->
+  <mat-dialog-content class="modal-body">
+    <form [formGroup]="preinscripcionForm">
+
+      <!-- ─── PASO 0: Datos Personales ─────────────────── -->
+      <div class="paso-content" *ngIf="pasoActual === 0">
+        <div class="paso-titulo">
+          <mat-icon>person</mat-icon> Datos Personales
+        </div>
+
+        <div class="field-group">
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Nombre(s)</mat-label>
+            <input matInput formControlName="nombres" placeholder="Ej: Juan Carlos">
+            <mat-icon matPrefix>badge</mat-icon>
+            <mat-error>{{ getError('nombres') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="field-group cols-2">
+          <mat-form-field appearance="outline">
+            <mat-label>Apellido Paterno</mat-label>
+            <input matInput formControlName="apellidoPaterno">
+            <mat-error>{{ getError('apellidoPaterno') }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Apellido Materno</mat-label>
+            <input matInput formControlName="apellidoMaterno">
+            <mat-error>{{ getError('apellidoMaterno') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+
+        <div class="field-group">
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Correo Electrónico</mat-label>
+            <input matInput formControlName="correoElectronico" placeholder="ejemplo@correo.com" type="email">
+            <mat-icon matPrefix>email</mat-icon>
+            <mat-hint>Opcional — para recibir información del proceso</mat-hint>
+            <mat-error>{{ getError('correoElectronico') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="field-group cols-2">
+          <!--
+            FIX: Sin readonly + click abre el picker + startView multi-year
+            El usuario SOLO selecciona del calendario (no escribe manualmente)
+            para garantizar que el form control reciba el Date object correcto.
+          -->
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha de Nacimiento</mat-label>
+
+            <!-- Input de texto visible — para escribir con diagonales -->
+            <input matInput #fechaTexto placeholder="dd/mm/aaaa" maxlength="10" inputmode="numeric"
+              (keydown)="soloNumerosFecha($event)" (input)="formatearFechaInput($event)">
+
+            <!-- Datepicker oculto — solo abre con el ícono -->
+            <input [matDatepicker]="picker" formControlName="fechaNacimiento" style="display:none">
+
+            <input [matDatepicker]="picker" formControlName="fechaNacimiento" style="display:none"
+              (dateChange)="alSeleccionarFecha($event.value, fechaTexto)">
+
+            <mat-datepicker #picker startView="multi-year" [startAt]="fechaInicio">
+            </mat-datepicker>
+            <mat-hint>Escribe o usa el calendario 📅</mat-hint>
+            <mat-error>{{ getError('fechaNacimiento') }}</mat-error>
+          </mat-form-field>
+
+
+          <mat-form-field appearance="outline">
+            <mat-label>CURP</mat-label>
+            <input matInput formControlName="curp" placeholder="18 caracteres" maxlength="18"
+              (input)="convertirMayusculas($event)" style="text-transform: uppercase; letter-spacing: 1px;">
+            <mat-hint>{{ preinscripcionForm.get('curp')?.value?.length || 0 }}/18</mat-hint>
+            <mat-error>{{ getError('curp') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="field-group cols-2">
+          <mat-form-field appearance="outline">
+            <mat-label>Estado de Nacimiento</mat-label>
+            <mat-select formControlName="estadoNacimiento">
+              <mat-option *ngFor="let e of estados" [value]="e">{{ e }}</mat-option>
+            </mat-select>
+            <mat-error>{{ getError('estadoNacimiento') }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Estado de Residencia</mat-label>
+            <mat-select formControlName="estadoResidencia">
+              <mat-option *ngFor="let e of estados" [value]="e">{{ e }}</mat-option>
+            </mat-select>
+            <mat-error>{{ getError('estadoResidencia') }}</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- ─── PASO 1: Contacto ──────────────────────────── -->
+      <div class="paso-content" *ngIf="pasoActual === 1">
+        <div class="paso-titulo">
+          <mat-icon>phone</mat-icon> Información de Contacto
+        </div>
+
+        <div class="field-group cols-2">
+          <mat-form-field appearance="outline">
+            <mat-label>Teléfono Celular</mat-label>
+            <input matInput formControlName="telefono" placeholder="10 dígitos" maxlength="10" type="tel">
+            <mat-icon matPrefix>smartphone</mat-icon>
+            <mat-error>{{ getError('telefono') }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Teléfono de Casa (Opcional)</mat-label>
+            <input matInput formControlName="telefonoCasa" placeholder="10 dígitos" maxlength="10" type="tel">
+            <mat-icon matPrefix>home</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="field-group">
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Domicilio Completo</mat-label>
+            <input matInput formControlName="domicilio" placeholder="Calle, número, colonia, municipio">
+            <mat-icon matPrefix>location_on</mat-icon>
+            <mat-error>{{ getError('domicilio') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="seccion-sub">
+          <mat-icon>family_restroom</mat-icon> Datos del Tutor o Padre de Familia
+        </div>
+
+        <div class="field-group">
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Nombre Completo del Tutor</mat-label>
+            <input matInput formControlName="nombreTutor" placeholder="Nombre completo">
+            <mat-icon matPrefix>person</mat-icon>
+            <mat-error>{{ getError('nombreTutor') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="field-group">
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Teléfono del Tutor</mat-label>
+            <input matInput formControlName="telefonoTutor" placeholder="10 dígitos" maxlength="10" type="tel">
+            <mat-icon matPrefix>phone</mat-icon>
+            <mat-error>{{ getError('telefonoTutor') }}</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- ─── PASO 2: Académico ─────────────────────────── -->
+      <div class="paso-content" *ngIf="pasoActual === 2">
+        <div class="paso-titulo">
+          <mat-icon>school</mat-icon> Información Académica
+        </div>
+
+        <div class="field-group">
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Carrera de Interés</mat-label>
+            <mat-select formControlName="carreraInteres">
+              <mat-option *ngFor="let c of nombresCarreras" [value]="c">{{ c }}</mat-option>
+            </mat-select>
+            <mat-hint *ngIf="cargandoCarreras">Cargando carreras disponibles...</mat-hint>
+            <mat-error>{{ getError('carreraInteres') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="field-group">
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Modalidad</mat-label>
+            <mat-select formControlName="modalidad">
+              <mat-option value="ESCOLARIZADO">
+                <div class="option-with-icon">
+                  <mat-icon>calendar_today</mat-icon> Escolarizado (Lunes a Viernes)
+                </div>
+              </mat-option>
+              <mat-option value="SABATINO">
+                <div class="option-with-icon">
+                  <mat-icon>weekend</mat-icon> Sabatino (Solo Sábados)
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-error>{{ getError('modalidad') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="seccion-sub">
+          <mat-icon>history_edu</mat-icon> Procedencia Académica
+        </div>
+
+        <div class="field-group">
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Escuela de Procedencia (Bachillerato)</mat-label>
+            <input matInput formControlName="escuelaProcedencia" placeholder="Nombre completo del bachillerato">
+            <mat-icon matPrefix>account_balance</mat-icon>
+            <mat-error>{{ getError('escuelaProcedencia') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="field-group cols-2">
+          <mat-form-field appearance="outline">
+            <mat-label>Dirección de la Escuela</mat-label>
+            <input matInput formControlName="direccionEscuela" placeholder="Dirección">
+            <mat-error>{{ getError('direccionEscuela') }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Estado de la Escuela</mat-label>
+            <mat-select formControlName="estadoEscuela">
+              <mat-option *ngFor="let e of estados" [value]="e">{{ e }}</mat-option>
+            </mat-select>
+            <mat-error>{{ getError('estadoEscuela') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="field-group">
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Promedio General</mat-label>
+            <input matInput formControlName="promedioGeneral" placeholder="Ej: 9.5" type="text" inputmode="decimal"
+              maxlength="4" (keydown)="sanitizarPromedio($event)" (input)="sanitizarPromedioInput($event)">
+            <mat-icon matPrefix>grade</mat-icon>
+            <mat-hint>Entre 0.0 y 10.0 — máximo 1 decimal</mat-hint>
+            <mat-error>{{ getError('promedioGeneral') }}</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- ─── PASO 3: Laboral ───────────────────────────── -->
+      <div class="paso-content" *ngIf="pasoActual === 3">
+        <div class="paso-titulo">
+          <mat-icon>work</mat-icon> Información Laboral
+        </div>
+
+        <div class="checkbox-card">
+          <mat-checkbox formControlName="trabajaActualmente" color="primary">
+            <span class="checkbox-label">¿Actualmente trabajas?</span>
+          </mat-checkbox>
+        </div>
+
+        <div *ngIf="preinscripcionForm.get('trabajaActualmente')?.value" class="laboral-fields">
+          <div class="field-group">
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Nombre de la Empresa</mat-label>
+              <input matInput formControlName="nombreEmpresa" placeholder="Empresa donde laboras">
+              <mat-icon matPrefix>business</mat-icon>
+            </mat-form-field>
+          </div>
+          <div class="field-group">
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Dirección de la Empresa</mat-label>
+              <input matInput formControlName="domicilioEmpresa" placeholder="Dirección completa">
+              <mat-icon matPrefix>location_on</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Resumen antes de enviar -->
+        <div class="resumen-envio">
+          <mat-icon>info_outline</mat-icon>
+          <p>Al enviar tu solicitud, un asesor de GEM se pondrá en contacto contigo para continuar el proceso de
+            admisión.</p>
+        </div>
+      </div>
+
+    </form>
+  </mat-dialog-content>
+
+  <!-- ══ FOOTER / NAVEGACIÓN ══════════════════════════════ -->
+  <div class="modal-footer">
+    <button class="btn-secondary" (click)="pasoActual === 0 ? cerrarModal() : retroceder()" type="button">
+      <mat-icon>{{ pasoActual === 0 ? 'close' : 'arrow_back' }}</mat-icon>
+      {{ pasoActual === 0 ? 'Cancelar' : 'Anterior' }}
+    </button>
+
+    <div class="step-dots">
+      <span class="dot" *ngFor="let p of PASOS; let i = index" [class.active]="i === pasoActual"
+        [class.done]="i < pasoActual">
+      </span>
+    </div>
+
+    <!-- Botón Siguiente (pasos 0-2) -->
+    <button *ngIf="pasoActual < totalPasos - 1" class="btn-primary" (click)="avanzar()" type="button">
+      Siguiente <mat-icon>arrow_forward</mat-icon>
+    </button>
+
+    <!-- Botón Enviar (último paso) -->
+    <button *ngIf="pasoActual === totalPasos - 1" class="btn-enviar" (click)="onSubmit()" [disabled]="enviando"
+      type="button">
+      <span *ngIf="!enviando">
+        <mat-icon>send</mat-icon> Enviar Solicitud
+      </span>
+      <span *ngIf="enviando" class="sending">
+        <span class="spinner"></span> Enviando...
+      </span>
+    </button>
+  </div>
+
 </div>
-
-<mat-dialog-content class="modal-content">
-  <form [formGroup]="preinscripcionForm" (ngSubmit)="onSubmit()">
-    
-    <!-- DATOS PERSONALES -->
-    <div class="form-section">
-      <h3 class="section-title">Datos Personales</h3>
-      
-      <div class="form-row">
-        <mat-form-field appearance="outline">
-          <mat-label>Nombre(s)</mat-label>
-          <input matInput formControlName="nombres" placeholder="Ingresa tu(s) nombre(s)">
-          <mat-error *ngIf="preinscripcionForm.get('nombres')?.invalid">
-            {{ getErrorMessage('nombres') }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <div class="form-row two-columns">
-        <mat-form-field appearance="outline">
-          <mat-label>Apellido Paterno</mat-label>
-          <input matInput formControlName="apellidoPaterno" placeholder="Apellido paterno">
-          <mat-error *ngIf="preinscripcionForm.get('apellidoPaterno')?.invalid">
-            {{ getErrorMessage('apellidoPaterno') }}
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Apellido Materno</mat-label>
-          <input matInput formControlName="apellidoMaterno" placeholder="Apellido materno">
-          <mat-error *ngIf="preinscripcionForm.get('apellidoMaterno')?.invalid">
-            {{ getErrorMessage('apellidoMaterno') }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <div class="form-row two-columns">
-        <mat-form-field appearance="outline">
-          <mat-label>Fecha de Nacimiento</mat-label>
-          <input matInput 
-                 [matDatepicker]="picker" 
-                 formControlName="fechaNacimiento" 
-                 placeholder="Selecciona tu fecha de nacimiento"
-                 readonly>
-          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-          <mat-datepicker #picker [startAt]="fechaInicio"></mat-datepicker>
-          <mat-error *ngIf="preinscripcionForm.get('fechaNacimiento')?.invalid">
-            {{ getErrorMessage('fechaNacimiento') }}
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>CURP</mat-label>
-          <input matInput 
-                 formControlName="curp" 
-                 placeholder="18 caracteres" 
-                 maxlength="18" 
-                 (input)="convertirMayusculas($event)">
-          <mat-error *ngIf="preinscripcionForm.get('curp')?.invalid">
-            {{ getErrorMessage('curp') }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <div class="form-row two-columns">
-        <mat-form-field appearance="outline">
-          <mat-label>Estado de Nacimiento</mat-label>
-          <mat-select formControlName="estadoNacimiento" placeholder="Selecciona tu estado">
-            <mat-option *ngFor="let estado of estados" [value]="estado">
-              {{ estado }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="preinscripcionForm.get('estadoNacimiento')?.invalid">
-            {{ getErrorMessage('estadoNacimiento') }}
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Estado donde Resides</mat-label>
-          <mat-select formControlName="estadoResidencia" placeholder="Selecciona tu estado">
-            <mat-option *ngFor="let estado of estados" [value]="estado">
-              {{ estado }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="preinscripcionForm.get('estadoResidencia')?.invalid">
-            {{ getErrorMessage('estadoResidencia') }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-    </div>
-
-    <!-- CONTACTO -->
-    <div class="form-section">
-      <h3 class="section-title">Contacto</h3>
-      
-      <div class="form-row two-columns">
-        <mat-form-field appearance="outline">
-          <mat-label>Teléfono Celular</mat-label>
-          <input matInput 
-                 formControlName="telefono" 
-                 placeholder="10 dígitos" 
-                 maxlength="10" 
-                 type="tel">
-          <mat-error *ngIf="preinscripcionForm.get('telefono')?.invalid">
-            {{ getErrorMessage('telefono') }}
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Teléfono de Casa (Opcional)</mat-label>
-          <input matInput 
-                 formControlName="telefonoCasa" 
-                 placeholder="10 dígitos" 
-                 maxlength="10" 
-                 type="tel">
-        </mat-form-field>
-      </div>
-
-      <div class="form-row">
-        <mat-form-field appearance="outline">
-          <mat-label>Domicilio Completo</mat-label>
-          <input matInput 
-                 formControlName="domicilio" 
-                 placeholder="Calle, número, colonia">
-          <mat-error *ngIf="preinscripcionForm.get('domicilio')?.invalid">
-            {{ getErrorMessage('domicilio') }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-    </div>
-
-    <!-- DATOS DEL TUTOR -->
-    <div class="form-section">
-      <h3 class="section-title">Datos del Tutor o Padre de Familia</h3>
-      
-      <div class="form-row">
-        <mat-form-field appearance="outline">
-          <mat-label>Nombre Completo del Tutor</mat-label>
-          <input matInput 
-                 formControlName="nombreTutor" 
-                 placeholder="Nombre completo del padre o tutor">
-          <mat-error *ngIf="preinscripcionForm.get('nombreTutor')?.invalid">
-            {{ getErrorMessage('nombreTutor') }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <div class="form-row">
-        <mat-form-field appearance="outline">
-          <mat-label>Teléfono del Tutor</mat-label>
-          <input matInput 
-                 formControlName="telefonoTutor" 
-                 placeholder="10 dígitos" 
-                 maxlength="10" 
-                 type="tel">
-          <mat-error *ngIf="preinscripcionForm.get('telefonoTutor')?.invalid">
-            {{ getErrorMessage('telefonoTutor') }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-    </div>
-
-    <!-- INTERÉS ACADÉMICO -->
-    <div class="form-section">
-      <h3 class="section-title">Interés Académico</h3>
-      
-      <div class="form-row">
-        <mat-form-field appearance="outline">
-          <mat-label>Carrera de Interés</mat-label>
-          <mat-select formControlName="carreraInteres" placeholder="Selecciona una carrera">
-            <mat-option *ngFor="let carrera of carreras" [value]="carrera">
-              {{ carrera }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="preinscripcionForm.get('carreraInteres')?.invalid">
-            {{ getErrorMessage('carreraInteres') }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <div class="form-row">
-        <mat-form-field appearance="outline">
-          <mat-label>Modalidad</mat-label>
-          <mat-select formControlName="modalidad" placeholder="Selecciona modalidad">
-            <mat-option *ngFor="let mod of modalidades" [value]="mod">
-              {{ mod }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="preinscripcionForm.get('modalidad')?.invalid">
-            {{ getErrorMessage('modalidad') }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-    </div>
-
-    <!-- PROCEDENCIA -->
-    <div class="form-section">
-      <h3 class="section-title">Procedencia Académica</h3>
-      
-      <div class="form-row">
-        <mat-form-field appearance="outline">
-          <mat-label>Escuela de Procedencia (Bachillerato)</mat-label>
-          <input matInput 
-                 formControlName="escuelaProcedencia" 
-                 placeholder="Nombre completo del bachillerato">
-          <mat-error *ngIf="preinscripcionForm.get('escuelaProcedencia')?.invalid">
-            {{ getErrorMessage('escuelaProcedencia') }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <div class="form-row two-columns">
-        <mat-form-field appearance="outline">
-          <mat-label>Dirección de la Escuela</mat-label>
-          <input matInput 
-                 formControlName="direccionEscuela" 
-                 placeholder="Dirección completa">
-          <mat-error *ngIf="preinscripcionForm.get('direccionEscuela')?.invalid">
-            {{ getErrorMessage('direccionEscuela') }}
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Estado de la Escuela</mat-label>
-          <mat-select formControlName="estadoEscuela" placeholder="Selecciona el estado">
-            <mat-option *ngFor="let estado of estados" [value]="estado">
-              {{ estado }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="preinscripcionForm.get('estadoEscuela')?.invalid">
-            {{ getErrorMessage('estadoEscuela') }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <div class="form-row">
-        <mat-form-field appearance="outline">
-          <mat-label>Promedio General</mat-label>
-          <input matInput 
-                 formControlName="promedioGeneral" 
-                 placeholder="6.0 - 10.0" 
-                 type="number" 
-                 step="0.1" 
-                 min="6" 
-                 max="10">
-          <mat-error *ngIf="preinscripcionForm.get('promedioGeneral')?.invalid">
-            {{ getErrorMessage('promedioGeneral') }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-    </div>
-
-    <!-- INFORMACIÓN LABORAL (OPCIONAL) -->
-    <div class="form-section">
-      <h3 class="section-title">Información Laboral (Opcional)</h3>
-      
-      <div class="form-row">
-        <mat-checkbox formControlName="trabajaActualmente" color="primary">
-          ¿Actualmente trabajas?
-        </mat-checkbox>
-      </div>
-
-      <div *ngIf="preinscripcionForm.get('trabajaActualmente')?.value" class="form-row two-columns">
-        <mat-form-field appearance="outline">
-          <mat-label>Nombre de la Empresa</mat-label>
-          <input matInput formControlName="nombreEmpresa" placeholder="Nombre de la empresa">
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Dirección de la Empresa</mat-label>
-          <input matInput formControlName="domicilioEmpresa" placeholder="Dirección completa">
-        </mat-form-field>
-      </div>
-    </div>
-
-  </form>
-</mat-dialog-content>
-
-<mat-dialog-actions class="modal-actions">
-  <button mat-button class="btn-cancelar" (click)="cerrarModal()" type="button">
-    Cancelar
-  </button>
-  <button mat-raised-button 
-          class="btn-enviar" 
-          (click)="onSubmit()" 
-          [disabled]="preinscripcionForm.invalid || enviando"
-          type="button">
-    <span *ngIf="!enviando">Enviar Preinscripción</span>
-    <span *ngIf="enviando">Enviando...</span>
-  </button>
-</mat-dialog-actions>

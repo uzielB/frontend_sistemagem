@@ -1,6 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder, FormGroup, Validators, ReactiveFormsModule,
+  AbstractControl, ValidationErrors
+} from '@angular/forms';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -10,265 +13,305 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { PreinscripcionesService } from '../../core/services/preinscripciones.service';
+import { MatStepperModule } from '@angular/material/stepper';
+import { PreinscripcionesService, Programa } from '../../core/services/preinscripciones.service';
 import Swal from 'sweetalert2';
+
+// ── Validador promedio 0.0–10.0, máx 1 decimal ──────────
+function promedioValidator(control: AbstractControl): ValidationErrors | null {
+  if (!control.value && control.value !== 0) return null;
+  const val = parseFloat(String(control.value).replace(',', '.'));
+  if (isNaN(val) || val < 0 || val > 10) return { promedio: true };
+  const partes = String(control.value).split('.');
+  if (partes[1] && partes[1].length > 1) return { promedio: true };
+  return null;
+}
 
 @Component({
   selector: 'app-preinscripcion-modal',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatIconModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatCheckboxModule
+    CommonModule, ReactiveFormsModule,
+    MatDialogModule, MatFormFieldModule, MatInputModule,
+    MatSelectModule, MatButtonModule, MatIconModule,
+    MatDatepickerModule, MatNativeDateModule,
+    MatCheckboxModule, MatStepperModule,
   ],
   templateUrl: './preinscripcion-modal.component.html',
   styleUrls: ['./preinscripcion-modal.component.css']
 })
-export class PreinscripcionModalComponent {
-  preinscripcionForm: FormGroup;
-  enviando: boolean = false;
-  
-  // Fecha inicial para el datepicker (18 años atrás)
-  fechaInicio: Date;
-  
-  // Catálogos
-  carreras = [
-    'Licenciatura en Arquitectura e Imagen',
-    'Licenciatura en Trabajo Social',
-    'Licenciatura en Ciencias de la Educación',
-    'Licenciatura en Derecho',
-    'Licenciatura en Diseño Gráfico y Mercadotecnia Publicitaria',
-    'Licenciatura en Fisioterapia',
-    'Licenciatura en Psicopedagogía'
-  ];
+export class PreinscripcionModalComponent implements OnInit {
 
-  modalidades = [
-    'ESCOLARIZADO',
-    'SABATINO'
-  ];
+  preinscripcionForm!: FormGroup;
+  enviando = false;
+  cargandoCarreras = false;
+  pasoActual = 0;
 
-  estados = [
+  programas: Programa[] = [];
+  nombresCarreras: string[] = [];
+
+  // ── Datepicker ─────────────────────────────────────────
+  readonly fechaInicio = (() => { const d = new Date(); d.setFullYear(d.getFullYear() - 18); return d; })();
+  readonly fechaMaxima = (() => { const d = new Date(); d.setFullYear(d.getFullYear() - 15); return d; })();
+  readonly fechaMinima = (() => { const d = new Date(); d.setFullYear(d.getFullYear() - 80); return d; })();
+
+  readonly modalidades = ['ESCOLARIZADO', 'SABATINO'];
+  readonly estados = [
     'Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche',
-    'Chiapas', 'Chihuahua', 'Ciudad de México', 'Coahuila', 'Colima',
-    'Durango', 'Estado de México', 'Guanajuato', 'Guerrero', 'Hidalgo',
-    'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca',
-    'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa',
-    'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'
+    'Chiapas', 'Chihuahua', 'Ciudad de México', 'Coahuila', 'Colima', 'Durango',
+    'Estado de México', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'Michoacán',
+    'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro',
+    'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco',
+    'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'
+  ];
+
+  // Pasos del formulario con sus campos
+  readonly PASOS = [
+    { titulo: 'Datos Personales', icono: 'person', campos: ['nombres', 'apellidoPaterno', 'apellidoMaterno', 'correoElectronico', 'fechaNacimiento', 'curp', 'estadoNacimiento', 'estadoResidencia'] },
+    { titulo: 'Contacto', icono: 'phone', campos: ['telefono', 'telefonoCasa', 'domicilio', 'nombreTutor', 'telefonoTutor'] },
+    { titulo: 'Académico', icono: 'school', campos: ['carreraInteres', 'modalidad', 'escuelaProcedencia', 'direccionEscuela', 'estadoEscuela', 'promedioGeneral'] },
+    { titulo: 'Laboral', icono: 'work', campos: ['trabajaActualmente', 'nombreEmpresa', 'domicilioEmpresa'] },
   ];
 
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<PreinscripcionModalComponent>,
-    private preinscripcionesService: PreinscripcionesService
-  ) {
-    // Calcular fecha de inicio (18 años atrás desde hoy)
-    this.fechaInicio = new Date();
-    this.fechaInicio.setFullYear(this.fechaInicio.getFullYear() - 18);
+    private svc: PreinscripcionesService
+  ) { }
 
+  ngOnInit(): void {
+    this.buildForm();
+    this.cargarCarreras();
+  }
+
+  private buildForm(): void {
     this.preinscripcionForm = this.fb.group({
-      // Datos Personales
       nombres: ['', [Validators.required, Validators.minLength(2)]],
       apellidoPaterno: ['', [Validators.required, Validators.minLength(2)]],
       apellidoMaterno: ['', [Validators.required, Validators.minLength(2)]],
-      fechaNacimiento: ['', Validators.required],
-      curp: ['', [Validators.required, Validators.pattern(/^[A-Z]{4}\d{6}[HM][A-Z]{5}[0-9A-Z]\d$/)]],
+      fechaNacimiento: [null, Validators.required],
+      curp: ['', [Validators.required, Validators.pattern(/^[A-Z0-9]{18}$/)]],
       estadoNacimiento: ['', Validators.required],
+      correoElectronico: ['', [Validators.email]],
       estadoResidencia: ['', Validators.required],
-      
-      // Contacto
       telefono: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
       telefonoCasa: [''],
       domicilio: ['', Validators.required],
-      
-      // Tutor
       nombreTutor: ['', Validators.required],
       telefonoTutor: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
-      
-      // Interés Académico
       carreraInteres: ['', Validators.required],
       modalidad: ['', Validators.required],
-      
-      // Procedencia
       escuelaProcedencia: ['', Validators.required],
       direccionEscuela: ['', Validators.required],
       estadoEscuela: ['', Validators.required],
-      promedioGeneral: ['', [Validators.required, Validators.min(6.0), Validators.max(10.0)]],
-      
-      // Laboral (opcional)
+      promedioGeneral: ['', [Validators.required, promedioValidator]],
       trabajaActualmente: [false],
       nombreEmpresa: [''],
-      domicilioEmpresa: ['']
+      domicilioEmpresa: [''],
     });
   }
 
-  cerrarModal(): void {
-    this.dialogRef.close();
+  private cargarCarreras(): void {
+    this.cargandoCarreras = true;
+    this.svc.getProgramas().subscribe({
+      next: (p) => {
+        this.programas = p.filter(x => x.estaActivo);
+        this.nombresCarreras = this.programas.map(x => x.nombre);
+        this.cargandoCarreras = false;
+      },
+      error: () => {
+        this.nombresCarreras = [
+          'Licenciatura en Arquitectura e Imagen', 'Licenciatura en Trabajo Social',
+          'Licenciatura en Ciencias de la Educación', 'Licenciatura en Derecho',
+          'Licenciatura en Diseño Gráfico y Mercadotecnia Publicitaria',
+          'Licenciatura en Fisioterapia', 'Licenciatura en Psicopedagogía',
+        ];
+        this.cargandoCarreras = false;
+      }
+    });
   }
 
-  /**
-   * Convertir CURP a mayúsculas automáticamente
-   */
-  convertirMayusculas(event: any): void {
-    const input = event.target;
-    const start = input.selectionStart;
-    const end = input.selectionEnd;
-    
-    input.value = input.value.toUpperCase();
-    this.preinscripcionForm.get('curp')?.setValue(input.value.toUpperCase(), { emitEvent: false });
-    
-    input.setSelectionRange(start, end);
+  // ── Navegación por pasos ───────────────────────────────
+
+  get totalPasos(): number { return this.PASOS.length; }
+  get progreso(): number { return ((this.pasoActual + 1) / this.totalPasos) * 100; }
+
+  pasoValido(indice: number): boolean {
+    const campos = this.PASOS[indice].campos;
+    return campos.every(c => {
+      const ctrl = this.preinscripcionForm.get(c);
+      return ctrl ? ctrl.valid : true;
+    });
   }
+
+  avanzar(): void {
+    const campos = this.PASOS[this.pasoActual].campos;
+    campos.forEach(c => this.preinscripcionForm.get(c)?.markAsTouched());
+    if (this.pasoValido(this.pasoActual)) this.pasoActual++;
+  }
+
+  retroceder(): void {
+    if (this.pasoActual > 0) this.pasoActual--;
+  }
+
+  // ── Helpers ────────────────────────────────────────────
+
+  cerrarModal(): void { this.dialogRef.close(); }
+
+  convertirMayusculas(event: any): void {
+    const i = event.target, s = i.selectionStart, e = i.selectionEnd;
+    i.value = i.value.toUpperCase();
+    this.preinscripcionForm.get('curp')?.setValue(i.value, { emitEvent: false });
+    i.setSelectionRange(s, e);
+  }
+
+  sanitizarPromedio(event: KeyboardEvent): void {
+    const permitidos = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', ',',
+      'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'];
+    if (!permitidos.includes(event.key)) { event.preventDefault(); return; }
+    const input = event.target as HTMLInputElement;
+    if ((event.key === '.' || event.key === ',') &&
+      (input.value.includes('.') || input.value.includes(','))) {
+      event.preventDefault();
+    }
+  }
+
+  sanitizarPromedioInput(event: any): void {
+    let val = event.target.value.replace(',', '.').replace(/[^0-9.]/g, '');
+    const partes = val.split('.');
+    if (partes.length > 2) val = partes[0] + '.' + partes[1];
+    if (partes[1] !== undefined) val = partes[0] + '.' + partes[1].substring(0, 1);
+    if (!isNaN(parseFloat(val)) && parseFloat(val) > 10) val = '10';
+    event.target.value = val;
+    this.preinscripcionForm.get('promedioGeneral')?.setValue(val, { emitEvent: true });
+  }
+
+  private formatearFecha(fecha: Date | null): string {
+    if (!fecha) return '';
+    return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+  }
+
+  getError(campo: string): string {
+    const ctrl = this.preinscripcionForm.get(campo);
+    if (!ctrl?.touched || ctrl.valid) return '';
+    if (ctrl.hasError('required')) return 'Campo obligatorio';
+    if (ctrl.hasError('minlength')) return 'Mínimo 2 caracteres';
+    if (ctrl.hasError('email')) return 'Correo electrónico inválido';
+    if (ctrl.hasError('promedio')) return 'Valor entre 0.0 y 10.0';
+    if (ctrl.hasError('pattern')) {
+      if (ctrl.hasError('pattern')) {
+        if (campo === 'curp') return 'CURP inválido (debe tener 18 caracteres)';
+        return 'Formato inválido (10 dígitos)';
+        }
+    }
+    return '';
+  }
+
+
+
+
+
+  soloNumerosFecha(event: KeyboardEvent): void {
+    const permitidos = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+      'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'];
+    if (!permitidos.includes(event.key)) event.preventDefault();
+  }
+
+  formatearFechaInput(event: any): void {
+    let val = event.target.value.replace(/\D/g, '');
+    if (val.length > 8) val = val.substring(0, 8);
+
+    if (val.length >= 5) {
+      val = val.substring(0, 2) + '/' + val.substring(2, 4) + '/' + val.substring(4);
+    } else if (val.length >= 3) {
+      val = val.substring(0, 2) + '/' + val.substring(2);
+    }
+
+    event.target.value = val;
+
+    if (val.length === 10) {
+      const [dia, mes, anio] = val.split('/').map(Number);
+      const fecha = new Date(anio, mes - 1, dia);
+      if (!isNaN(fecha.getTime()) && fecha <= this.fechaMaxima && fecha >= this.fechaMinima) {
+        this.preinscripcionForm.get('fechaNacimiento')?.setValue(fecha);
+        this.preinscripcionForm.get('fechaNacimiento')?.markAsTouched();
+      }
+    } else {
+      this.preinscripcionForm.get('fechaNacimiento')?.setValue(null);
+    }
+  }
+
+  // Cuando selecciona del calendario, sincroniza el texto visible
+  alSeleccionarFecha(fecha: Date | null, inputRef: HTMLInputElement): void {
+  if (!fecha) return;
+  const d = String(fecha.getDate()).padStart(2,'0');
+  const m = String(fecha.getMonth()+1).padStart(2,'0');
+  const y = fecha.getFullYear();
+  inputRef.value = `${d}/${m}/${y}`;
+  this.preinscripcionForm.get('fechaNacimiento')?.setValue(fecha);
+}
+
+
+
+
+
+
+  // ── Enviar ─────────────────────────────────────────────
 
   onSubmit(): void {
+    this.preinscripcionForm.markAllAsTouched();
     if (this.preinscripcionForm.invalid) {
-      Object.keys(this.preinscripcionForm.controls).forEach(key => {
-        this.preinscripcionForm.get(key)?.markAsTouched();
-      });
-      
-      Swal.fire({
-        icon: 'warning',
-        title: 'Formulario Incompleto',
-        text: 'Por favor, completa todos los campos requeridos',
-        confirmButtonColor: '#e3201b'
-      });
-      
+      // Ir al primer paso con error
+      for (let i = 0; i < this.PASOS.length; i++) {
+        if (!this.pasoValido(i)) { this.pasoActual = i; break; }
+      }
       return;
     }
 
     this.enviando = true;
+    const v = this.preinscripcionForm.value;
+    const prog = this.programas.find(p => p.nombre === v.carreraInteres);
 
-    // Mapear datos del formulario al formato del backend
-    const datosPreinscripcion = {
-      // Interés Académico
-      carreraInteres: this.preinscripcionForm.value.carreraInteres,
-      modalidad: this.preinscripcionForm.value.modalidad,
-
-      // Datos Personales
-      nombre: this.preinscripcionForm.value.nombres,
-      apellidoPaterno: this.preinscripcionForm.value.apellidoPaterno,
-      apellidoMaterno: this.preinscripcionForm.value.apellidoMaterno,
-      curp: this.preinscripcionForm.value.curp.toUpperCase(),
-      fechaNacimiento: this.formatearFecha(this.preinscripcionForm.value.fechaNacimiento),
-      estadoNacimiento: this.preinscripcionForm.value.estadoNacimiento,
-      estado: this.preinscripcionForm.value.estadoResidencia,
-      domicilio: this.preinscripcionForm.value.domicilio,
-
-      // Contacto
-      telefonoCelular: this.preinscripcionForm.value.telefono,
-
-      // Tutor
-      nombreTutor: this.preinscripcionForm.value.nombreTutor,
-      telefonoTutor: this.preinscripcionForm.value.telefonoTutor,
-
-      // Procedencia
-      escuelaProcedencia: this.preinscripcionForm.value.escuelaProcedencia,
-      direccionEscuelaProcedencia: this.preinscripcionForm.value.direccionEscuela,
-      estadoEscuela: this.preinscripcionForm.value.estadoEscuela,
-      promedio: parseFloat(this.preinscripcionForm.value.promedioGeneral),
-
-      // Laboral
-      trabajaActualmente: this.preinscripcionForm.value.trabajaActualmente,
-      nombreEmpresa: this.preinscripcionForm.value.nombreEmpresa || null,
-      domicilioEmpresa: this.preinscripcionForm.value.domicilioEmpresa || null
+    const payload = {
+      carreraInteres: v.carreraInteres,
+      modalidad: v.modalidad, nombre: v.nombres,
+      apellidoPaterno: v.apellidoPaterno, apellidoMaterno: v.apellidoMaterno,
+      curp: v.curp.toUpperCase(), fechaNacimiento: this.formatearFecha(v.fechaNacimiento),
+      estadoNacimiento: v.estadoNacimiento, estado: v.estadoResidencia,
+      domicilio: v.domicilio, telefonoCelular: v.telefono,
+      correoElectronico: v.correoElectronico || null,
+      nombreTutor: v.nombreTutor, telefonoTutor: v.telefonoTutor,
+      escuelaProcedencia: v.escuelaProcedencia,
+      direccionEscuelaProcedencia: v.direccionEscuela,
+      estadoEscuela: v.estadoEscuela,
+      promedio: parseFloat(String(v.promedioGeneral).replace(',', '.')),
+      trabajaActualmente: v.trabajaActualmente ?? false,
+      nombreEmpresa: v.nombreEmpresa || null,
+      domicilioEmpresa: v.domicilioEmpresa || null,
     };
 
-    console.log('📤 Enviando preinscripción:', datosPreinscripcion);
-
-    // Enviar al backend
-    this.preinscripcionesService.crearPreinscripcion(datosPreinscripcion).subscribe({
-      next: (response: any) => {
-        console.log('✅ Preinscripción creada:', response);
-        
+    this.svc.crearPreinscripcion(payload).subscribe({
+      next: (res: any) => {
         this.enviando = false;
-        
         Swal.fire({
-          icon: 'success',
-          title: '¡Preinscripción Exitosa!',
-          html: `
-            <p>Tu preinscripción ha sido registrada correctamente.</p>
-            <p><strong>CURP:</strong> ${datosPreinscripcion.curp}</p>
-            <p><strong>Carrera:</strong> ${datosPreinscripcion.carreraInteres}</p>
-            <p>En breve nos pondremos en contacto contigo.</p>
-          `,
-          confirmButtonColor: '#e3201b',
-          confirmButtonText: 'Aceptar'
-        }).then(() => {
-          this.dialogRef.close(response);
-        });
+          icon: 'success', title: '¡Solicitud Registrada!',
+          html: `<p>Hemos recibido tu preinscripción.</p>
+                 <p><strong>Carrera:</strong> ${payload.carreraInteres}</p>
+                 <small style="color:#888">Nos pondremos en contacto contigo pronto.</small>`,
+          confirmButtonColor: '#9b1c1c', confirmButtonText: 'Entendido'
+        }).then(() => this.dialogRef.close(res));
       },
-      error: (error: any) => {
-        console.error('❌ Error al crear preinscripción:', error);
-        
+
+
+
+      error: (err: any) => {
         this.enviando = false;
-
-        let mensajeError = 'Ocurrió un error al procesar tu preinscripción';
-        
-        if (error.status === 409) {
-          mensajeError = 'Ya existe una preinscripción con este CURP';
-        } else if (error.error?.message) {
-          mensajeError = error.error.message;
-        }
-
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: mensajeError,
-          confirmButtonColor: '#e3201b'
-        });
+        let msg = 'Error al procesar la solicitud';
+        if (err.status === 409) msg = 'Ya existe una solicitud con este CURP';
+        else if (err.error?.message) msg = Array.isArray(err.error.message)
+          ? err.error.message.join(', ') : err.error.message;
+        Swal.fire({ icon: 'error', title: 'Error', text: msg, confirmButtonColor: '#9b1c1c' });
       }
     });
-  }
-
-  /**
-   * Formatear fecha para enviar al backend (YYYY-MM-DD)
-   */
-  private formatearFecha(fecha: Date): string {
-    if (!fecha) return '';
-    
-    const d = new Date(fecha);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    
-    return `${year}-${month}-${day}`;
-  }
-
-  getErrorMessage(fieldName: string): string {
-    const control = this.preinscripcionForm.get(fieldName);
-    
-    if (control?.hasError('required')) {
-      return 'Este campo es obligatorio';
-    }
-    
-    if (control?.hasError('email')) {
-      return 'Ingresa un correo electrónico válido';
-    }
-    
-    if (control?.hasError('pattern')) {
-      if (fieldName === 'curp') {
-        return 'CURP inválido (18 caracteres)';
-      }
-      if (fieldName === 'telefono' || fieldName === 'telefonoTutor') {
-        return 'Teléfono inválido (10 dígitos)';
-      }
-    }
-    
-    if (control?.hasError('minLength')) {
-      return 'Mínimo 2 caracteres';
-    }
-    
-    if (control?.hasError('min') || control?.hasError('max')) {
-      return 'Promedio entre 6.0 y 10.0';
-    }
-    
-    return '';
   }
 }
