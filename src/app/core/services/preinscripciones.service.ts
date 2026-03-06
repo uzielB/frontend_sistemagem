@@ -109,10 +109,10 @@ export class PreinscripcionesService {
 
   // ── CATÁLOGOS ─────────────────────────────────────────────
   getProgramas(): Observable<Programa[]> {
-    return this.http.get<Programa[]>(`${this.catalogUrl}/programas`);
+    return this.http.get<Programa[]>(`${this.catalogUrl}/programs`);
   }
 
   getPeriodos(): Observable<PeriodoEscolar[]> {
-    return this.http.get<PeriodoEscolar[]>(`${this.catalogUrl}/periodos-escolares`);
+    return this.http.get<PeriodoEscolar[]>(`${this.catalogUrl}/school-periods`);
   }
 }
