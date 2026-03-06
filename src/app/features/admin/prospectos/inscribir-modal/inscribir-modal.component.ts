@@ -1,3 +1,4 @@
+// UBICACIÓN: src/app/features/admin/prospectos/inscribir-modal/inscribir-modal.component.ts
 import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -18,63 +19,52 @@ import {
 })
 export class InscribirModalComponent implements OnInit {
   @Input() prospecto!: Preinscripcion;
-  @Output() cerrar = new EventEmitter<void>();
+  @Output() cerrar          = new EventEmitter<void>();
   @Output() inscritoExitoso = new EventEmitter<any>();
 
-  private fb = inject(FormBuilder);
+  private fb  = inject(FormBuilder);
   private svc = inject(PreinscripcionesService);
 
-  programas: Programa[] = [];
-  periodos: PeriodoEscolar[] = [];
+  programas: Programa[]          = [];
+  periodos: PeriodoEscolar[]     = [];
   programasFiltrados: Programa[] = [];
-  cargando = false;
-  error = '';
-  exito = false;
+  cargando  = false;
+  error     = '';
+  exito     = false;
   resultadoInscripcion: any = null;
   form!: FormGroup;
 
-  readonly BECAS_PORCENTAJE = [
-    { label: 'Sin beca', value: 0 },
-    { label: '10%', value: 10 },
-    { label: '25%', value: 25 },
-    { label: '50%', value: 50 },
-    { label: '75%', value: 75 },
-    { label: '100%', value: 100 },
+  // ── Opciones de pago ────────────────────────────────────
+  readonly NUMERO_PAGOS = [
+    { label: '1 pago único', value: 1 },
+    { label: '5 pagos',      value: 5 },
+    { label: '6 pagos',      value: 6 },
   ];
 
-  readonly BECAS_CONDICION = [
-    { label: 'Sin beca por condición', value: '' },
-    { label: 'Beca Académica', value: 'ACADEMICA' },
-    { label: 'Beca Deportiva', value: 'DEPORTIVA' },
-    { label: 'Beca Cultural', value: 'CULTURAL' },
-    { label: 'Beca Socioeconómica', value: 'SOCIOECONOMICA' },
-  ];
-
+  // Semestres del 1 al 10
   readonly SEMESTRES = Array.from({ length: 10 }, (_, i) => ({
     label: `${i + 1}° Semestre`,
-    value: i + 1
+    value: i + 1,
   }));
 
-  readonly NUMERO_PAGOS = [1,2,3,4,5,6,7,8,9,10,11,12].map(n => ({
-    label: `${n} pago${n > 1 ? 's' : ''}`,
-    value: n
-  }));
-
+  // ── Lifecycle ───────────────────────────────────────────
   ngOnInit(): void {
     this.buildForm();
     this.cargarCatalogos();
+    if (this.prospecto?.modalidad) {
+      this.form.patchValue({ modalidad: this.prospecto.modalidad });
+    }
   }
 
+  // ── Form ────────────────────────────────────────────────
   private buildForm(): void {
     this.form = this.fb.group({
-      periodoEscolarId: [null, Validators.required],
-      modalidad: [this.prospecto?.modalidad || 'Escolarizado', Validators.required],
-      programaId: [null, Validators.required],
-      semestre: [1, Validators.required],
-      numeroPagos: [null, Validators.required],
+      periodoEscolarId:        [null, Validators.required],
+      modalidad:               ['ESCOLARIZADO', Validators.required],
+      programaId:              [null, Validators.required],
+      semestre:                [1,    Validators.required],
+      numeroPagos:             [null, Validators.required],
       becaPromocionPorcentaje: [0],
-      becaCondicionPorcentaje: [0],
-      becaCondicionTipo: [''],
     });
 
     this.form.get('modalidad')!.valueChanges.subscribe(mod => {
@@ -83,14 +73,28 @@ export class InscribirModalComponent implements OnInit {
     });
   }
 
+  // ── Contador de beca ────────────────────────────────────
+  sumarBeca(): void {
+    const actual = Number(this.form.get('becaPromocionPorcentaje')?.value) || 0;
+    if (actual < 30) this.form.patchValue({ becaPromocionPorcentaje: actual + 5 });
+  }
+
+  restarBeca(): void {
+    const actual = Number(this.form.get('becaPromocionPorcentaje')?.value) || 0;
+    if (actual > 0) this.form.patchValue({ becaPromocionPorcentaje: actual - 5 });
+  }
+
+  // ── Catálogos ───────────────────────────────────────────
   private cargarCatalogos(): void {
     this.svc.getProgramas().subscribe({
-      next: p => {
-        this.programas = p.filter(prog => prog.estaActivo);
+      next: (res: any) => {
+        const lista = Array.isArray(res) ? res : (res.data ?? []);
+        this.programas = lista.filter((p: any) => p.estaActivo);
         this.filtrarProgramas(this.form.value.modalidad);
-        // Pre-seleccionar carrera si coincide con la de interés
-        const match = this.programas.find(prog =>
-          prog.nombre.toLowerCase().includes((this.prospecto?.carreraInteres || '').toLowerCase())
+        const match = this.programas.find((p: any) =>
+          p.nombre.toLowerCase().includes(
+            (this.prospecto?.carreraInteres || '').toLowerCase()
+          )
         );
         if (match) this.form.patchValue({ programaId: match.id });
       },
@@ -98,9 +102,10 @@ export class InscribirModalComponent implements OnInit {
     });
 
     this.svc.getPeriodos().subscribe({
-      next: p => {
-        this.periodos = p.filter(pe => pe.estaActivo);
-        const actual = this.periodos.find(pe => pe.esActual);
+      next: (res: any) => {
+        const lista = Array.isArray(res) ? res : (res.data ?? []);
+        this.periodos = lista.filter((pe: any) => pe.estaActivo);
+        const actual  = this.periodos.find((pe: any) => pe.esActual);
         if (actual) this.form.patchValue({ periodoEscolarId: actual.id });
       },
       error: () => { this.periodos = []; }
@@ -116,9 +121,10 @@ export class InscribirModalComponent implements OnInit {
     }
   }
 
+  // ── Helpers ─────────────────────────────────────────────
   get nombreCompleto(): string {
     if (!this.prospecto) return '';
-    return `${this.prospecto.nombre} ${this.prospecto.apellidoPaterno} ${this.prospecto.apellidoMaterno}`.trim();
+    return `${this.prospecto.nombre} ${this.prospecto.apellidoPaterno} ${this.prospecto.apellidoMaterno || ''}`.trim();
   }
 
   isInvalid(campo: string): boolean {
@@ -126,36 +132,46 @@ export class InscribirModalComponent implements OnInit {
     return !!(ctrl?.invalid && ctrl?.touched);
   }
 
+  // ── Submit ──────────────────────────────────────────────
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
+
     this.cargando = true;
-    this.error = '';
-    const v = this.form.value;
+    this.error    = '';
+    const v       = this.form.value;
 
     const payload: InscribirPayload = {
-      programaId: Number(v.programaId),
-      periodoEscolarId: Number(v.periodoEscolarId),
-      semestre: Number(v.semestre),
-      numeroPagos: Number(v.numeroPagos),
-      becaPromocionPorcentaje: Number(v.becaPromocionPorcentaje),
-      becaCondicionPorcentaje: Number(v.becaCondicionPorcentaje),
-      becaCondicionTipo: v.becaCondicionTipo || undefined,
+      programaId:              Number(v.programaId),
+      periodoEscolarId:        Number(v.periodoEscolarId),
+      semestre:                Number(v.semestre),
+      numeroPagos:             Number(v.numeroPagos),
+      becaPromocionPorcentaje: Number(v.becaPromocionPorcentaje) || 0,
     };
 
     this.svc.inscribir(this.prospecto.id, payload).subscribe({
-      next: resultado => {
-        this.cargando = false;
-        this.exito = true;
+      next: (res: any) => {
+        // Backend puede devolver { data: {...} } o el objeto directo
+        const resultado = res?.data ?? res;
+        this.cargando             = false;
+        this.exito                = true;
         this.resultadoInscripcion = resultado;
         this.inscritoExitoso.emit(resultado);
       },
-      error: err => {
+      error: (err: any) => {
         this.cargando = false;
-        this.error = err?.error?.message || 'Ocurrió un error al inscribir al alumno.';
+        const msg = err?.error?.message;
+        this.error = Array.isArray(msg)
+          ? msg.join(', ')
+          : (msg ?? err?.message ?? 'Error al inscribir al alumno.');
       }
     });
   }
+  cerrarExito(): void {
+    this.inscritoExitoso.emit(this.resultadoInscripcion);
+    this.cerrar.emit();
+  }
+
 }
