@@ -90,14 +90,6 @@ login(curp: string, contrasena: string): Observable<LoginResponse> {
       }
     }),
     map(response => {
-      // ⚠️ ESTRUCTURA CORRECTA DEL BACKEND:
-      // {
-      //   message: "Inicio de sesión exitoso",
-      //   data: {
-      //     access_token: "...",
-      //     user: { id, curp, nombre, apellidoPaterno, ... }
-      //   }
-      // }
       
       let user: User;
       let token: string;
@@ -105,7 +97,7 @@ login(curp: string, contrasena: string): Observable<LoginResponse> {
       // El backend siempre responde con response.data
       if (response.data) {
         
-        // Caso 1: Usuario en response.data.user (✅ ESTRUCTURA ACTUAL)
+        // Caso 1: Usuario en response.data.user 
         if (response.data.user && typeof response.data.user === 'object') {
           if (environment.enableDebugLogs) {
             console.log('✅ [AUTH SERVICE] Usuario encontrado en response.data.user');
