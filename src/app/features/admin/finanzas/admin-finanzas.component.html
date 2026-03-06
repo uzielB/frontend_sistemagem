@@ -1,258 +1,392 @@
-<div class="finanzas-container">
-  
-  <!-- HEADER -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1 class="page-title">
-        <mat-icon>payments</mat-icon>
+<!-- UBICACIÓN: src/app/features/admin/finanzas/admin-finanzas.component.html -->
+
+<div class="fin-wrap">
+
+  <!-- ══ HEADER ══════════════════════════════════════════ -->
+  <div class="fin-header">
+    <div>
+      <h1 class="fin-title">
+        <span class="fin-title-icon">💰</span>
         Módulo de Finanzas
       </h1>
-      <p class="page-subtitle">Administración de pagos de estudiantes</p>
+      <p class="fin-subtitle">Control de pagos y estados financieros de alumnos inscritos</p>
     </div>
-    
-    <button mat-raised-button color="primary" (click)="nuevoPago()" class="btn-nuevo">
-      <mat-icon>add</mat-icon>
-      Nuevo Pago
+    <div class="header-actions">
+      <button class="btn-nuevo-pago" (click)="mostrarNuevoPago = true">
+        <mat-icon>add_card</mat-icon>
+        Nuevo Formato de Pago
+      </button>
+      <button class="btn-reload" (click)="cargarPagos()" [disabled]="cargando">
+        <mat-icon>refresh</mat-icon>
+        Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ STATS CARDS ═════════════════════════════════════ -->
+  <div class="stats-grid">
+    <div class="stat-card total">
+      <div class="stat-icon">📋</div>
+      <div class="stat-info">
+        <span class="stat-num">{{ stats.total }}</span>
+        <span class="stat-label">Total Pagos</span>
+      </div>
+    </div>
+    <div class="stat-card pendiente">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-info">
+        <span class="stat-num">{{ stats.pendientes }}</span>
+        <span class="stat-label">Pendientes</span>
+      </div>
+    </div>
+    <div class="stat-card pagado">
+      <div class="stat-icon">✅</div>
+      <div class="stat-info">
+        <span class="stat-num">{{ stats.pagados }}</span>
+        <span class="stat-label">Pagados</span>
+      </div>
+    </div>
+    <div class="stat-card vencido">
+      <div class="stat-icon">⚠️</div>
+      <div class="stat-info">
+        <span class="stat-num">{{ stats.vencidos }}</span>
+        <span class="stat-label">Vencidos</span>
+      </div>
+    </div>
+    <div class="stat-card money-in">
+      <div class="stat-icon">💵</div>
+      <div class="stat-info">
+        <span class="stat-num money">{{ formatMoney(stats.recaudado) }}</span>
+        <span class="stat-label">Recaudado</span>
+      </div>
+    </div>
+    <div class="stat-card money-out">
+      <div class="stat-icon">📤</div>
+      <div class="stat-info">
+        <span class="stat-num money">{{ formatMoney(stats.porRecaudar) }}</span>
+        <span class="stat-label">Por Recaudar</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TABS ════════════════════════════════════════════ -->
+  <div class="fin-tabs">
+    <button class="fin-tab" [class.active]="vistaActiva === 'pagos'" (click)="cambiarVista('pagos')">
+      <mat-icon>receipt_long</mat-icon> Pagos por Alumno
+    </button>
+    <button class="fin-tab" [class.active]="vistaActiva === 'estados'" (click)="cambiarVista('estados')">
+      <mat-icon>account_balance_wallet</mat-icon> Estados Financieros
     </button>
   </div>
 
-  <!-- FILTROS -->
-  <mat-card class="filtros-card">
-    <div class="filtros-container">
-      <mat-form-field appearance="outline">
-        <mat-label>Filtrar por estatus</mat-label>
-        <mat-select [(ngModel)]="filtroEstatus" (selectionChange)="onFiltroChange()">
-          <mat-option *ngFor="let option of estatusOptions" [value]="option.value">
-            {{ option.label }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      
-      <div class="filtros-info">
-        <span class="total-pagos">Total de pagos: <strong>{{ pagos.length }}</strong></span>
+  <!-- ══ FILTROS ══════════════════════════════════════════ -->
+  <div class="fin-filtros" *ngIf="vistaActiva === 'pagos'">
+    <div class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input class="search-input" type="text"
+             placeholder="Buscar por nombre, matrícula o carrera..."
+             [(ngModel)]="filtroBusqueda"
+             (input)="onBusqueda()">
+    </div>
+    <div class="estatus-tabs">
+      <button class="etab"      [class.active]="filtroEstatus === 'TODOS'"     (click)="filtroEstatus='TODOS';    onFiltroEstatus()">Todos</button>
+      <button class="etab pend" [class.active]="filtroEstatus === 'PENDIENTE'" (click)="filtroEstatus='PENDIENTE'; onFiltroEstatus()">Pendientes</button>
+      <button class="etab pago" [class.active]="filtroEstatus === 'PAGADO'"    (click)="filtroEstatus='PAGADO';    onFiltroEstatus()">Pagados</button>
+      <button class="etab venc" [class.active]="filtroEstatus === 'VENCIDO'"   (click)="filtroEstatus='VENCIDO';   onFiltroEstatus()">Vencidos</button>
+    </div>
+    <span class="resultado-count">{{ alumnosFiltrados.length }} alumno(s)</span>
+  </div>
+
+  <!-- ══ LOADING / ERROR ══════════════════════════════════ -->
+  <div *ngIf="cargando" class="state-box">
+    <div class="spinner-ring"></div>
+    <p>Cargando datos financieros...</p>
+  </div>
+
+  <div *ngIf="error && !cargando" class="state-box error">
+    <mat-icon>error_outline</mat-icon>
+    <p>{{ error }}</p>
+    <button class="btn-reload" (click)="cargarPagos()">Reintentar</button>
+  </div>
+
+  <!-- ══ VISTA: PAGOS AGRUPADOS POR ALUMNO ═══════════════ -->
+  <div *ngIf="vistaActiva === 'pagos' && !cargando && !error">
+
+    <div *ngIf="alumnosFiltrados.length === 0" class="state-box">
+      <span style="font-size:3rem">📭</span>
+      <p>No hay alumnos que coincidan con los filtros</p>
+    </div>
+
+    <div class="alumnos-lista" *ngIf="alumnosFiltrados.length > 0">
+
+      <div class="alumno-bloque"
+           *ngFor="let a of alumnosFiltrados"
+           [class.expandido]="a.expandido"
+           [class.tiene-vencidos]="a.vencidos > 0"
+           [class.al-dia]="a.saldo === 0 && a.totalPagos > 0">
+
+        <!-- ── Fila principal (clickeable) ── -->
+        <div class="alumno-row" (click)="toggleExpandir(a)">
+
+          <div class="ar-alumno">
+            <div class="ar-avatar"
+                 [class.avatar-verde]="a.saldo === 0 && a.vencidos === 0"
+                 [class.avatar-rojo]="a.vencidos > 0">
+              {{ (a.estudiante?.usuario?.nombre || '?').charAt(0).toUpperCase() }}
+            </div>
+            <div class="ar-info">
+              <span class="ar-nombre">{{ getNombre(a.estudiante) }}</span>
+              <span class="ar-mat">{{ a.estudiante?.matricula }}</span>
+            </div>
+          </div>
+
+          <div class="ar-carrera">
+            <span class="carrera-badge">{{ a.estudiante?.programa?.codigo || '—' }}</span>
+            <span class="carrera-nombre">{{ a.estudiante?.programa?.nombre || '—' }}</span>
+          </div>
+
+          <div class="ar-beca">
+            <span class="beca-pct" *ngIf="a.becaPorcentaje > 0">{{ a.becaPorcentaje }}%</span>
+            <span class="sin-beca" *ngIf="a.becaPorcentaje === 0">Sin beca</span>
+          </div>
+
+          <div class="ar-chips">
+            <span class="chip chip-pend" *ngIf="a.pendientes > 0">⏳ {{ a.pendientes }} pendiente(s)</span>
+            <span class="chip chip-pago" *ngIf="a.pagados > 0">✅ {{ a.pagados }} pagado(s)</span>
+            <span class="chip chip-venc" *ngIf="a.vencidos > 0">⚠️ {{ a.vencidos }} vencido(s)</span>
+          </div>
+
+          <div class="ar-progreso">
+            <div class="prog-track">
+              <div class="prog-fill" [style.width.%]="getProgresoAlumno(a)"></div>
+            </div>
+            <span class="prog-pct">{{ getProgresoAlumno(a) }}%</span>
+          </div>
+
+          <div class="ar-saldo">
+            <span class="saldo-label">Saldo</span>
+            <span class="saldo-val" [class.saldo-cero]="a.saldo <= 0">{{ formatMoney(a.saldo) }}</span>
+          </div>
+
+          <div class="ar-chevron">
+            <mat-icon>{{ a.expandido ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </div>
+        </div>
+        <!-- fin alumno-row -->
+
+        <!-- ── Panel expandido ── -->
+        <div class="pagos-panel" *ngIf="a.expandido">
+
+          <!-- Resumen financiero -->
+          <div class="panel-resumen">
+            <div class="pr-item">
+              <span class="pr-label">Total a pagar</span>
+              <span class="pr-val">{{ formatMoney(a.totalFinal) }}</span>
+            </div>
+            <div class="pr-item">
+              <span class="pr-label">Descuento beca</span>
+              <span class="pr-val beca">-{{ formatMoney(a.totalDescuento) }}</span>
+            </div>
+            <div class="pr-item">
+              <span class="pr-label">Pagado</span>
+              <span class="pr-val pagado">{{ formatMoney(a.totalPagado) }}</span>
+            </div>
+            <div class="pr-item">
+              <span class="pr-label">Saldo pendiente</span>
+              <span class="pr-val" [class.saldo-cero]="a.saldo <= 0">{{ formatMoney(a.saldo) }}</span>
+            </div>
+          </div>
+
+          <!-- ✅ Alerta de pagos vencidos -->
+          <div class="alerta-vencidos" *ngIf="a.vencidos > 0">
+            <mat-icon>warning_amber</mat-icon>
+            <span>
+              Este alumno tiene <strong>{{ a.vencidos }} pago(s) vencido(s)</strong>.
+              Puedes registrarlos como cobrados o generar un recargo del
+              <strong>{{ a.becaPorcentaje }}%</strong> sobre el monto con beca aplicada.
+            </span>
+          </div>
+
+          <!-- Tabla de parcialidades -->
+          <table class="pagos-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Concepto</th>
+                <th>Monto Original</th>
+                <th>Descuento</th>
+                <th>A Pagar</th>
+                <th>Vencimiento</th>
+                <th>Fecha Pago</th>
+                <th>Estatus</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let pago of a.pagos"
+                  [class.tr-pagado]="pago.estatus === 'PAGADO'"
+                  [class.tr-vencido]="pago.estatus === 'VENCIDO'">
+
+                <!-- # Parcialidad -->
+                <td class="center">
+                  <span class="num-parcialidad" [class.np-vencido]="pago.estatus === 'VENCIDO'">
+                    {{ pago.numero_parcialidad }}°
+                  </span>
+                </td>
+
+                <!-- Concepto -->
+                <td>
+                  <span class="concepto-tag">{{ pago.concepto?.nombre || 'Pago' }}</span>
+                </td>
+
+                <!-- Monto original -->
+                <td class="monto">{{ formatMoney(pago.monto_original) }}</td>
+
+                <!-- Descuento -->
+                <td>
+                  <span *ngIf="pago.monto_descuento > 0" style="color:#059669; font-weight:600">
+                    -{{ formatMoney(pago.monto_descuento) }}
+                  </span>
+                  <span *ngIf="pago.monto_descuento === 0" style="color:#cbd5e1">—</span>
+                </td>
+
+                <!-- A pagar -->
+                <td class="monto-final">{{ formatMoney(pago.monto_final) }}</td>
+
+                <!-- Vencimiento — rojo si vencido -->
+                <td>
+                  <span class="fecha"
+                        [class.fecha-vencida]="pago.estatus === 'VENCIDO' || (pago.estatus === 'PENDIENTE' && esVencido(pago.fecha_vencimiento))">
+                    {{ pago.fecha_vencimiento | date:'dd/MM/yyyy' }}
+                  </span>
+                </td>
+
+                <!-- Fecha de pago efectivo -->
+                <td>
+                  <span *ngIf="pago.fecha_pago" style="color:#059669; font-size:0.82rem">
+                    {{ pago.fecha_pago | date:'dd/MM/yyyy' }}
+                  </span>
+                  <span *ngIf="!pago.fecha_pago" style="color:#cbd5e1">—</span>
+                </td>
+
+                <!-- Estatus badge -->
+                <td>
+                  <span class="estatus-badge"
+                        [style.color]="getEstatusConfig(pago.estatus).color"
+                        [style.background]="getEstatusConfig(pago.estatus).bg">
+                    {{ getEstatusConfig(pago.estatus).icon }} {{ pago.estatus }}
+                  </span>
+                </td>
+
+                <!-- ── Acciones ── -->
+                <td>
+                  <div class="acciones">
+
+                    <!-- PENDIENTE → marcar pagado -->
+                    <button *ngIf="pago.estatus === 'PENDIENTE'"
+                            class="act-btn pagar"
+                            (click)="cambiarEstatus(pago, 'PAGADO', a, $event)"
+                            matTooltip="Marcar como pagado">
+                      ✅ Pagado
+                    </button>
+
+                    <!-- PAGADO → revertir -->
+                    <button *ngIf="pago.estatus === 'PAGADO'"
+                            class="act-btn cancelar"
+                            (click)="cambiarEstatus(pago, 'PENDIENTE', a, $event)"
+                            matTooltip="Revertir a pendiente">
+                      ↩️ Revertir
+                    </button>
+
+                    <!-- VENCIDO → cobrar sin recargo o generar recargo -->
+                    <ng-container *ngIf="pago.estatus === 'VENCIDO'">
+                      <button class="act-btn pagar"
+                              (click)="cambiarEstatus(pago, 'PAGADO', a, $event)"
+                              matTooltip="Registrar como cobrado (sin recargo)">
+                        ✅ Cobrado
+                      </button>
+                      <button class="act-btn recargo"
+                              (click)="generarRecargo(pago, a, $event)"
+                              [matTooltip]="'Generar recargo ' + a.becaPorcentaje + '% sobre monto con beca'">
+                        ⚠️ Recargo {{ a.becaPorcentaje }}%
+                      </button>
+                    </ng-container>
+
+                  </div>
+                </td>
+
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+        <!-- fin pagos-panel -->
+
+      </div>
+      <!-- fin alumno-bloque -->
+    </div>
+  </div>
+
+  <!-- ══ VISTA: ESTADOS FINANCIEROS ══════════════════════ -->
+  <div *ngIf="vistaActiva === 'estados' && !cargando">
+
+    <div *ngIf="estadosFinancieros.length === 0" class="state-box">
+      <span style="font-size:3rem">📊</span>
+      <p>No hay estados financieros registrados</p>
+    </div>
+
+    <div *ngIf="estadosFinancieros.length > 0" class="estados-grid">
+      <div class="estado-card" *ngFor="let ef of estadosFinancieros">
+        <div class="estado-header">
+          <div class="estado-avatar">{{ (ef.estudiante?.usuario?.nombre || '?').charAt(0) }}</div>
+          <div>
+            <h3>{{ getNombre(ef.estudiante) }}</h3>
+            <span class="estado-mat">{{ ef.estudiante?.matricula }}</span>
+          </div>
+          <div class="saldo-indicator"
+               [class.al-dia]="ef.saldo === 0"
+               [class.con-saldo]="ef.saldo > 0">
+            {{ ef.saldo === 0 ? '✅ Al día' : '⚠️ Saldo' }}
+          </div>
+        </div>
+        <div class="estado-programa">{{ ef.estudiante?.programa?.nombre }}</div>
+        <div class="estado-montos">
+          <div class="em-item">
+            <span class="em-label">Total semestre</span>
+            <span class="em-val">{{ formatMoney(ef.total_semestre) }}</span>
+          </div>
+          <div class="em-item" *ngIf="ef.porcentaje_beca_aplicado > 0">
+            <span class="em-label">Beca aplicada</span>
+            <span class="em-val beca">{{ ef.porcentaje_beca_aplicado }}% (-{{ formatMoney(ef.total_descuento) }})</span>
+          </div>
+          <div class="em-item">
+            <span class="em-label">Total pagado</span>
+            <span class="em-val pagado">{{ formatMoney(ef.total_pagado) }}</span>
+          </div>
+          <div class="em-item">
+            <span class="em-label">Saldo pendiente</span>
+            <span class="em-val saldo" [class.cero]="ef.saldo === 0">{{ formatMoney(ef.saldo) }}</span>
+          </div>
+        </div>
+        <div class="progreso-pago">
+          <div class="progreso-track">
+            <div class="progreso-fill"
+                 [style.width.%]="ef.total_semestre > 0 ? (ef.total_pagado / ef.total_semestre) * 100 : 0">
+            </div>
+          </div>
+          <span class="progreso-pct">
+            {{ ef.total_semestre > 0 ? ((ef.total_pagado / ef.total_semestre) * 100).toFixed(0) : 0 }}% pagado
+          </span>
+        </div>
       </div>
     </div>
-  </mat-card>
-
-  <!-- FORMULARIO (Mostrar cuando se crea/edita) -->
-  <mat-card *ngIf="mostrarFormulario" class="formulario-card">
-    <mat-card-header>
-      <mat-card-title>
-        <mat-icon>{{ modoEdicion ? 'edit' : 'add_circle' }}</mat-icon>
-        {{ modoEdicion ? 'Editar Pago' : 'Crear Nuevo Pago' }}
-      </mat-card-title>
-    </mat-card-header>
-    
-    <mat-card-content>
-      <form [formGroup]="pagoForm" class="pago-form">
-        
-        <div class="form-row">
-          <!-- Estudiante -->
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Estudiante</mat-label>
-            <mat-select formControlName="estudiante_id" (selectionChange)="onEstudianteChange()">
-              <mat-option *ngFor="let estudiante of estudiantes" [value]="estudiante.id">
-                {{ estudiante.matricula }} - {{ getNombreEstudiante(estudiante) }}
-              </mat-option>
-            </mat-select>
-            <mat-error *ngIf="pagoForm.get('estudiante_id')?.hasError('required')">
-              Selecciona un estudiante
-            </mat-error>
-          </mat-form-field>
-          
-          <!-- Concepto -->
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Concepto de Pago</mat-label>
-            <mat-select formControlName="concepto_id" (selectionChange)="onConceptoChange()">
-              <mat-option *ngFor="let concepto of conceptos" [value]="concepto.id">
-                {{ concepto.nombre }} - {{ formatCurrency(concepto.monto_default) }}
-              </mat-option>
-            </mat-select>
-            <mat-error *ngIf="pagoForm.get('concepto_id')?.hasError('required')">
-              Selecciona un concepto
-            </mat-error>
-          </mat-form-field>
-        </div>
-
-        <div class="form-row">
-          <!-- Monto Original -->
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Monto Original</mat-label>
-            <input matInput type="number" formControlName="monto_original" min="0" step="0.01">
-            <span matPrefix>$&nbsp;</span>
-            <mat-error *ngIf="pagoForm.get('monto_original')?.hasError('required')">
-              Ingresa el monto
-            </mat-error>
-          </mat-form-field>
-          
-          <!-- Descuento -->
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Descuento (por beca)</mat-label>
-            <input matInput type="number" formControlName="monto_descuento" min="0" step="0.01">
-            <span matPrefix>$&nbsp;</span>
-            <mat-hint>El descuento se calcula automáticamente según la beca</mat-hint>
-          </mat-form-field>
-          
-          <!-- Monto Final (readonly) -->
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Monto Final a Pagar</mat-label>
-            <input matInput type="number" formControlName="monto_final" readonly>
-            <span matPrefix>$&nbsp;</span>
-            <mat-icon matSuffix matTooltip="Este monto se calcula automáticamente">info</mat-icon>
-          </mat-form-field>
-        </div>
-
-        <div class="form-row">
-          <!-- Fecha de Vencimiento -->
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Fecha de Vencimiento</mat-label>
-            <input matInput [matDatepicker]="picker" formControlName="fecha_vencimiento">
-            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
-            <mat-error *ngIf="pagoForm.get('fecha_vencimiento')?.hasError('required')">
-              Selecciona una fecha
-            </mat-error>
-          </mat-form-field>
-          
-          <!-- Estatus -->
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Estatus</mat-label>
-            <mat-select formControlName="estatus">
-              <mat-option value="PENDIENTE">Pendiente</mat-option>
-              <mat-option value="PAGADO">Pagado</mat-option>
-              <mat-option value="VENCIDO">Vencido</mat-option>
-              <mat-option value="CANCELADO">Cancelado</mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
-
-        <div class="form-row">
-          <!-- Comentarios -->
-          <mat-form-field appearance="outline" class="form-field-full">
-            <mat-label>Comentarios (opcional)</mat-label>
-            <textarea matInput formControlName="comentarios" rows="3"></textarea>
-          </mat-form-field>
-        </div>
-
-        <!-- Botones -->
-        <div class="form-actions">
-          <button mat-button (click)="cancelar()" type="button">
-            Cancelar
-          </button>
-          <button mat-raised-button color="primary" (click)="guardarPago()" [disabled]="pagoForm.invalid || isLoading">
-            <mat-icon>save</mat-icon>
-            {{ modoEdicion ? 'Actualizar' : 'Guardar' }}
-          </button>
-        </div>
-      </form>
-    </mat-card-content>
-  </mat-card>
-
-  <!-- TABLA DE PAGOS -->
-  <mat-card class="tabla-card">
-    <mat-card-content>
-      <div class="table-container">
-        <table mat-table [dataSource]="pagos" class="pagos-table">
-          
-          <!-- Columna: Estudiante -->
-          <ng-container matColumnDef="estudiante">
-            <th mat-header-cell *matHeaderCellDef>Estudiante</th>
-            <td mat-cell *matCellDef="let pago">
-              <div class="estudiante-info">
-                <span class="estudiante-nombre">{{ getNombreEstudiante(pago.estudiante) }}</span>
-                <span class="estudiante-matricula">{{ pago.estudiante?.matricula }}</span>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Columna: Concepto -->
-          <ng-container matColumnDef="concepto">
-            <th mat-header-cell *matHeaderCellDef>Concepto</th>
-            <td mat-cell *matCellDef="let pago">
-              <div class="concepto-info">
-                <span class="concepto-nombre">{{ pago.concepto?.nombre }}</span>
-                <span class="concepto-codigo">{{ pago.concepto?.codigo }}</span>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Columna: Monto Original -->
-          <ng-container matColumnDef="monto_original">
-            <th mat-header-cell *matHeaderCellDef>Monto Original</th>
-            <td mat-cell *matCellDef="let pago">
-              <span class="monto">{{ formatCurrency(pago.monto_original) }}</span>
-            </td>
-          </ng-container>
-
-          <!-- Columna: Descuento -->
-          <ng-container matColumnDef="descuento">
-            <th mat-header-cell *matHeaderCellDef>Descuento</th>
-            <td mat-cell *matCellDef="let pago">
-              <span class="monto-descuento">-{{ formatCurrency(pago.monto_descuento) }}</span>
-            </td>
-          </ng-container>
-
-          <!-- Columna: Monto Final -->
-          <ng-container matColumnDef="monto_final">
-            <th mat-header-cell *matHeaderCellDef>Monto Final</th>
-            <td mat-cell *matCellDef="let pago">
-              <span class="monto-final">{{ formatCurrency(pago.monto_final) }}</span>
-            </td>
-          </ng-container>
-
-          <!-- Columna: Fecha de Vencimiento -->
-          <ng-container matColumnDef="fecha_vencimiento">
-            <th mat-header-cell *matHeaderCellDef>Vencimiento</th>
-            <td mat-cell *matCellDef="let pago">
-              <span class="fecha">{{ pago.fecha_vencimiento | date:'dd/MM/yyyy' }}</span>
-            </td>
-          </ng-container>
-
-          <!-- Columna: Estatus -->
-          <ng-container matColumnDef="estatus">
-            <th mat-header-cell *matHeaderCellDef>Estatus</th>
-            <td mat-cell *matCellDef="let pago">
-              <span class="estatus-badge" [ngClass]="getEstatusClass(pago.estatus)">
-                {{ pago.estatus }}
-              </span>
-            </td>
-          </ng-container>
-
-          <!-- Columna: Acciones -->
-          <ng-container matColumnDef="acciones">
-            <th mat-header-cell *matHeaderCellDef>Acciones</th>
-            <td mat-cell *matCellDef="let pago">
-              <div class="acciones-buttons">
-                <button mat-icon-button color="primary" (click)="editarPago(pago)" matTooltip="Editar">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button color="warn" (click)="eliminarPago(pago)" matTooltip="Eliminar">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </div>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-
-        <!-- Mensaje si no hay datos -->
-        <div *ngIf="pagos.length === 0 && !isLoading" class="no-data">
-          <mat-icon>inbox</mat-icon>
-          <p>No hay pagos registrados</p>
-          <button mat-raised-button color="primary" (click)="nuevoPago()">
-            Crear Primer Pago
-          </button>
-        </div>
-
-        <!-- Loading -->
-        <div *ngIf="isLoading" class="loading">
-          <mat-icon class="loading-spinner">refresh</mat-icon>
-          <p>Cargando...</p>
-        </div>
-      </div>
-    </mat-card-content>
-  </mat-card>
+  </div>
 
 </div>
+
+<!-- Modal Nuevo Formato de Pago -->
+<app-nuevo-pago-modal
+  *ngIf="mostrarNuevoPago"
+  (cerrar)="mostrarNuevoPago = false"
+  (pagosCreados)="mostrarNuevoPago = false; cargarPagos()">
+</app-nuevo-pago-modal>
