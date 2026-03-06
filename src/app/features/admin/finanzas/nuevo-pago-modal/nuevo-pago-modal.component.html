@@ -1,0 +1,271 @@
+<!-- UBICACIÓN: src/app/features/admin/finanzas/nuevo-pago-modal/nuevo-pago-modal.component.html -->
+
+<div class="modal-overlay" (click)="cerrar.emit()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+
+    <!-- ══ HEADER ══════════════════════════════════════ -->
+    <div class="modal-header">
+      <div class="header-left">
+        <div class="header-icon">💰</div>
+        <div>
+          <h2>Nuevo Formato de Pago</h2>
+          <p>Genera pagos para alumnos inscritos</p>
+        </div>
+      </div>
+      <button class="btn-close" (click)="cerrar.emit()">✕</button>
+    </div>
+
+    <!-- ══ STEPPER ══════════════════════════════════════ -->
+    <div class="stepper">
+      <div class="step" [class.active]="paso >= 1" [class.done]="paso > 1">
+        <div class="step-circle">{{ paso > 1 ? '✓' : '1' }}</div>
+        <span>Concepto</span>
+      </div>
+      <div class="step-line" [class.done]="paso > 1"></div>
+      <div class="step" [class.active]="paso >= 2" [class.done]="paso > 2">
+        <div class="step-circle">{{ paso > 2 ? '✓' : '2' }}</div>
+        <span>Alumnos</span>
+      </div>
+      <div class="step-line" [class.done]="paso > 2"></div>
+      <div class="step" [class.active]="paso >= 3">
+        <div class="step-circle">3</div>
+        <span>Confirmar</span>
+      </div>
+    </div>
+
+    <!-- ══ PASO 1: SELECCIONAR CONCEPTO ════════════════ -->
+    <div class="modal-body" *ngIf="paso === 1">
+      <h3 class="paso-titulo">Selecciona el tipo de pago</h3>
+
+      <div *ngIf="cargandoConceptos" class="cargando-wrap">
+        <div class="spinner"></div> Cargando conceptos...
+      </div>
+
+      <div class="conceptos-grid" *ngIf="!cargandoConceptos">
+        <div class="concepto-card"
+             *ngFor="let c of conceptos"
+             [class.selected]="conceptoSeleccionado?.id === c.id"
+             (click)="seleccionarConcepto(c)">
+          <div class="concepto-icon">
+            {{ c.codigo === 'INS'         ? '🎓' :
+               c.codigo === 'REIN'        ? '🔄' :
+               c.codigo === 'COLEGIATURA' ? '📅' :
+               c.codigo === 'EXT'         ? '📝' :
+               c.codigo === 'CRED'        ? '💳' : '🛡️' }}
+          </div>
+          <div class="concepto-info">
+            <span class="concepto-nombre">{{ c.nombre }}</span>
+            <span class="concepto-desc">{{ c.descripcion }}</span>
+            <span class="concepto-monto">{{ formatMoney(c.monto_default || 0) }}</span>
+          </div>
+          <div class="concepto-check" *ngIf="conceptoSeleccionado?.id === c.id">✓</div>
+          <div class="concepto-badge" *ngIf="c.es_recurrente">Recurrente</div>
+        </div>
+      </div>
+
+      <!-- Nota especial para inscripción -->
+      <div class="nota-info" *ngIf="conceptoSeleccionado?.codigo === 'INS'">
+        <span>ℹ️</span>
+        <p>Al seleccionar <strong>Inscripción</strong>, se listarán únicamente los alumnos
+           de nuevo ingreso. El descuento de beca asignado durante su inscripción se aplicará
+           automáticamente.</p>
+      </div>
+
+      <!-- Nota especial para colegiatura -->
+      <div class="nota-info nota-beca" *ngIf="conceptoSeleccionado?.codigo === 'COLEGIATURA'">
+        <span>🎓</span>
+        <p>En <strong>Colegiatura</strong> se aplica automáticamente el descuento de beca
+           asignado a cada alumno.</p>
+      </div>
+    </div>
+
+    <!-- ══ PASO 2: SELECCIONAR ALUMNOS ═════════════════ -->
+    <div class="modal-body" *ngIf="paso === 2">
+      <div class="paso2-header">
+        <h3 class="paso-titulo">
+          Selecciona los alumnos
+          <span class="concepto-tag">{{ conceptoSeleccionado?.nombre }}</span>
+        </h3>
+        <span class="monto-base">
+          Monto base: <strong>{{ formatMoney(conceptoSeleccionado?.monto_default || 0) }}</strong>
+        </span>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filtros-alumno">
+        <div class="search-mini">
+          <span>🔍</span>
+          <input type="text"
+                 placeholder="Buscar por nombre, matrícula o CURP..."
+                 [(ngModel)]="busqueda"
+                 (ngModelChange)="aplicarFiltroAlumnos()">
+        </div>
+        <select [(ngModel)]="filtroBeca" (ngModelChange)="aplicarFiltroAlumnos()" class="select-beca">
+          <option value="TODOS">Todas las becas</option>
+          <option value="0">Sin beca (0%)</option>
+          <option value="5">5%</option>
+          <option value="10">10%</option>
+          <option value="15">15%</option>
+          <option value="20">20%</option>
+          <option value="25">25%</option>
+          <option value="30">30%</option>
+        </select>
+      </div>
+
+      <!-- Seleccionar todos -->
+      <div class="select-todos-bar">
+        <label class="checkbox-todos">
+          <input type="checkbox"
+                 [checked]="todosSeleccionados"
+                 (change)="toggleTodos()">
+          <span>Seleccionar todos ({{ alumnosFiltrados.length }})</span>
+        </label>
+        <span class="seleccionados-count" *ngIf="alumnosSeleccionados.length > 0">
+          ✅ {{ alumnosSeleccionados.length }} seleccionado(s)
+        </span>
+      </div>
+
+      <div *ngIf="cargandoAlumnos" class="cargando-wrap">
+        <div class="spinner"></div> Cargando alumnos...
+      </div>
+
+      <div class="alumnos-lista" *ngIf="!cargandoAlumnos">
+
+        <div *ngIf="alumnosFiltrados.length === 0" class="sin-alumnos">
+          <span>👤</span> No se encontraron alumnos
+        </div>
+
+        <div class="alumno-row"
+             *ngFor="let a of alumnosFiltrados"
+             [class.selected]="a.seleccionado"
+             (click)="toggleAlumno(a)">
+
+          <input type="checkbox" [checked]="a.seleccionado" (click)="$event.stopPropagation()">
+
+          <div class="alumno-avatar-mini">{{ (a.usuario?.nombre || '?').charAt(0) }}</div>
+
+          <div class="alumno-data">
+            <span class="alumno-nombre-mini">{{ getNombre(a) }}</span>
+            <span class="alumno-sub">{{ a.matricula }} · {{ a.programa?.nombre }}</span>
+          </div>
+
+          <div class="alumno-beca-info">
+            <!-- Solo muestra chip de beca si es COLEGIATURA y tiene beca -->
+            <span class="beca-chip"
+                  [class.sin-beca]="conceptoSeleccionado?.codigo !== 'COLEGIATURA' || !a.beca_porcentaje">
+              {{ conceptoSeleccionado?.codigo === 'COLEGIATURA' ? (a.beca_porcentaje || 0) : 0 }}% beca
+            </span>
+            <!-- ✅ FIX: precio usando getPrecioAlumno() que respeta la regla de colegiatura -->
+            <span class="monto-preview">
+              → {{ formatMoney(getPrecioAlumno(a)) }}
+            </span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PASO 3: CONFIRMAR ════════════════════════════ -->
+    <div class="modal-body" *ngIf="paso === 3">
+      <h3 class="paso-titulo">Confirmar y generar pagos</h3>
+
+      <!-- Fecha de vencimiento -->
+      <div class="fecha-wrap">
+        <label class="field-label">📅 Fecha de vencimiento <span class="req">*</span></label>
+        <input type="date" class="fecha-input" [(ngModel)]="fechaVencimiento">
+      </div>
+
+      <!-- Resumen financiero -->
+      <div class="resumen-fin">
+        <div class="resumen-item">
+          <span>Alumnos</span>
+          <strong>{{ previews.length }}</strong>
+        </div>
+        <div class="resumen-item">
+          <span>Concepto</span>
+          <strong>{{ conceptoSeleccionado?.nombre }}</strong>
+        </div>
+        <div class="resumen-item">
+          <span>Total descuentos</span>
+          <strong class="descuento">-{{ formatMoney(totalDescuento) }}</strong>
+        </div>
+        <div class="resumen-item total">
+          <span>Total a recaudar</span>
+          <strong class="total-monto">{{ formatMoney(totalMonto) }}</strong>
+        </div>
+      </div>
+
+      <!-- Tabla preview -->
+      <div class="preview-tabla-wrap">
+        <table class="preview-tabla">
+          <thead>
+            <tr>
+              <th>Alumno</th>
+              <th>Beca</th>
+              <th>Monto Original</th>
+              <th>Descuento</th>
+              <th>A Pagar</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of previews">
+              <td>
+                <div class="preview-alumno">
+                  <div class="mini-avatar">{{ (p.alumno.usuario?.nombre || '?').charAt(0) }}</div>
+                  <div>
+                    <span class="pv-nombre">{{ getNombre(p.alumno) }}</span>
+                    <span class="pv-mat">{{ p.alumno.matricula }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <!-- ✅ Solo muestra % si es COLEGIATURA y tiene beca -->
+                <span class="beca-chip" [class.sin-beca]="p.beca_pct === 0">
+                  {{ p.beca_pct > 0 ? p.beca_pct + '%' : 'Sin beca' }}
+                </span>
+              </td>
+              <td class="monto-cell">{{ formatMoney(p.monto_original) }}</td>
+              <td class="descuento-cell">
+                <span *ngIf="p.monto_descuento > 0">-{{ formatMoney(p.monto_descuento) }}</span>
+                <span *ngIf="p.monto_descuento === 0" style="color:#cbd5e1">—</span>
+              </td>
+              <td class="final-cell">{{ formatMoney(p.monto_final) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="error" class="error-banner">⚠️ {{ error }}</div>
+    </div>
+
+    <!-- ══ FOOTER ════════════════════════════════════════ -->
+    <div class="modal-footer">
+      <button class="btn-sec" (click)="paso === 1 ? cerrar.emit() : volver()">
+        {{ paso === 1 ? 'Cancelar' : '← Volver' }}
+      </button>
+
+      <button *ngIf="paso === 1"
+              class="btn-pri"
+              [disabled]="!conceptoSeleccionado"
+              (click)="irPaso2()">
+        Seleccionar alumnos →
+      </button>
+
+      <button *ngIf="paso === 2"
+              class="btn-pri"
+              [disabled]="alumnosSeleccionados.length === 0"
+              (click)="irPaso3()">
+        Vista previa ({{ alumnosSeleccionados.length }}) →
+      </button>
+
+      <button *ngIf="paso === 3"
+              class="btn-pri confirmar"
+              [disabled]="enviando || !fechaVencimiento"
+              (click)="crearPagos()">
+        <span *ngIf="!enviando">✓ Generar {{ previews.length }} pago(s)</span>
+        <span *ngIf="enviando" class="loading-text">Generando...</span>
+      </button>
+    </div>
+
+  </div>
+</div>
